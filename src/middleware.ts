@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getToken } from 'next-auth/jwt'
+import { NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
 
 const roleRoutes: Record<string, string[]> = {
   ADMIN: [
@@ -65,30 +65,21 @@ const roleRoutes: Record<string, string[]> = {
   ],
 }
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-
-  if (pathname.startsWith('/api/') || pathname.startsWith('/_next/') || pathname.includes('.')) {
-    return NextResponse.next()
-  }
+export default auth((req) => {
+  const { pathname } = req.nextUrl
 
   if (pathname === '/login' || pathname === '/register' || pathname === '/') {
     return NextResponse.next()
   }
 
-  const token = await getToken({
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET,
-  })
-
   if (pathname.startsWith('/dashboard')) {
-    if (!token) {
-      const loginUrl = new URL('/login', request.url)
+    const userRole = (req.auth?.user as any)?.role as string
+
+    if (!userRole) {
+      const loginUrl = new URL('/login', req.url)
       loginUrl.searchParams.set('callbackUrl', pathname)
       return NextResponse.redirect(loginUrl)
     }
-
-    const userRole = token.role as string
 
     const allowedRoutes = roleRoutes[userRole] || []
     const hasAccess = allowedRoutes.some(route =>
@@ -96,13 +87,13 @@ export async function middleware(request: NextRequest) {
     )
 
     if (!hasAccess) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+      return NextResponse.redirect(new URL('/dashboard', req.url))
     }
   }
 
   return NextResponse.next()
-}
+})
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api).*)'],
 }
