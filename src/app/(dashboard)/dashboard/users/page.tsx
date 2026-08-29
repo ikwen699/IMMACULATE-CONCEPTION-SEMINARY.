@@ -13,12 +13,20 @@ interface User {
   createdAt: string
   student?: {
     admissionNo: string
+    classId?: string
     class?: { name: string; section: string }
+    parentId?: string
   }
   teacher?: {
     employeeId: string
     department?: string
   }
+}
+
+interface ParentOption {
+  id: string
+  userId: string
+  user: { name: string; email: string }
 }
 
 export default function UsersPage() {
@@ -44,10 +52,34 @@ export default function UsersPage() {
     parentId: '',
     admissionNo: ''
   })
+  const [parentsList, setParentsList] = useState<ParentOption[]>([])
+  const [viewMode, setViewMode] = useState<'table' | 'card'>('table')
 
   useEffect(() => {
     fetchUsers()
   }, [roleFilter, search])
+
+  useEffect(() => {
+    if (showModal && formData.role === 'STUDENT') {
+      fetchParents()
+    }
+  }, [showModal, formData.role])
+
+  const fetchParents = async () => {
+    try {
+      const res = await fetch('/api/users?role=PARENT')
+      if (res.ok) {
+        const data = await res.json()
+        setParentsList(data.filter((u: any) => u.parent).map((u: any) => ({
+          id: u.parent.id,
+          userId: u.id,
+          user: { name: u.name, email: u.email }
+        })))
+      }
+    } catch (error) {
+      console.error('Error fetching parents:', error)
+    }
+  }
 
   const fetchUsers = async () => {
     setLoading(true)
@@ -127,8 +159,8 @@ export default function UsersPage() {
       occupation: '',
       dateOfBirth: '',
       gender: 'MALE',
-      classId: '',
-      parentId: '',
+      classId: user.student?.classId || '',
+      parentId: user.student?.parentId || '',
       admissionNo: user.student?.admissionNo || ''
     })
     setShowModal(true)
@@ -168,7 +200,7 @@ export default function UsersPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">User Management</h1>
             <p className="text-gray-500">Manage all user accounts</p>
@@ -178,6 +210,7 @@ export default function UsersPage() {
               resetForm()
               setEditingUser(null)
               setShowModal(true)
+              fetchParents()
             }}
             className="px-4 py-2 bg-blue-100 text-gray-800 rounded-lg hover:bg-blue-700 transition"
           >
@@ -206,9 +239,59 @@ export default function UsersPage() {
             <option value="PARENT">Parent</option>
             <option value="ACCOUNTANT">Accountant</option>
           </select>
+          <div className="lg:hidden flex border-2 border-gray-300 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`px-3 py-2 text-sm ${viewMode === 'table' ? 'bg-blue-100 text-blue-700' : 'text-gray-600'}`}
+            >
+              ☰
+            </button>
+            <button
+              onClick={() => setViewMode('card')}
+              className={`px-3 py-2 text-sm ${viewMode === 'card' ? 'bg-blue-100 text-blue-700' : 'text-gray-600'}`}
+            >
+              ▦
+            </button>
+          </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {viewMode === 'card' && (
+          <div className="lg:hidden space-y-3">
+            {loading ? (
+              <div className="bg-white rounded-xl p-6 text-center text-gray-500">Loading...</div>
+            ) : users.length === 0 ? (
+              <div className="bg-white rounded-xl p-6 text-center text-gray-500">No users found</div>
+            ) : (
+              users.map((user) => (
+                <div key={user.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="font-medium text-gray-900">{user.name}</div>
+                      <div className="text-sm text-gray-500">{user.email}</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleEdit(user)} className="text-blue-600 hover:text-blue-900 text-sm">Edit</button>
+                      <button onClick={() => handleDelete(user.id)} className="text-red-600 hover:text-red-900 text-sm">Delete</button>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <span className={`px-2 py-1 text-xs rounded-full ${getRoleBadgeColor(user.role)}`}>{user.role}</span>
+                    <span className={`px-2 py-1 text-xs rounded-full ${user.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{user.status}</span>
+                  </div>
+                  {(user.student || user.teacher) && (
+                    <div className="mt-2 text-sm text-gray-500">
+                      {user.student && <span>Admission: {user.student.admissionNo}</span>}
+                      {user.teacher && <span>Employee: {user.teacher.employeeId}</span>}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        <div className={`${viewMode === 'table' ? '' : 'hidden'} lg:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden`}>
+          <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
@@ -281,6 +364,7 @@ export default function UsersPage() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
 
         {showModal && (
@@ -398,6 +482,21 @@ export default function UsersPage() {
                       >
                         <option value="MALE">Male</option>
                         <option value="FEMALE">Female</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Link Parent</label>
+                      <select
+                        value={formData.parentId}
+                        onChange={(e) => setFormData({ ...formData, parentId: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-black"
+                      >
+                        <option value="">No Parent</option>
+                        {parentsList.map((parent) => (
+                          <option key={parent.id} value={parent.id}>
+                            {parent.user.name} ({parent.user.email})
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </>

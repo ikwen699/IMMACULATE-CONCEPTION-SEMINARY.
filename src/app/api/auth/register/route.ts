@@ -3,6 +3,8 @@ import { supabaseAdmin as supabase } from '@/lib/supabase-server'
 import { hashPassword } from '@/lib/auth'
 import { generateAdmissionNo, generateEmployeeId } from '@/lib/utils'
 
+const ALLOWED_ROLES = ['STUDENT', 'TEACHER', 'PARENT', 'PRINCIPAL', 'ADMIN', 'ACCOUNTANT'] as const
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -20,13 +22,14 @@ export async function POST(request: NextRequest) {
       parentPhone,
       department,
       qualification,
+      occupation,
     } = body
 
     if (!name || !email || !password || !role) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    if (!['STUDENT', 'TEACHER'].includes(role)) {
+    if (!ALLOWED_ROLES.includes(role)) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
     }
 
@@ -62,7 +65,8 @@ export async function POST(request: NextRequest) {
       let parentId: string | undefined
 
       if (parentName) {
-        const parentPassword = await hashPassword('parent123')
+        const generateRandomPassword = () => Math.random().toString(36).substring(2, 10)
+        const parentPassword = await hashPassword(generateRandomPassword())
         const { data: parentUser, error: puErr } = await supabase
           .from('User')
           .insert({
@@ -110,7 +114,34 @@ export async function POST(request: NextRequest) {
         })
 
       if (tErr) throw tErr
+    } else if (role === 'PARENT') {
+      const { error: pErr } = await supabase
+        .from('Parent')
+        .insert({
+          userId: user.id,
+          occupation: occupation || null,
+        })
+
+      if (pErr) throw pErr
+    } else if (role === 'ACCOUNTANT') {
+      const { error: aErr } = await supabase
+        .from('Accountant')
+        .insert({
+          userId: user.id,
+          employeeId: generateEmployeeId('ACC'),
+        })
+
+      if (aErr) throw aErr
+    } else if (role === 'PRINCIPAL') {
+      const { error: prErr } = await supabase
+        .from('Principal')
+        .insert({
+          userId: user.id,
+        })
+
+      if (prErr) throw prErr
     }
+    // ADMIN doesn't have a separate profile table
 
     return NextResponse.json({
       message: 'Registration successful! Your account is pending admin approval.',

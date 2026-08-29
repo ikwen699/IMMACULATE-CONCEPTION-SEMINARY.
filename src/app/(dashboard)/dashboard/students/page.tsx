@@ -15,6 +15,7 @@ interface UserWithStudent {
     admissionNo: string
     classId?: string
     class?: { name: string; section?: string }
+    parent?: { name: string; email: string } | null
   }
 }
 
@@ -36,11 +37,15 @@ export default function StudentsPage() {
   const [editClassId, setEditClassId] = useState('')
   const [editAdmissionNo, setEditAdmissionNo] = useState('')
   const [saving, setSaving] = useState(false)
+  const [viewMode, setViewMode] = useState<'table' | 'card'>('table')
 
   useEffect(() => {
-    fetchStudents()
     fetchClasses()
     fetchRole()
+  }, [])
+
+  useEffect(() => {
+    fetchStudents(search, classFilter)
   }, [search, classFilter])
 
   const fetchRole = async () => {
@@ -55,12 +60,13 @@ export default function StudentsPage() {
     }
   }
 
-  const fetchStudents = async () => {
+  const fetchStudents = async (searchTerm: string, classId: string) => {
     setLoading(true)
     try {
       const params = new URLSearchParams()
       params.append('role', 'STUDENT')
-      if (search) params.append('search', search)
+      if (searchTerm) params.append('search', searchTerm)
+      if (classId) params.append('classId', classId)
 
       const res = await fetch(`/api/users?${params}`)
       if (res.ok) {
@@ -113,7 +119,7 @@ export default function StudentsPage() {
       }
       setShowEditModal(false)
       setEditingStudent(null)
-      fetchStudents()
+      fetchStudents(search, classFilter)
     } catch (error) {
       console.error('Error updating student:', error)
     } finally {
@@ -149,9 +155,58 @@ export default function StudentsPage() {
               </option>
             ))}
           </select>
+          <div className="lg:hidden flex border-2 border-gray-300 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`px-3 py-2 text-sm ${viewMode === 'table' ? 'bg-blue-100 text-blue-700' : 'text-gray-600'}`}
+            >
+              ☰
+            </button>
+            <button
+              onClick={() => setViewMode('card')}
+              className={`px-3 py-2 text-sm ${viewMode === 'card' ? 'bg-blue-100 text-blue-700' : 'text-gray-600'}`}
+            >
+              ▦
+            </button>
+          </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {viewMode === 'card' && (
+          <div className="lg:hidden space-y-3">
+            {loading ? (
+              <div className="bg-white rounded-xl p-6 text-center text-gray-500">Loading...</div>
+            ) : students.length === 0 ? (
+              <div className="bg-white rounded-xl p-6 text-center text-gray-500">No students found</div>
+            ) : (
+              students.map((student) => (
+                <div key={student.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-sm shrink-0">
+                        {student.name ? student.name.split(' ').map(n => n[0]).join('').slice(0, 2) : '?'}
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">{student.name}</div>
+                        <div className="text-sm text-gray-500">{student.email}</div>
+                      </div>
+                    </div>
+                    {role === 'ADMIN' && (
+                      <button onClick={() => openEditModal(student)} className="text-blue-600 hover:text-blue-900 text-sm">Edit</button>
+                    )}
+                  </div>
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                    <div><span className="text-gray-500">Admission:</span> <span className="font-mono text-gray-900">{student.student?.admissionNo || 'N/A'}</span></div>
+                    <div><span className="text-gray-500">Class:</span> <span className="text-gray-900">{student.student?.class ? `${student.student.class.name}${student.student.class.section ? ` - ${student.student.class.section}` : ''}` : 'Not assigned'}</span></div>
+                    <div><span className="text-gray-500">Parent:</span> <span className="text-gray-900">{student.student?.parent?.name || 'No Parent'}</span></div>
+                    <div><span className="text-gray-500">Phone:</span> <span className="text-gray-900">{student.phone || 'N/A'}</span></div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        <div className={`${viewMode === 'table' ? '' : 'hidden'} lg:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden`}>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
@@ -159,6 +214,7 @@ export default function StudentsPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Admission No</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Class</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Parent</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
                   {role === 'ADMIN' && (
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
@@ -168,13 +224,13 @@ export default function StudentsPage() {
               <tbody className="divide-y divide-gray-200">
                 {loading ? (
                   <tr>
-                    <td colSpan={role === 'ADMIN' ? 5 : 4} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={role === 'ADMIN' ? 6 : 5} className="px-6 py-12 text-center text-gray-500">
                       Loading...
                     </td>
                   </tr>
                 ) : students.length === 0 ? (
                   <tr>
-                    <td colSpan={role === 'ADMIN' ? 5 : 4} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={role === 'ADMIN' ? 6 : 5} className="px-6 py-12 text-center text-gray-500">
                       No students found
                     </td>
                   </tr>
@@ -199,6 +255,9 @@ export default function StudentsPage() {
                         {student.student?.class
                           ? `${student.student.class.name}${student.student.class.section ? ` - ${student.student.class.section}` : ''}`
                           : 'Not assigned'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-gray-500">
+                        {student.student?.parent?.name || 'No Parent'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-gray-500">
                         {student.phone || 'N/A'}

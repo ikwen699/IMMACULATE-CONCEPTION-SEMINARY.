@@ -39,10 +39,11 @@ async function enrichStudents(students: any[]) {
   const classIds = students.map(s => s.classId).filter(Boolean)
   const studentIds = students.map(s => s.id).filter(Boolean)
 
-  const [usersRes, classesRes, gradesRes] = await Promise.all([
+  const [usersRes, classesRes, gradesRes, attendanceRes] = await Promise.all([
     userIds.length > 0 ? supabase.from('User').select('id, name, email').in('id', userIds) : { data: [] },
     classIds.length > 0 ? supabase.from('Class').select('id, name, section').in('id', classIds) : { data: [] },
     studentIds.length > 0 ? supabase.from('Grade').select('*').in('studentId', studentIds) : { data: [] },
+    studentIds.length > 0 ? supabase.from('Attendance').select('id, date, status').in('studentId', studentIds) : { data: [] },
   ])
 
   const uMap = new Map((usersRes.data || []).map(u => [u.id, u]))
@@ -70,10 +71,17 @@ async function enrichStudents(students: any[]) {
     })
   })
 
+  const attendanceByStudent = new Map<string, any[]>()
+  ;(attendanceRes.data || []).forEach((a: any) => {
+    if (!attendanceByStudent.has(a.studentId)) attendanceByStudent.set(a.studentId, [])
+    attendanceByStudent.get(a.studentId)!.push(a)
+  })
+
   return students.map(s => ({
     ...s,
     user: uMap.get(s.userId) || null,
     class: cMap.get(s.classId) || null,
     grades: gradesByStudent.get(s.id) || [],
+    attendance: attendanceByStudent.get(s.id) || [],
   }))
 }

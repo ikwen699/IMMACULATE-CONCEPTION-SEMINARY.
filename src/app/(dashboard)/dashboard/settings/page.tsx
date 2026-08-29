@@ -19,7 +19,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
-    name: 'IMMACULATE CONCEPTION SEMINARY',
+    name: 'ICS',
     address: '',
     phone: '',
     email: '',
@@ -41,7 +41,7 @@ export default function SettingsPage() {
         const data = await res.json()
         setSchoolInfo(data)
         setFormData({
-          name: data.name || 'IMMACULATE CONCEPTION SEMINARY',
+          name: data.name || 'ICS',
           address: data.address || '',
           phone: data.phone || '',
           email: data.email || '',

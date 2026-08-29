@@ -65,8 +65,8 @@ export default function Header({ onMenuToggle }: HeaderProps) {
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
           <button
             onClick={onMenuToggle}
             className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 lg:hidden"
@@ -74,12 +74,12 @@ export default function Header({ onMenuToggle }: HeaderProps) {
             <span className="mdi mdi-menu text-xl" />
           </button>
           <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-blue-800">IMMACULATE CONCEPTION SEMINARY</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-blue-800">ICS</h2>
             <p className="text-xs sm:text-sm text-blue-600">School Portal</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}

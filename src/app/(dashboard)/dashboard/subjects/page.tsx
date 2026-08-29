@@ -41,6 +41,7 @@ export default function SubjectsPage() {
     classId: '',
     teacherId: ''
   })
+  const [viewMode, setViewMode] = useState<'table' | 'card'>('table')
 
   useEffect(() => {
     fetchSubjects()
@@ -164,7 +165,7 @@ export default function SubjectsPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Subject Management</h1>
             <p className="text-gray-500">Manage all subjects and assignments</p>
@@ -201,9 +202,54 @@ export default function SubjectsPage() {
               </option>
             ))}
           </select>
+          <div className="lg:hidden flex border-2 border-gray-300 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`px-3 py-2 text-sm ${viewMode === 'table' ? 'bg-blue-100 text-blue-700' : 'text-gray-600'}`}
+            >
+              ☰
+            </button>
+            <button
+              onClick={() => setViewMode('card')}
+              className={`px-3 py-2 text-sm ${viewMode === 'card' ? 'bg-blue-100 text-blue-700' : 'text-gray-600'}`}
+            >
+              ▦
+            </button>
+          </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {viewMode === 'card' && (
+          <div className="lg:hidden space-y-3">
+            {loading ? (
+              <div className="bg-white rounded-xl p-6 text-center text-gray-500">Loading...</div>
+            ) : subjects.length === 0 ? (
+              <div className="bg-white rounded-xl p-6 text-center text-gray-500">No subjects found</div>
+            ) : (
+              subjects.map((subject) => (
+                <div key={subject.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="font-medium text-gray-900">{subject.name}</div>
+                      <div className="text-sm text-gray-500">{subject.code}</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleEdit(subject)} className="text-blue-600 hover:text-blue-900 text-sm">Edit</button>
+                      <button onClick={() => handleDelete(subject.id)} className="text-red-600 hover:text-red-900 text-sm">Delete</button>
+                    </div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                    <div><span className="text-gray-500">Class:</span> <span className="text-gray-900">{subject.class?.name || 'N/A'}{subject.class?.section ? ` - ${subject.class.section}` : ''}</span></div>
+                    <div><span className="text-gray-500">Teacher:</span> <span className="text-gray-900">{subject.teacher?.name || 'Not assigned'}</span></div>
+                    <div><span className="text-gray-500">Grades:</span> <span className="text-gray-900">{subject._count.grades}</span></div>
+                    <div><span className="text-gray-500">Assignments:</span> <span className="text-gray-900">{subject._count.assignments}</span></div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        <div className={`${viewMode === 'table' ? '' : 'hidden'} lg:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden`}>
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>

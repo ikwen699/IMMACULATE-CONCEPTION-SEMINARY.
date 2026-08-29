@@ -74,6 +74,7 @@ function StudentGradesView() {
   const [grades, setGrades] = useState<GradeEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [studentName, setStudentName] = useState('')
+  const [viewMode, setViewMode] = useState<'table' | 'card'>('table')
 
   useEffect(() => {
     fetchGrades()
@@ -97,9 +98,25 @@ function StudentGradesView() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">My Grades</h1>
-          <p className="text-gray-500">{studentName ? `Grades for ${studentName}` : 'View your academic results'}</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">My Grades</h1>
+            <p className="text-gray-500">{studentName ? `Grades for ${studentName}` : 'View your academic results'}</p>
+          </div>
+          <div className="lg:hidden flex border-2 border-gray-300 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`px-3 py-2 text-sm ${viewMode === 'table' ? 'bg-blue-100 text-blue-700' : 'text-gray-600'}`}
+            >
+              ☰
+            </button>
+            <button
+              onClick={() => setViewMode('card')}
+              className={`px-3 py-2 text-sm ${viewMode === 'card' ? 'bg-blue-100 text-blue-700' : 'text-gray-600'}`}
+            >
+              ▦
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -109,7 +126,29 @@ function StudentGradesView() {
             No grades available yet
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <>
+            {viewMode === 'card' && (
+              <div className="lg:hidden space-y-3">
+                {grades.map((g) => (
+                  <div key={g.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="font-medium text-gray-900">{g.subject?.name || 'N/A'}</div>
+                      <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                        g.score >= 70 ? 'bg-green-100 text-green-800' :
+                        g.score >= 50 ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>{g.grade}</span>
+                    </div>
+                    <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                      <div><span className="text-gray-500">Score:</span> <span className="text-gray-900">{g.score}%</span></div>
+                      <div><span className="text-gray-500">Type:</span> <span className="text-gray-900">{g.type}</span></div>
+                      <div><span className="text-gray-500">Term:</span> <span className="text-gray-900">{g.term?.name || 'N/A'}</span></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className={`${viewMode === 'table' ? '' : 'hidden'} lg:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden`}>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
@@ -143,6 +182,7 @@ function StudentGradesView() {
               </table>
             </div>
           </div>
+          </>
         )}
       </div>
     </DashboardLayout>
@@ -153,6 +193,7 @@ function ParentGradesView() {
   const [children, setChildren] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedChild, setSelectedChild] = useState<string>('')
+  const [viewMode, setViewMode] = useState<'table' | 'card'>('table')
 
   useEffect(() => {
     fetchChildren()
@@ -177,9 +218,25 @@ function ParentGradesView() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Children&apos;s Grades</h1>
-          <p className="text-gray-500">View your children&apos;s academic results</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">Children&apos;s Grades</h1>
+            <p className="text-gray-500">View your children&apos;s academic results</p>
+          </div>
+          <div className="lg:hidden flex border-2 border-gray-300 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setViewMode('table')}
+              className={`px-3 py-2 text-sm ${viewMode === 'table' ? 'bg-blue-100 text-blue-700' : 'text-gray-600'}`}
+            >
+              ☰
+            </button>
+            <button
+              onClick={() => setViewMode('card')}
+              className={`px-3 py-2 text-sm ${viewMode === 'card' ? 'bg-blue-100 text-blue-700' : 'text-gray-600'}`}
+            >
+              ▦
+            </button>
+          </div>
         </div>
 
         {loading ? (
@@ -211,7 +268,29 @@ function ParentGradesView() {
                 No grades available for {activeChild?.user?.name}
               </div>
             ) : (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <>
+                {viewMode === 'card' && (
+                  <div className="lg:hidden space-y-3">
+                    {grades.map((g: GradeEntry) => (
+                      <div key={g.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                        <div className="flex items-start justify-between">
+                          <div className="font-medium text-gray-900">{g.subject?.name || 'N/A'}</div>
+                          <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                            g.score >= 70 ? 'bg-green-100 text-green-800' :
+                            g.score >= 50 ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>{g.grade}</span>
+                        </div>
+                        <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                          <div><span className="text-gray-500">Score:</span> <span className="text-gray-900">{g.score}%</span></div>
+                          <div><span className="text-gray-500">Type:</span> <span className="text-gray-900">{g.type}</span></div>
+                          <div><span className="text-gray-500">Term:</span> <span className="text-gray-900">{g.term?.name || 'N/A'}</span></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className={`${viewMode === 'table' ? '' : 'hidden'} lg:block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden`}>
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-gray-50">
@@ -245,6 +324,7 @@ function ParentGradesView() {
                   </table>
                 </div>
               </div>
+              </>
             )}
           </>
         )}

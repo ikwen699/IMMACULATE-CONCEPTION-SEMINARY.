@@ -44,7 +44,8 @@ export async function GET(request: NextRequest) {
     const userIds = users.map(u => u.id)
 
     const { data: teachers } = await supabase.from('Teacher').select('userId, employeeId, department').in('userId', userIds)
-    const { data: students } = await supabase.from('Student').select('userId, admissionNo, classId').in('userId', userIds)
+    const { data: students } = await supabase.from('Student').select('userId, admissionNo, classId, parentId').in('userId', userIds)
+    const { data: parents } = await supabase.from('Parent').select('id, userId, occupation').in('userId', userIds)
 
     const classIds = [...new Set((students || []).map(s => s.classId).filter(Boolean))]
     const { data: classes } = classIds.length > 0
@@ -56,13 +57,34 @@ export async function GET(request: NextRequest) {
     const teacherMap = new Map((teachers || []).map(t => [t.userId, { ...t, teacherRecordId: teacherRecordMap.get(t.userId) || null }]))
     const studentMap = new Map((students || []).map(s => [s.userId, s]))
     const classMap = new Map((classes || []).map(c => [c.id, c]))
+    const parentMap = new Map((parents || []).map(p => [p.userId, p]))
+
+    // Fetch parent user info for students that have a parentId
+    const parentIds = [...new Set((students || []).map(s => s.parentId).filter(Boolean))]
+    const { data: parentRecords } = parentIds.length > 0
+      ? await supabase.from('Parent').select('id, userId').in('id', parentIds)
+      : { data: [] }
+    const parentUserIds = [...new Set((parentRecords || []).map(p => p.userId).filter(Boolean))]
+    const { data: parentUsers } = parentUserIds.length > 0
+      ? await supabase.from('User').select('id, name, email').in('id', parentUserIds)
+      : { data: [] }
+    const parentUserMap = new Map((parentUsers || []).map(u => [u.id, u]))
+    const parentRecordMap = new Map((parentRecords || []).map(p => [p.id, p]))
 
     const enriched = users.map(user => {
       const student = studentMap.get(user.id)
+      let parentInfo = null
+      if (student?.parentId) {
+        const parentRecord = parentRecordMap.get(student.parentId)
+        if (parentRecord) {
+          parentInfo = parentUserMap.get(parentRecord.userId) || null
+        }
+      }
       return {
         ...user,
         teacher: teacherMap.get(user.id) || null,
-        student: student ? { ...student, class: classMap.get(student.classId) || null } : null,
+        student: student ? { ...student, class: classMap.get(student.classId) || null, parent: parentInfo } : null,
+        parent: parentMap.get(user.id) || null,
       }
     })
 
@@ -162,7 +184,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { id, admissionNo, dateOfBirth, gender, classId, department, qualification, ...userData } = body
+    const { id, admissionNo, dateOfBirth, gender, classId, parentId, department, qualification, occupation, ...userData } = body
 
     if (!id) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 })
@@ -199,6 +221,7 @@ export async function PUT(request: NextRequest) {
       if (dateOfBirth !== undefined) studentData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth).toISOString() : null
       if (gender !== undefined) studentData.gender = gender || null
       if (classId !== undefined) studentData.classId = classId || null
+      if (parentId !== undefined && parentId !== '') studentData.parentId = parentId || null
 
       if (Object.keys(studentData).length > 0) {
         const { data: existingStudent } = await supabase.from('Student').select('id').eq('userId', id).single()
@@ -223,6 +246,17 @@ export async function PUT(request: NextRequest) {
         if (existingTeacher) {
           const { error: tErr } = await supabase.from('Teacher').update(teacherData).eq('id', existingTeacher.id)
           if (tErr) throw tErr
+        }
+      }
+    } else if (user.role === 'PARENT') {
+      const parentData: any = {}
+      if (occupation !== undefined) parentData.occupation = occupation
+
+      if (Object.keys(parentData).length > 0) {
+        const { data: existingParent } = await supabase.from('Parent').select('id').eq('userId', id).single()
+        if (existingParent) {
+          const { error: pErr } = await supabase.from('Parent').update(parentData).eq('id', existingParent.id)
+          if (pErr) throw pErr
         }
       }
     }

@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { GraduationCap, UserCog, ShieldCheck, Mail, Lock, Phone, User, Calendar, Building, Award } from 'lucide-react'
+import { GraduationCap, UserCog, ShieldCheck, Mail, Lock, Phone, User, Calendar, Building, Award, Users, Banknote } from 'lucide-react'
 
-type RegistrationRole = 'STUDENT' | 'TEACHER' | 'ADMIN'
+type RegistrationRole = 'STUDENT' | 'TEACHER' | 'PARENT' | 'PRINCIPAL' | 'ADMIN' | 'ACCOUNTANT'
 
 const roleConfig: Record<RegistrationRole, { icon: React.ReactNode; title: string; message: string }> = {
   STUDENT: {
@@ -13,15 +13,30 @@ const roleConfig: Record<RegistrationRole, { icon: React.ReactNode; title: strin
     title: 'Student Registration',
     message: 'Apply for admission as a new student',
   },
+  PARENT: {
+    icon: <Users className="w-10 h-10 text-blue-600" />,
+    title: 'Parent Registration',
+    message: 'Register as a parent/guardian',
+  },
   TEACHER: {
     icon: <UserCog className="w-10 h-10 text-blue-600" />,
     title: 'Teacher Registration',
     message: 'Register as a new teacher',
   },
+  PRINCIPAL: {
+    icon: <ShieldCheck className="w-10 h-10 text-blue-600" />,
+    title: 'Principal Registration',
+    message: 'Register as a principal',
+  },
   ADMIN: {
     icon: <ShieldCheck className="w-10 h-10 text-blue-600" />,
     title: 'Admin Registration',
     message: 'Create an admin account',
+  },
+  ACCOUNTANT: {
+    icon: <Banknote className="w-10 h-10 text-blue-600" />,
+    title: 'Accountant Registration',
+    message: 'Register as an accountant',
   },
 }
 
@@ -46,6 +61,7 @@ export default function RegisterPage() {
     parentPhone: '',
     department: '',
     qualification: '',
+    occupation: '',
   })
 
   const config = roleConfig[selectedRole]
@@ -95,25 +111,30 @@ export default function RegisterPage() {
       <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden">
         <div className="bg-blue-600 p-6 text-center">
           <img src="/school-badge.jpg" alt="School Badge" className="w-20 h-20 rounded-full mx-auto mb-3 object-cover border-2 border-white" />
-          <h1 className="text-xl font-bold text-white">IMMACULATE CONCEPTION SEMINARY</h1>
+          <h1 className="text-xl font-bold text-white">ICS</h1>
           <p className="text-blue-100 text-sm mt-1">Create Your Account</p>
         </div>
 
         <div className="border-b border-gray-200">
-          <div className="flex">
-            {(['STUDENT', 'TEACHER', 'ADMIN'] as RegistrationRole[]).map((role) => (
-              <button
-                key={role}
-                onClick={() => { setSelectedRole(role); setError(''); setSuccess('') }}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-                  selectedRole === role
-                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                {role === 'STUDENT' ? 'New Intake' : role === 'TEACHER' ? 'Teacher' : 'Admin'}
-              </button>
-            ))}
+          <div className="grid grid-cols-3 gap-1 p-2">
+            {(['STUDENT', 'PARENT', 'TEACHER', 'PRINCIPAL', 'ADMIN', 'ACCOUNTANT'] as RegistrationRole[]).map((role) => {
+              const r = roleConfig[role]
+              const active = selectedRole === role
+              return (
+                <button
+                  key={role}
+                  onClick={() => { setSelectedRole(role); setError(''); setSuccess('') }}
+                  className={`flex flex-col items-center gap-1 px-2 py-2 rounded-lg text-xs font-medium transition-colors ${
+                    active
+                      ? 'text-blue-600 bg-blue-50 border border-blue-200'
+                      : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 border border-transparent'
+                  }`}
+                >
+                  <span className="scale-75">{r.icon}</span>
+                  <span>{role.charAt(0) + role.slice(1).toLowerCase()}</span>
+                </button>
+              )
+            })}
           </div>
         </div>
 
@@ -317,6 +338,40 @@ export default function RegisterPage() {
                   </div>
                 </div>
               </>
+            )}
+
+            {selectedRole === 'PARENT' && (
+              <>
+                <div className="pt-3 border-t border-gray-200">
+                  <p className="text-sm font-medium text-gray-500 mb-3">Parent Information</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Occupation</label>
+                  <div className="relative">
+                    <Building className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      value={formData.occupation}
+                      onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
+                      className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-800 placeholder-gray-400"
+                      placeholder="e.g., Engineer, Doctor"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {(selectedRole === 'PRINCIPAL' || selectedRole === 'ADMIN' || selectedRole === 'ACCOUNTANT') && (
+              <div className="pt-3 border-t border-gray-200">
+                <p className="text-sm font-medium text-gray-500 mb-3">
+                  {selectedRole === 'PRINCIPAL' && 'Principal Registration'}
+                  {selectedRole === 'ADMIN' && 'Admin Registration'}
+                  {selectedRole === 'ACCOUNTANT' && 'Accountant Registration'}
+                </p>
+                <p className="text-xs text-gray-400">
+                  Complete the basic information above to register.
+                </p>
+              </div>
             )}
 
             <button

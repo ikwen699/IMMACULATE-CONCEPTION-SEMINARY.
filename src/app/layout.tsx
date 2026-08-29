@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "IMMACULATE CONCEPTION SEMINARY - School Portal",
-  description: "Official school portal for IMMACULATE CONCEPTION SEMINARY",
+  title: "ICS - School Portal",
+  description: "Official school portal for ICS",
 };
 
 export default function RootLayout({
