@@ -47,7 +47,7 @@ function getPaymentMethod(method?: string) {
 }
 
 export default function PaymentApprovalsPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const user = session?.user as any
   const principalName = user?.name?.split(' ')[0] || 'Principal'
   const role = user?.role || ''
@@ -62,10 +62,11 @@ export default function PaymentApprovalsPage() {
   const [viewReceipt, setViewReceipt] = useState<string | null>(null)
 
   const fetchPayments = useCallback(async () => {
+    if (status !== 'authenticated') return;
     setLoading(true)
     setError(false)
     try {
-      const res = await fetch('/api/payments?status=ACCOUNTANT_REVIEWED')
+      const res = await fetch('/api/payments?status=ACCOUNTANT_REVIEWED', { cache: 'no-store' })
       if (!res.ok) throw new Error()
       const data = await res.json()
       setPayments(data)
@@ -74,9 +75,10 @@ export default function PaymentApprovalsPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [status])
 
-  useEffect(() => { fetchPayments() }, [fetchPayments])
+  useEffect(() => { if (status !== 'authenticated') return;
+    fetchPayments() }, [fetchPayments, status])
 
   const handleApprove = async (paymentId: string) => {
     setActionLoading(true)

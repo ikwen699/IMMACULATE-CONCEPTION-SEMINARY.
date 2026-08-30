@@ -55,7 +55,7 @@ const STAT_CARDS = [
 ] as const
 
 export default function ApprovalsPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const user = session?.user as any
   const adminName = user?.name?.split(' ')[0] || 'Admin'
 
@@ -69,20 +69,22 @@ export default function ApprovalsPage() {
   const [confirmAction, setConfirmAction] = useState<{ type: 'approve' | 'reject'; user: PendingUser } | null>(null)
 
   const fetchUsers = useCallback(async (status: string) => {
+    if (status !== 'authenticated') return;
     setLoading(true); setError(false)
     try {
       const params = new URLSearchParams()
       if (status) params.append('status', status)
-      const res = await fetch(`/api/users?${params}`)
+      const res = await fetch(`/api/users?${params}`, { cache: 'no-store' })
       if (!res.ok) throw new Error()
       setUsers(await res.json())
     } catch { setError(true) } finally { setLoading(false) }
-  }, [])
+  }, [status])
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     fetchUsers(filter)
-    fetch('/api/profile').then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
-  }, [filter, fetchUsers])
+    fetch('/api/profile', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
+  }, [filter, fetchUsers, status])
 
   const handleApprove = async (userId: string) => {
     setActionLoading(true)

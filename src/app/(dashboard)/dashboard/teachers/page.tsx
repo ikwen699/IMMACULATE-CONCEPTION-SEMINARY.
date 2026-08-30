@@ -63,7 +63,7 @@ function getDeptColor(dept: string) {
 }
 
 export default function TeachersPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const user = session?.user as any
   const adminName = user?.name?.split(' ')[0] || 'Admin'
 
@@ -82,21 +82,23 @@ export default function TeachersPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const fetchTeachers = useCallback(async (q: string) => {
+    if (status !== 'authenticated') return;
     setLoading(true); setError(false)
     try {
       const params = new URLSearchParams()
       params.append('role', 'TEACHER')
       if (q) params.append('search', q)
-      const res = await fetch(`/api/users?${params}`)
+      const res = await fetch(`/api/users?${params}`, { cache: 'no-store' })
       if (!res.ok) throw new Error()
       setTeachers(await res.json())
     } catch { setError(true) } finally { setLoading(false) }
-  }, [])
+  }, [status])
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     fetchTeachers(search)
-    fetch('/api/profile').then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
-  }, [search, fetchTeachers])
+    fetch('/api/profile', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
+  }, [search, fetchTeachers, status])
 
   const handleSearch = (v: string) => {
     setSearchInput(v)
@@ -107,7 +109,7 @@ export default function TeachersPage() {
   const openAssignModal = async (teacher: UserWithTeacher) => {
     setSelectedTeacher(teacher); setShowAssignModal(true)
     try {
-      const res = await fetch('/api/classes')
+      const res = await fetch('/api/classes', { cache: 'no-store' })
       if (!res.ok) { setAssignClasses([]); return }
       const data = await res.json()
       const classList = Array.isArray(data) ? data : []
@@ -118,7 +120,7 @@ export default function TeachersPage() {
 
   const fetchSubjects = async (classId: string) => {
     try {
-      const res = await fetch(`/api/subjects?classId=${classId}`)
+      const res = await fetch(`/api/subjects?classId=${classId}`, { cache: 'no-store' })
       if (!res.ok) { setAssignSubjects([]); return }
       const data = await res.json()
       setAssignSubjects(Array.isArray(data) ? data : [])

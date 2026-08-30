@@ -29,14 +29,14 @@ export default function SettingsPage() {
   const [role, setRole] = useState('')
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     fetchSchoolInfo()
-    fetch('/api/profile').then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
-  }, [])
+    fetch('/api/profile', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
+  }, [status])
 
   const fetchSchoolInfo = async () => {
-    setLoading(true)
     try {
-      const res = await fetch('/api/settings')
+      const res = await fetch('/api/settings', { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
         if (data) {
@@ -53,8 +53,6 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error('Error fetching school info:', error)
-    } finally {
-      setLoading(false)
     }
   }
 

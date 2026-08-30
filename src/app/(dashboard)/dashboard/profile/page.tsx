@@ -29,18 +29,19 @@ interface ProfileData {
 }
 
 export default function ProfilePage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     fetchProfile()
-  }, [])
+  }, [status])
 
   const fetchProfile = async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/profile')
+      const res = await fetch('/api/profile', { cache: 'no-store' })
       if (!res.ok) { setProfile(null); return }
       const data = await res.json()
       setProfile(data)

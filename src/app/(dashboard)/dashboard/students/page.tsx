@@ -49,7 +49,7 @@ function getAvatarColor(name: string) {
 }
 
 export default function StudentsPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const user = session?.user as any
   const adminName = user?.name?.split(' ')[0] || 'Admin'
 
@@ -70,31 +70,39 @@ export default function StudentsPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const fetchStudents = useCallback(async (q: string, classId: string) => {
+    if (status !== 'authenticated') return;
     setLoading(true); setError(false)
     try {
       const params = new URLSearchParams()
       params.append('role', 'STUDENT')
       if (q) params.append('search', q)
       if (classId) params.append('classId', classId)
-      const res = await fetch(`/api/users?${params}`)
+      const res = await fetch(`/api/users?${params}`, { cache: 'no-store' })
       if (!res.ok) throw new Error()
       setStudents(Array.isArray(await res.json()) ? await res.json() : [])
     } catch { setError(true) } finally { setLoading(false) }
-  }, [])
+  }, [status])
 
   const fetchClasses = useCallback(async () => {
+    if (status !== 'authenticated') return;
     try {
-      const res = await fetch('/api/classes')
+      const res = await fetch('/api/classes', { cache: 'no-store' })
       if (res.ok) { const data = await res.json(); setClasses(Array.isArray(data) ? data : []) }
     } catch {}
-  }, [])
+  }, [status])
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     fetchClasses()
-    fetch('/api/profile').then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
-  }, [])
+    fetch('/api/profile', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
+  }, [status])
 
-  useEffect(() => { fetchStudents(search, classFilter) }, [search, classFilter, fetchStudents])
+  const fetchStudentsRef = useRef(fetchStudents)
+  fetchStudentsRef.current = fetchStudents
+  useEffect(() => {
+    if (status !== 'authenticated') return;
+    fetchStudentsRef.current(search, classFilter)
+  }, [search, classFilter, status])
 
   const handleSearch = (v: string) => {
     setSearchInput(v)

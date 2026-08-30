@@ -67,7 +67,7 @@ function getDeptColor(dept?: string) {
 }
 
 export default function StaffPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const user = session?.user as any
   const principalName = user?.name?.split(' ')[0] || 'Principal'
 
@@ -80,12 +80,13 @@ export default function StaffPage() {
   const [searchInput, setSearchInput] = useState('')
 
   const fetchTeachers = useCallback(async (q: string) => {
+    if (status !== 'authenticated') return;
     setLoading(true)
     setError(false)
     try {
       const params = new URLSearchParams({ role: 'TEACHER' })
       if (q) params.append('search', q)
-      const res = await fetch(`/api/users?${params}`)
+      const res = await fetch(`/api/users?${params}`, { cache: 'no-store' })
       if (!res.ok) throw new Error()
       const data = await res.json()
       setTeachers(data)
@@ -94,9 +95,10 @@ export default function StaffPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [status])
 
-  useEffect(() => { fetchTeachers(search) }, [fetchTeachers, search])
+  useEffect(() => { if (status !== 'authenticated') return;
+    fetchTeachers(search) }, [fetchTeachers, search, status])
 
   const handleSearch = (value: string) => {
     setSearchInput(value)

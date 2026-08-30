@@ -89,7 +89,7 @@ function SchoolBadge({ className }: { className?: string }) {
   return (
     <div className={cn('relative', className)}>
       {/* Glow ring behind the badge */}
-      <div className="absolute inset-0 rounded-full bg-white/20 blur-xl scale-110" />
+      <div className="absolute inset-0 rounded-full bg-white/20 blur-lg scale-105" />
       <img
         src="/school-badge.jpg"
         alt="ICS School Badge"
@@ -146,13 +146,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-slate-50">
+    <div className="min-h-screen flex bg-gradient-to-b from-blue-50 via-white to-blue-100">
       {/* ── Left brand panel (desktop) ─────────────────────────────── */}
-      <div className="hidden xl:flex w-[44%] relative flex-col overflow-hidden bg-gradient-to-br from-blue-800 via-blue-900 to-indigo-950">
+      <div className="hidden xl:flex w-[44%] relative flex-col overflow-hidden bg-gradient-to-br from-blue-600 via-blue-500 to-white">
         {/* Decorative elements */}
-        <div className="absolute -top-40 -left-40 w-[30rem] h-[30rem] bg-blue-500/15 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-[26rem] h-[26rem] bg-indigo-500/15 rounded-full blur-3xl" />
-        <div className="absolute top-1/4 right-16 w-56 h-56 bg-sky-400/10 rounded-full blur-2xl" />
+        <div className="absolute -top-40 -left-40 w-[30rem] h-[30rem] bg-blue-400/30 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-[26rem] h-[26rem] bg-sky-300/30 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 right-16 w-56 h-56 bg-white/40 rounded-full blur-2xl" />
         {/* Subtle grid overlay */}
         <div className="absolute inset-0 opacity-[0.04] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:48px_48px]" />
 
@@ -161,13 +161,13 @@ export default function LoginPage() {
           <div className="flex flex-col items-center text-center -mt-6">
             <SchoolBadge className="w-40 h-40 mb-6" />
             <div>
-              <p className="inline-flex items-center gap-1.5 text-xs font-medium text-sky-300 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur">
+              <p className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-800 bg-white/60 px-3 py-1.5 rounded-full backdrop-blur">
                 <School className="w-3.5 h-3.5" />
                 ESTABLISHED &middot; EXCELLENCE IN EDUCATION
               </p>
-              <h1 className="text-3xl font-bold text-white mt-3 leading-tight tracking-wide">
+              <h1 className="text-3xl font-bold text-blue-900 mt-3 leading-tight tracking-wide">
                 IMMACULATE CONCEPTION
-                <span className="block text-lg font-semibold text-sky-300 tracking-[0.3em] mt-1">
+                <span className="block text-lg font-semibold text-blue-700 tracking-[0.3em] mt-1">
                   SCHOOL PORTAL
                 </span>
               </h1>
@@ -176,12 +176,12 @@ export default function LoginPage() {
 
           {/* Middle: messaging + features */}
           <div className="my-auto py-10 text-center">
-            <h2 className="text-3xl xl:text-4xl font-bold text-white leading-tight">
+            <h2 className="text-3xl xl:text-4xl font-bold text-blue-900 leading-tight">
               One portal for your
               <br />
               entire school journey.
             </h2>
-            <p className="text-blue-100/80 mt-4 text-base leading-relaxed max-w-md mx-auto">
+            <p className="text-blue-900/70 mt-4 text-base leading-relaxed max-w-md mx-auto">
               Access academic records, attendance, fees and announcements from a single secure
               sign-in — no matter your role.
             </p>
@@ -190,10 +190,10 @@ export default function LoginPage() {
               {features.map((f, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-3.5 text-blue-50 text-left animate-fade-in"
+                  className="flex items-center gap-3.5 text-blue-900 text-left animate-fade-in"
                   style={{ animationDelay: `${i * 120}ms` }}
                 >
-                  <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 ring-1 ring-white/15 text-sky-300 shrink-0">
+                  <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/60 ring-1 ring-blue-200 text-blue-700 shrink-0">
                     {f.icon}
                   </span>
                   <p className="text-sm font-medium">{f.text}</p>
@@ -203,7 +203,7 @@ export default function LoginPage() {
           </div>
 
           {/* Bottom: contact + copyright */}
-          <div className="flex flex-col gap-3 text-xs text-blue-200/80 text-center">
+          <div className="flex flex-col gap-3 text-xs text-blue-900/70 text-center">
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
               <span className="flex items-center gap-1.5">
                 <MapPin className="w-4 h-4" /> Main Campus, Nigeria
@@ -212,24 +212,30 @@ export default function LoginPage() {
                 <Phone className="w-4 h-4" /> +234 (0) 000 000 0000
               </span>
             </div>
-            <p>&copy; {new Date().getFullYear()} Immaculate Conception School. All rights reserved.</p>
+            <p>&copy; 2026 Immaculate Conception School. All rights reserved.</p>
           </div>
         </div>
       </div>
 
       {/* ── Form panel ─────────────────────────────────────────────── */}
-      <div className="flex-1 flex items-center justify-center py-8 px-4 sm:px-6 bg-slate-50">
+      <div className="flex-1 flex items-center justify-center py-6 px-4 sm:px-6 xl:py-8">
         <div className="w-full max-w-md">
           {/* Mobile / tablet: compact brand header with badge */}
           <div className="flex flex-col items-center mb-8 xl:hidden animate-fade-in">
-            <SchoolBadge className="w-28 h-28 mb-4" />
-            <h1 className="text-lg font-bold text-blue-900 leading-tight text-center tracking-wide">
-              IMMACULATE CONCEPTION
-              <span className="block text-xs font-semibold text-blue-600 tracking-[0.3em] mt-1">
-                SCHOOL PORTAL
-              </span>
-            </h1>
-            <p className="text-sm text-gray-500 mt-3">Sign in to continue</p>
+            <div className="relative w-full max-w-md -mx-4 rounded-b-3xl bg-gradient-to-b from-blue-600 via-blue-500 to-blue-100 px-6 pt-10 pb-14 overflow-hidden">
+              <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/20 rounded-full blur-2xl" />
+              <div className="absolute -bottom-20 -left-10 w-56 h-56 bg-blue-300/30 rounded-full blur-2xl" />
+              <div className="relative flex flex-col items-center text-center">
+                <SchoolBadge className="w-28 h-28 sm:w-32 sm:h-32 mb-5" />
+                <h1 className="text-xl font-bold text-white leading-tight text-center tracking-wide drop-shadow-sm">
+                  IMMACULATE CONCEPTION
+                  <span className="block text-xs font-semibold text-blue-100 tracking-[0.3em] mt-1.5">
+                    SCHOOL PORTAL
+                  </span>
+                </h1>
+                <p className="text-sm text-blue-50/90 mt-3 font-medium">Sign in to continue</p>
+              </div>
+            </div>
           </div>
 
           {/* Desktop card header */}
@@ -261,6 +267,7 @@ export default function LoginPage() {
             <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
               Continue as
             </p>
+            {/* Role selector grid */}
             <div className="grid grid-cols-3 gap-2">
               {roles.map((role) => {
                 const r = roleConfig[role]
@@ -272,16 +279,16 @@ export default function LoginPage() {
                     onClick={() => setSelectedRole(role)}
                     aria-pressed={active}
                     className={cn(
-                      'relative flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border-2 text-xs font-medium transition-all duration-200',
+                      'relative flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border-2 text-xs font-bold transition-all duration-200',
                       active
                         ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm'
-                        : 'border-gray-200 bg-white text-gray-500 hover:border-blue-200 hover:bg-blue-50/40 hover:text-blue-600'
+                        : 'border-gray-200 bg-white text-gray-600 hover:border-blue-200 hover:bg-blue-50/40 hover:text-blue-600'
                     )}
                   >
                     <span className={cn('transition-colors', active ? 'text-blue-600' : 'text-gray-400')}>
                       {r.icon}
                     </span>
-                    <span className="truncate w-full text-center">{r.label}</span>
+                    <span className="truncate w-full text-center font-bold">{r.label}</span>
                     {active && (
                       <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-blue-600 text-white rounded-full flex items-center justify-center">
                         <Check className="w-3 h-3" strokeWidth={3} />
@@ -371,8 +378,8 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2.5 cursor-pointer select-none group">
+            <div className="flex items-center justify-between gap-2">
+              <label className="flex items-center gap-2.5 cursor-pointer select-none group min-w-0">
                 <button
                   type="button"
                   role="checkbox"
@@ -387,10 +394,10 @@ export default function LoginPage() {
                 >
                   {rememberMe && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
                 </button>
-                <span className="text-sm text-gray-600">Remember me</span>
+                <span className="text-sm text-gray-600 whitespace-nowrap">Remember me</span>
               </label>
 
-              <span className="text-xs text-gray-400 flex items-center gap-1">
+              <span className="text-xs text-gray-400 flex items-center gap-1 shrink-0">
                 <ShieldCheck className="w-4 h-4 text-green-500" />
                 Secure sign-in
               </span>

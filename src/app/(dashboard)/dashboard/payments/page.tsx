@@ -55,7 +55,7 @@ function formatCurrency(amount: number) {
 }
 
 export default function PaymentsPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const user = session?.user as any
   const adminName = user?.name?.split(' ')[0] || 'Admin'
 
@@ -75,17 +75,19 @@ export default function PaymentsPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const fetchPayments = useCallback(async () => {
+    if (status !== 'authenticated') return;
     setLoading(true); setError(false)
     try {
-      const res = await fetch('/api/payments')
+      const res = await fetch('/api/payments', { cache: 'no-store' })
       if (!res.ok) throw new Error()
       setPayments(await res.json())
     } catch { setError(true) } finally { setLoading(false) }
-  }, [])
+  }, [status])
 
   const fetchStudents = useCallback(async () => {
+    if (status !== 'authenticated') return;
     try {
-      const r = await fetch('/api/users?role=STUDENT')
+      const r = await fetch('/api/users?role=STUDENT', { cache: 'no-store' })
       if (r.ok) {
         const data = await r.json()
         setStudents(data.filter((u: any) => u.student).map((u: any) => ({
@@ -93,16 +95,18 @@ export default function PaymentsPage() {
         })))
       }
     } catch {}
-  }, [])
+  }, [status])
 
   const fetchFees = useCallback(async () => {
-    try { const r = await fetch('/api/fees'); if (r.ok) setFees(await r.json()) } catch {}
-  }, [])
+    if (status !== 'authenticated') return;
+    try { const r = await fetch('/api/fees', { cache: 'no-store' }); if (r.ok) setFees(await r.json()) } catch {}
+  }, [status])
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     fetchPayments(); fetchStudents(); fetchFees()
-    fetch('/api/profile').then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
-  }, [fetchPayments, fetchStudents, fetchFees])
+    fetch('/api/profile', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
+  }, [fetchPayments, fetchStudents, fetchFees, status])
 
   const handleSearch = (v: string) => {
     setSearchInput(v)

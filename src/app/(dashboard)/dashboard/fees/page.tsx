@@ -47,7 +47,7 @@ function getDueDateStatus(dueDate?: string): { label: string; color: string; bg:
 }
 
 export default function FeesPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const user = session?.user as any
   const adminName = user?.name?.split(' ')[0] || 'Admin'
 
@@ -69,26 +69,30 @@ export default function FeesPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const fetchFees = useCallback(async () => {
+    if (status !== 'authenticated') return;
     setLoading(true); setError(false)
     try {
-      const res = await fetch('/api/fees')
+      const res = await fetch('/api/fees', { cache: 'no-store' })
       if (!res.ok) throw new Error()
       setFees(Array.isArray(await res.json()) ? await res.json() : [])
     } catch { setError(true) } finally { setLoading(false) }
-  }, [])
+  }, [status])
 
   const fetchClasses = useCallback(async () => {
-    try { const r = await fetch('/api/classes'); if (r.ok) setClasses(Array.isArray(await r.json()) ? await r.json() : []) } catch {}
-  }, [])
+    if (status !== 'authenticated') return;
+    try { const r = await fetch('/api/classes', { cache: 'no-store' }); if (r.ok) setClasses(Array.isArray(await r.json()) ? await r.json() : []) } catch {}
+  }, [status])
 
   const fetchSessions = useCallback(async () => {
-    try { const r = await fetch('/api/sessions'); if (r.ok) setSessions(await r.json()) } catch {}
-  }, [])
+    if (status !== 'authenticated') return;
+    try { const r = await fetch('/api/sessions', { cache: 'no-store' }); if (r.ok) setSessions(await r.json()) } catch {}
+  }, [status])
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     fetchFees(); fetchClasses(); fetchSessions()
-    fetch('/api/profile').then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
-  }, [fetchFees, fetchClasses, fetchSessions])
+    fetch('/api/profile', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
+  }, [fetchFees, fetchClasses, fetchSessions, status])
 
   const handleSearch = (v: string) => {
     setSearchInput(v)

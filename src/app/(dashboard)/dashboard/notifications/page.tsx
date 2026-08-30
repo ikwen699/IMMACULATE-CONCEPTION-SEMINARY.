@@ -45,10 +45,11 @@ export default function NotificationsPage() {
   const clearAllTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const fetchNotifications = useCallback(async () => {
+    if (status !== 'authenticated') return;
     setLoading(true)
     setError(false)
     try {
-      const res = await fetch('/api/notifications')
+      const res = await fetch('/api/notifications', { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
         setNotifications(Array.isArray(data.notifications) ? data.notifications : [])
@@ -60,13 +61,15 @@ export default function NotificationsPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [status])
 
-  useEffect(() => { fetchNotifications() }, [fetchNotifications])
+  useEffect(() => { if (status !== 'authenticated') return;
+    fetchNotifications() }, [fetchNotifications, status])
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     return () => { if (clearAllTimeoutRef.current) clearTimeout(clearAllTimeoutRef.current) }
-  }, [])
+  }, [status])
 
   const markAsRead = async (notificationId?: string) => {
     try {

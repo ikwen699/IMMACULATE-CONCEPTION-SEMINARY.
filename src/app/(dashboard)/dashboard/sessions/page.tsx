@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 
 interface Term {
@@ -34,16 +35,18 @@ export default function SessionsPage() {
     terms: [{ name: '', startDate: '', endDate: '' }]
   })
   const [role, setRole] = useState('')
+  const { status } = useSession()
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     fetchSessions()
-    fetch('/api/profile').then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
-  }, [])
+    fetch('/api/profile', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
+  }, [status])
 
   const fetchSessions = async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/sessions')
+      const res = await fetch('/api/sessions', { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
         setSessions(data)

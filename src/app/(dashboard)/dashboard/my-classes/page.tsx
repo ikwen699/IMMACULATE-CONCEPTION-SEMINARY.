@@ -81,20 +81,21 @@ export default function MyClassesPage() {
   const [error, setError] = useState(false)
 
   const fetchData = useCallback(async () => {
+    if (status !== 'authenticated') return;
     setLoading(true)
     setError(false)
     try {
-      const profileRes = await fetch('/api/profile')
+      const profileRes = await fetch('/api/profile', { cache: 'no-store' })
       if (!profileRes.ok) { setError(true); return }
       const profile = await profileRes.json()
       const classId = profile?.student?.classId
       if (!classId) { setLoading(false); return }
 
       const [classesRes, subjectsRes, timetableRes, studentsRes] = await Promise.all([
-        fetch('/api/classes'),
-        fetch(`/api/subjects?classId=${classId}`),
-        fetch(`/api/timetable?classId=${classId}`),
-        fetch(`/api/users?role=STUDENT&classId=${classId}`),
+        fetch('/api/classes', { cache: 'no-store' }),
+        fetch(`/api/subjects?classId=${classId}`, { cache: 'no-store' }),
+        fetch(`/api/timetable?classId=${classId}`, { cache: 'no-store' }),
+        fetch(`/api/users?role=STUDENT&classId=${classId}`, { cache: 'no-store' }),
       ])
 
       if (classesRes.ok) {
@@ -112,9 +113,10 @@ export default function MyClassesPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [status])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { if (status !== 'authenticated') return;
+    fetchData() }, [fetchData, status])
 
   const today = new Date()
   const dayIndex = today.getDay() === 0 ? 6 : today.getDay() - 1

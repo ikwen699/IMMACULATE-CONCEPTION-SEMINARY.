@@ -48,7 +48,7 @@ function getSubjectColor(name: string) {
 }
 
 export default function SubjectsPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const user = session?.user as any
   const adminName = user?.name?.split(' ')[0] || 'Admin'
 
@@ -69,33 +69,38 @@ export default function SubjectsPage() {
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const fetchSubjects = useCallback(async (q: string, classId: string) => {
+    if (status !== 'authenticated') return;
     setLoading(true); setError(false)
     try {
       const params = new URLSearchParams()
       if (q) params.append('search', q)
       if (classId) params.append('classId', classId)
-      const res = await fetch(`/api/subjects?${params}`)
+      const res = await fetch(`/api/subjects?${params}`, { cache: 'no-store' })
       if (!res.ok) throw new Error()
       setSubjects(await res.json())
     } catch { setError(true) } finally { setLoading(false) }
-  }, [])
+  }, [status])
 
   const fetchClasses = useCallback(async () => {
-    try { const r = await fetch('/api/classes'); if (r.ok) setClasses(await r.json()) } catch {}
-  }, [])
+    if (status !== 'authenticated') return;
+    try { const r = await fetch('/api/classes', { cache: 'no-store' }); if (r.ok) setClasses(await r.json()) } catch {}
+  }, [status])
 
   const fetchTeachers = useCallback(async () => {
+    if (status !== 'authenticated') return;
     try {
-      const r = await fetch('/api/users?role=TEACHER')
+      const r = await fetch('/api/users?role=TEACHER', { cache: 'no-store' })
       if (r.ok) {
         const d = await r.json()
         setTeachers(d.map((t: any) => ({ id: t.id, teacherRecordId: t.teacher?.teacherRecordId || null, name: t.name })))
       }
     } catch {}
-  }, [])
+  }, [status])
 
-  useEffect(() => { fetchClasses(); fetchTeachers() }, [fetchClasses, fetchTeachers])
-  useEffect(() => { fetchSubjects(search, classFilter) }, [search, classFilter, fetchSubjects])
+  useEffect(() => { if (status !== 'authenticated') return;
+    fetchClasses(); fetchTeachers() }, [fetchClasses, fetchTeachers, status])
+  useEffect(() => { if (status !== 'authenticated') return;
+    fetchSubjects(search, classFilter) }, [search, classFilter, fetchSubjects, status])
 
   const handleSearch = (v: string) => {
     setSearchInput(v)

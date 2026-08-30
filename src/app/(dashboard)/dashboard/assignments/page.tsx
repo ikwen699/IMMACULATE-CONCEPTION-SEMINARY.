@@ -42,21 +42,23 @@ export default function AssignmentsPage() {
   })
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     fetchRole()
     fetchAssignments()
     fetchSubjects()
     fetchClasses()
-  }, [])
+  }, [status])
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     if (role === 'STUDENT' && assignments.length > 0) {
       fetchSubmissionStatuses()
     }
-  }, [role, assignments])
+  }, [role, assignments, status])
 
   const fetchRole = async () => {
     try {
-      const res = await fetch('/api/profile')
+      const res = await fetch('/api/profile', { cache: 'no-store' })
       const data = await res.json()
       setRole(data.role || '')
       if (data.role === 'STUDENT') {
@@ -76,7 +78,7 @@ export default function AssignmentsPage() {
   const fetchAssignments = async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/assignments')
+      const res = await fetch('/api/assignments', { cache: 'no-store' })
       if (!res.ok) { setAssignments([]); return }
       const data = await res.json()
       setAssignments(Array.isArray(data) ? data : [])
@@ -89,7 +91,7 @@ export default function AssignmentsPage() {
 
   const fetchSubjects = async () => {
     try {
-      const res = await fetch('/api/subjects')
+      const res = await fetch('/api/subjects', { cache: 'no-store' })
       if (!res.ok) { setSubjects([]); return }
       const data = await res.json()
       setSubjects(Array.isArray(data) ? data : [])
@@ -100,7 +102,7 @@ export default function AssignmentsPage() {
 
   const fetchClasses = async () => {
     try {
-      const res = await fetch('/api/classes')
+      const res = await fetch('/api/classes', { cache: 'no-store' })
       if (!res.ok) { setClasses([]); return }
       const data = await res.json()
       setClasses(Array.isArray(data) ? data : [])
@@ -113,7 +115,7 @@ export default function AssignmentsPage() {
     try {
       const statuses: SubmissionStatus = {}
       for (const assignment of assignments) {
-        const res = await fetch(`/api/submissions?assignmentId=${assignment.id}`)
+        const res = await fetch(`/api/submissions?assignmentId=${assignment.id}`, { cache: 'no-store' })
         const data = await res.json()
         statuses[assignment.id] = data.submitted || false
       }

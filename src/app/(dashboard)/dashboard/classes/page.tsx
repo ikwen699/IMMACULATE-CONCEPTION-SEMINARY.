@@ -41,7 +41,7 @@ function getInitials(name: string, section?: string) {
 }
 
 export default function ClassesPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const user = session?.user as any
   const principalName = user?.name?.split(' ')[0] || 'Principal'
   const isAdmin = user?.role === 'ADMIN'
@@ -60,12 +60,13 @@ export default function ClassesPage() {
   const [formData, setFormData] = useState({ name: '', section: '', classTeacherId: '', capacity: 40 })
 
   const fetchClasses = useCallback(async (q: string) => {
+    if (status !== 'authenticated') return;
     setLoading(true)
     setError(false)
     try {
       const params = new URLSearchParams()
       if (q) params.append('search', q)
-      const res = await fetch(`/api/classes?${params}`)
+      const res = await fetch(`/api/classes?${params}`, { cache: 'no-store' })
       if (!res.ok) throw new Error()
       const data = await res.json()
       setClasses(data)
@@ -74,11 +75,12 @@ export default function ClassesPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [status])
 
   const fetchTeachers = useCallback(async () => {
+    if (status !== 'authenticated') return;
     try {
-      const res = await fetch('/api/users?role=TEACHER')
+      const res = await fetch('/api/users?role=TEACHER', { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
         setTeachers(data.map((t: any) => ({
@@ -89,10 +91,12 @@ export default function ClassesPage() {
         })))
       }
     } catch {}
-  }, [])
+  }, [status])
 
-  useEffect(() => { fetchClasses(search) }, [fetchClasses, search])
-  useEffect(() => { fetchTeachers() }, [fetchTeachers])
+  useEffect(() => { if (status !== 'authenticated') return;
+    fetchClasses(search) }, [fetchClasses, search, status])
+  useEffect(() => { if (status !== 'authenticated') return;
+    fetchTeachers() }, [fetchTeachers, status])
 
   const handleSearch = (value: string) => {
     setSearchInput(value)

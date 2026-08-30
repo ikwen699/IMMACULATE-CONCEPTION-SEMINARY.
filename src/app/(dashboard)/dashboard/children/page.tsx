@@ -95,7 +95,7 @@ function timeAgo(date: string) {
 }
 
 export default function ChildrenPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const user = session?.user as any
   const parentName = user?.name?.split(' ')[0] || 'Parent'
 
@@ -105,10 +105,11 @@ export default function ChildrenPage() {
   const [selectedChild, setSelectedChild] = useState<Child | null>(null)
 
   const fetchChildren = useCallback(async () => {
+    if (status !== 'authenticated') return;
     setLoading(true)
     setError(false)
     try {
-      const res = await fetch('/api/children')
+      const res = await fetch('/api/children', { cache: 'no-store' })
       if (res.ok) {
         setChildren(await res.json())
       } else {
@@ -119,18 +120,20 @@ export default function ChildrenPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [status])
 
-  useEffect(() => { fetchChildren() }, [fetchChildren])
+  useEffect(() => { if (status !== 'authenticated') return;
+    fetchChildren() }, [fetchChildren, status])
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     if (!selectedChild) return
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setSelectedChild(null)
     }
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [selectedChild])
+  }, [selectedChild, status])
 
   const calcAttendance = (att: Child['attendance']) => {
     if (!att.length) return 0

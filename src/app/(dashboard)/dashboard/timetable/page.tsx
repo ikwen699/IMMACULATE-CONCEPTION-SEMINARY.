@@ -102,15 +102,16 @@ export default function TimetablePage() {
   const [formData, setFormData] = useState({ subjectId: '', day: 'Monday', startTime: '08:00', endTime: '09:00' })
 
   const fetchProfile = useCallback(async () => {
+    if (status !== 'authenticated') return;
     try {
-      const res = await fetch('/api/profile')
+      const res = await fetch('/api/profile', { cache: 'no-store' })
       const profile = await res.json()
       setRole(profile.role || '')
       if (profile.role === 'TEACHER') {
         const tId = profile.teacher?.id
         if (tId) {
           setTeacherId(tId)
-          const classRes = await fetch('/api/classes')
+          const classRes = await fetch('/api/classes', { cache: 'no-store' })
           const classData = await classRes.json()
           setClasses(classData)
           if (classData.length > 0) setSelectedClass(classData[0].id)
@@ -118,39 +119,43 @@ export default function TimetablePage() {
       } else if (profile.role === 'STUDENT') {
         setSelectedClass(profile.student?.classId || '')
       } else {
-        const classRes = await fetch('/api/classes')
+        const classRes = await fetch('/api/classes', { cache: 'no-store' })
         if (classRes.ok) setClasses(Array.isArray(await classRes.json()) ? await classRes.json() : [])
       }
     } catch { setError(true) }
     finally { setLoading(false) }
-  }, [])
+  }, [status])
 
-  useEffect(() => { fetchProfile() }, [fetchProfile])
+  useEffect(() => { if (status !== 'authenticated') return;
+    fetchProfile() }, [fetchProfile, status])
 
   const fetchTimetable = useCallback(async () => {
+    if (status !== 'authenticated') return;
     if (!selectedClass) return
     try {
-      const res = await fetch(`/api/timetable?classId=${selectedClass}`)
+      const res = await fetch(`/api/timetable?classId=${selectedClass}`, { cache: 'no-store' })
       if (res.ok) setTimetable(Array.isArray(await res.json()) ? await res.json() : [])
     } catch { setError(true) }
-  }, [selectedClass])
+  }, [selectedClass, status])
 
   const fetchSubjects = useCallback(async (classId: string) => {
+    if (status !== 'authenticated') return;
     try {
-      const res = await fetch(`/api/subjects?classId=${classId}`)
+      const res = await fetch(`/api/subjects?classId=${classId}`, { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
         setSubjects(role === 'TEACHER' ? data.filter((s: any) => s.teacherId === teacherId) : data)
       }
     } catch { /* ignore */ }
-  }, [role, teacherId])
+  }, [role, teacherId, status])
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     if (selectedClass) {
       fetchTimetable()
       if (role === 'TEACHER' || role === 'ADMIN') fetchSubjects(selectedClass)
     }
-  }, [selectedClass, role, fetchTimetable, fetchSubjects])
+  }, [selectedClass, role, fetchTimetable, fetchSubjects, status])
 
   const handleCreate = async () => {
     try {

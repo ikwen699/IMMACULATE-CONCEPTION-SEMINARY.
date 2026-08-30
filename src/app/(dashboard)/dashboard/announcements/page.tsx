@@ -76,7 +76,7 @@ export default function AnnouncementsPage() {
 
   const fetchRole = async () => {
     try {
-      const res = await fetch('/api/profile')
+      const res = await fetch('/api/profile', { cache: 'no-store' })
       const data = await res.json()
       setRole(data.role || '')
     } catch (error) {
@@ -87,7 +87,7 @@ export default function AnnouncementsPage() {
   const fetchAnnouncements = async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/announcements')
+      const res = await fetch('/api/announcements', { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
         setAnnouncements(Array.isArray(data) ? data : [])
@@ -100,17 +100,20 @@ export default function AnnouncementsPage() {
   }
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     fetchAnnouncements()
     fetchRole()
-  }, [])
+  }, [status])
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     if (showModal) {
       setTimeout(() => titleInputRef.current?.focus(), 100)
     }
-  }, [showModal])
+  }, [showModal, status])
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     if (!showModal) return
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -120,7 +123,7 @@ export default function AnnouncementsPage() {
     }
     document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [showModal])
+  }, [showModal, status])
 
   const resetForm = () => {
     setFormData({ title: '', content: '', targetRole: '' })

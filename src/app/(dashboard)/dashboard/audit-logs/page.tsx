@@ -25,9 +25,10 @@ export default function AuditLogsPage() {
   const [role, setRole] = useState('')
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     fetchLogs()
-    fetch('/api/profile').then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
-  }, [actionFilter, entityFilter])
+    fetch('/api/profile', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
+  }, [actionFilter, entityFilter, status])
 
   const fetchLogs = async () => {
     setLoading(true)
@@ -36,7 +37,7 @@ export default function AuditLogsPage() {
       if (actionFilter) params.append('action', actionFilter)
       if (entityFilter) params.append('entity', entityFilter)
 
-      const res = await fetch(`/api/audit-logs?${params}`)
+      const res = await fetch(`/api/audit-logs?${params}`, { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
         setLogs(data)

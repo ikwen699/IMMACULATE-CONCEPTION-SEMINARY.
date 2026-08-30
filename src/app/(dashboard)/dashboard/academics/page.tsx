@@ -68,7 +68,7 @@ function getGradeLabel(score: number): string {
 }
 
 export default function AcademicsPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const user = session?.user as any
   const principalName = user?.name?.split(' ')[0] || 'Principal'
 
@@ -80,13 +80,14 @@ export default function AcademicsPage() {
   const [error, setError] = useState(false)
 
   const fetchData = useCallback(async (termId: string) => {
+    if (status !== 'authenticated') return;
     setLoading(true)
     setError(false)
     try {
       const [classesRes, gradesRes, sessionsRes] = await Promise.all([
-        fetch('/api/classes'),
-        fetch(`/api/grades${termId ? `?termId=${termId}` : ''}`),
-        fetch('/api/sessions'),
+        fetch('/api/classes', { cache: 'no-store' }),
+        fetch(`/api/grades${termId ? `?termId=${termId}` : ''}`, { cache: 'no-store' }),
+        fetch('/api/sessions', { cache: 'no-store' }),
       ])
       if (classesRes.ok) setClasses(await classesRes.json())
       if (gradesRes.ok) setGrades(await gradesRes.json())
@@ -104,9 +105,10 @@ export default function AcademicsPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [status])
 
-  useEffect(() => { fetchData(selectedTerm) }, [fetchData, selectedTerm])
+  useEffect(() => { if (status !== 'authenticated') return;
+    fetchData(selectedTerm) }, [fetchData, selectedTerm, status])
 
   const allTerms = sessions.flatMap(s => (s.terms || []).map(t => ({ ...t, sessionName: s.name })))
 

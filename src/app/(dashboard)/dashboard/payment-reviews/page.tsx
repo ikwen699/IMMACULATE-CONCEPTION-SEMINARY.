@@ -46,7 +46,7 @@ function formatCurrency(amount: number) {
 }
 
 export default function PaymentReviewsPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const user = session?.user as any
   const adminName = user?.name?.split(' ')[0] || 'Admin'
 
@@ -62,18 +62,20 @@ export default function PaymentReviewsPage() {
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null)
 
   const fetchPayments = useCallback(async () => {
+    if (status !== 'authenticated') return;
     setLoading(true); setError(false)
     try {
-      const res = await fetch('/api/payments?status=SUBMITTED')
+      const res = await fetch('/api/payments?status=SUBMITTED', { cache: 'no-store' })
       if (!res.ok) throw new Error()
       setPayments(await res.json())
     } catch { setError(true) } finally { setLoading(false) }
-  }, [])
+  }, [status])
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     fetchPayments()
-    fetch('/api/profile').then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
-  }, [fetchPayments])
+    fetch('/api/profile', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
+  }, [fetchPayments, status])
 
   const filteredPayments = payments.filter(p => {
     const q = searchInput.toLowerCase()

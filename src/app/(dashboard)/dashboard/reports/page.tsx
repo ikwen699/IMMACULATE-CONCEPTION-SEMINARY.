@@ -59,7 +59,7 @@ const QUICK_ACTIONS = [
 ]
 
 export default function ReportsPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const user = session?.user as any
   const principalName = user?.name?.split(' ')[0] || 'Principal'
 
@@ -72,15 +72,16 @@ export default function ReportsPage() {
   const [error, setError] = useState(false)
 
   const fetchData = useCallback(async () => {
+    if (status !== 'authenticated') return;
     setLoading(true)
     setError(false)
     try {
       const [studentsRes, teachersRes, classesRes, parentsRes, paymentsRes] = await Promise.all([
-        fetch('/api/users?role=STUDENT'),
-        fetch('/api/users?role=TEACHER'),
-        fetch('/api/classes'),
-        fetch('/api/users?role=PARENT'),
-        fetch('/api/payments'),
+        fetch('/api/users?role=STUDENT', { cache: 'no-store' }),
+        fetch('/api/users?role=TEACHER', { cache: 'no-store' }),
+        fetch('/api/classes', { cache: 'no-store' }),
+        fetch('/api/users?role=PARENT', { cache: 'no-store' }),
+        fetch('/api/payments', { cache: 'no-store' }),
       ])
 
       const students = studentsRes.ok ? await studentsRes.json() : []
@@ -108,9 +109,10 @@ export default function ReportsPage() {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [status])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => { if (status !== 'authenticated') return;
+    fetchData() }, [fetchData, status])
 
   const today = new Date()
   const greeting = today.getHours() < 12 ? 'Good morning' : today.getHours() < 18 ? 'Good afternoon' : 'Good evening'

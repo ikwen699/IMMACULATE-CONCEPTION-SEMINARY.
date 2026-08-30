@@ -55,7 +55,7 @@ function getAvatarColor(name: string) {
 }
 
 export default function UsersPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const user = session?.user as any
   const adminName = user?.name?.split(' ')[0] || 'Admin'
 
@@ -78,20 +78,22 @@ export default function UsersPage() {
   })
 
   const fetchUsers = useCallback(async (q: string, role: string) => {
+    if (status !== 'authenticated') return;
     setLoading(true); setError(false)
     try {
       const params = new URLSearchParams()
       if (role) params.append('role', role)
       if (q) params.append('search', q)
-      const res = await fetch(`/api/users?${params}`)
+      const res = await fetch(`/api/users?${params}`, { cache: 'no-store' })
       if (!res.ok) throw new Error()
       setUsers(await res.json())
     } catch { setError(true) } finally { setLoading(false) }
-  }, [])
+  }, [status])
 
   const fetchParents = useCallback(async () => {
+    if (status !== 'authenticated') return;
     try {
-      const res = await fetch('/api/users?role=PARENT')
+      const res = await fetch('/api/users?role=PARENT', { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
         setParentsList(data.filter((u: any) => u.parent).map((u: any) => ({
@@ -99,10 +101,12 @@ export default function UsersPage() {
         })))
       }
     } catch {}
-  }, [])
+  }, [status])
 
-  useEffect(() => { fetchUsers(search, roleFilter) }, [fetchUsers, search, roleFilter])
-  useEffect(() => { if (showModal && formData.role === 'STUDENT') fetchParents() }, [showModal, formData.role, fetchParents])
+  useEffect(() => { if (status !== 'authenticated') return;
+    fetchUsers(search, roleFilter) }, [fetchUsers, search, roleFilter, status])
+  useEffect(() => { if (status !== 'authenticated') return;
+    if (showModal && formData.role === 'STUDENT') fetchParents() }, [showModal, formData.role, fetchParents, status])
 
   const handleSearch = (v: string) => {
     setSearchInput(v)

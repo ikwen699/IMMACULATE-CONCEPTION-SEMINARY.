@@ -38,12 +38,13 @@ export default function GradesPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     fetchRole()
-  }, [])
+  }, [status])
 
   const fetchRole = async () => {
     try {
-      const res = await fetch('/api/profile')
+      const res = await fetch('/api/profile', { cache: 'no-store' })
       const data = await res.json()
       setRole(data.role || '')
     } catch (error) {
@@ -78,12 +79,13 @@ function StudentGradesView() {
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table')
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     fetchGrades()
-  }, [])
+  }, [status])
 
   const fetchGrades = async () => {
     try {
-      const res = await fetch('/api/children')
+      const res = await fetch('/api/children', { cache: 'no-store' })
       if (!res.ok) return
       const data = await res.json()
       if (Array.isArray(data) && data.length > 0) {
@@ -198,12 +200,13 @@ function ParentGradesView() {
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table')
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     fetchChildren()
-  }, [])
+  }, [status])
 
   const fetchChildren = async () => {
     try {
-      const res = await fetch('/api/children')
+      const res = await fetch('/api/children', { cache: 'no-store' })
       if (!res.ok) { setChildren([]); return }
       const data = await res.json()
       setChildren(Array.isArray(data) ? data : [])
@@ -355,20 +358,22 @@ function TeacherGradesView() {
   const [gradeType, setGradeType] = useState('TEST')
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     fetchClasses()
     fetchSubjects()
     fetchTerms()
-  }, [])
+  }, [status])
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     if (selectedClass) {
       fetchClassStudents()
     }
-  }, [selectedClass])
+  }, [selectedClass, status])
 
   const fetchClasses = async () => {
     try {
-      const res = await fetch('/api/classes')
+      const res = await fetch('/api/classes', { cache: 'no-store' })
       if (!res.ok) { setClasses([]); return }
       const data = await res.json()
       setClasses(Array.isArray(data) ? data : [])
@@ -379,7 +384,7 @@ function TeacherGradesView() {
 
   const fetchSubjects = async () => {
     try {
-      const res = await fetch('/api/subjects')
+      const res = await fetch('/api/subjects', { cache: 'no-store' })
       if (!res.ok) { setSubjects([]); return }
       const data = await res.json()
       setSubjects(Array.isArray(data) ? data : [])
@@ -390,7 +395,7 @@ function TeacherGradesView() {
 
   const fetchTerms = async () => {
     try {
-      const res = await fetch('/api/sessions')
+      const res = await fetch('/api/sessions', { cache: 'no-store' })
       const data = await res.json()
       if (!Array.isArray(data)) {
         setTerms([])
@@ -410,7 +415,7 @@ function TeacherGradesView() {
 
   const fetchClassStudents = async () => {
     try {
-      const res = await fetch(`/api/users?role=STUDENT&classId=${selectedClass}`)
+      const res = await fetch(`/api/users?role=STUDENT&classId=${selectedClass}`, { cache: 'no-store' })
       if (!res.ok) { setStudents([]); return }
       const data = await res.json()
       const studentList = (Array.isArray(data) ? data : [])

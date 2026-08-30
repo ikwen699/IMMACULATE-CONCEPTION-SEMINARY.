@@ -30,18 +30,20 @@ export default function AttendancePage() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     fetchClasses()
-  }, [])
+  }, [status])
 
   useEffect(() => {
+    if (status !== 'authenticated') return;
     if (selectedClass) {
       fetchClassStudents()
     }
-  }, [selectedClass])
+  }, [selectedClass, status])
 
   const fetchClasses = async () => {
     try {
-      const res = await fetch('/api/classes')
+      const res = await fetch('/api/classes', { cache: 'no-store' })
       if (res.ok) {
         const data = await res.json()
         setClasses(data)
@@ -54,7 +56,7 @@ export default function AttendancePage() {
   const fetchClassStudents = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/users?role=STUDENT&classId=${selectedClass}`)
+      const res = await fetch(`/api/users?role=STUDENT&classId=${selectedClass}`, { cache: 'no-store' })
       if (!res.ok) return
       const data = await res.json()
       const studentList = data
