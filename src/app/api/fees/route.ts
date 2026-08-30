@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
+export const dynamic = 'force-dynamic'
+
+
+interface SessionUser {
+  role: string
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -39,7 +45,7 @@ export async function GET(request: NextRequest) {
       : { data: [] }
 
     const pMap = new Map<string, number>()
-    ;(paymentCounts || []).forEach((p: any) => {
+    ;(paymentCounts || []).forEach((p) => {
       pMap.set(p.feeId, (pMap.get(p.feeId) || 0) + 1)
     })
 
@@ -60,7 +66,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!session?.user || (session.user as SessionUser).role !== 'ADMIN' && (session.user as SessionUser).role !== 'ACCOUNTANT') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
 
     const body = await request.json()
     const { name, amount, classId, sessionId, termId, description, dueDate } = body
@@ -81,7 +89,9 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!session?.user || (session.user as SessionUser).role !== 'ADMIN' && (session.user as SessionUser).role !== 'ACCOUNTANT') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
 
     const body = await request.json()
     const { id, ...updateData } = body
@@ -99,9 +109,7 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    const role = (session.user as any).role
-    if (!['ADMIN', 'ACCOUNTANT'].includes(role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    if (!session?.user || (session.user as SessionUser).role !== 'ADMIN' && (session.user as SessionUser).role !== 'ACCOUNTANT') return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
 
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
+export const dynamic = 'force-dynamic'
+
 
 export async function GET(request: NextRequest) {
   try {
@@ -44,8 +46,9 @@ export async function GET(request: NextRequest) {
         : { data: [] }
       const uMap = new Map((users || []).map(u => [u.id, u.name]))
       ;(teachers || []).forEach(t => {
-        if (t.userId && uMap.has(t.userId)) {
-          teacherNameMap.set(t.id, uMap.get(t.userId)!)
+        if (t.userId) {
+          const name = uMap.get(t.userId) || null
+          if (name) teacherNameMap.set(t.id, name)
         }
       })
     }

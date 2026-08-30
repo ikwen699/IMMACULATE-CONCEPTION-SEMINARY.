@@ -2,11 +2,63 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth, hashPassword } from '@/lib/auth'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
 import { generateAdmissionNo, generateEmployeeId } from '@/lib/utils'
+export const dynamic = 'force-dynamic'
+
+
+interface SessionUser {
+  id: string
+  role: string
+  name?: string
+  email?: string
+}
+
+interface User {
+  id: string
+  name: string
+  email: string
+  role: string
+  status: string
+  phone?: string
+  createdAt: string
+}
+
+interface Teacher {
+  userId: string
+  employeeId: string
+  department?: string
+  qualification?: string
+}
+
+interface Student {
+  userId: string
+  admissionNo: string
+  classId?: string
+  parentId?: string
+}
+
+interface Parent {
+  id: string
+  userId: string
+  occupation?: string
+}
 
 export async function GET(request: NextRequest) {
   try {
     const session = await auth()
+    const userRole = (session?.user as { role?: string })?.role
+
+    // Role-based access control
     if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // ADMIN: full access, TEACHER: other teachers, PRINCIPAL: all users
+    // STUDENT/PARENT: denied
+    const isAdmin = userRole === 'ADMIN'
+    const isTeacher = userRole === 'TEACHER'
+    const isPrincipal = userRole === 'PRINCIPAL'
+
+    if (!isAdmin && !isTeacher && !isPrincipal) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -16,25 +68,35 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')
     const classId = searchParams.get('classId')
 
-    let filteredUserIds: string[] | null = null
-    if (classId) {
-      const { data: classStudents } = await supabase.from('Student').select('userId').eq('classId', classId)
-      filteredUserIds = (classStudents || []).map(s => s.userId)
-      if (filteredUserIds.length === 0) return NextResponse.json([])
+    // Determine role filter based on user's role
+    let allowedRoleFilter: string | null = null
+    if (isAdmin) {
+      allowedRoleFilter = role || null
+    } else if (isTeacher) {
+      allowedRoleFilter = role === 'TEACHER' ? 'TEACHER' : null
+    } else if (isPrincipal) {
+      allowedRoleFilter = role || null
     }
+
+    let filteredUserIds: string[] | null = null
 
     let query = supabase
       .from('User')
       .select('id, name, email, role, status, phone, createdAt')
       .order('createdAt', { ascending: false })
 
-    if (role) query = query.eq('role', role)
+    if (allowedRoleFilter) query = query.eq('role', allowedRoleFilter)
+    if (classId) {
+      const { data: classStudents } = await supabase.from('Student').select('userId').eq('classId', classId)
+      filteredUserIds = (classStudents || []).map(s => s.userId)
+      if (filteredUserIds.length === 0) return NextResponse.json([])
+    }
+
+    if (filteredUserIds) query = query.in('id', filteredUserIds)
+
     if (status) query = query.eq('status', status)
     if (search) {
       query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%`)
-    }
-    if (filteredUserIds) {
-      query = query.in('id', filteredUserIds)
     }
 
     const { data: users, error } = await query
@@ -43,7 +105,7 @@ export async function GET(request: NextRequest) {
 
     const userIds = users.map(u => u.id)
 
-    const { data: teachers } = await supabase.from('Teacher').select('userId, employeeId, department').in('userId', userIds)
+    const { data: teachers } = await supabase.from('Teacher').select('userId, employeeId, department, qualification').in('userId', userIds)
     const { data: students } = await supabase.from('Student').select('userId, admissionNo, classId, parentId').in('userId', userIds)
     const { data: parents } = await supabase.from('Parent').select('id, userId, occupation').in('userId', userIds)
 
@@ -82,6 +144,7 @@ export async function GET(request: NextRequest) {
       }
       return {
         ...user,
+        createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : null,
         teacher: teacherMap.get(user.id) || null,
         student: student ? { ...student, class: classMap.get(student.classId) || null, parent: parentInfo } : null,
         parent: parentMap.get(user.id) || null,
@@ -98,7 +161,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user || (session.user as any).role !== 'ADMIN') {
+    if (!session?.user || (session.user as SessionUser).role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -179,7 +242,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user || (session.user as any).role !== 'ADMIN') {
+    if (!session?.user || (session.user as SessionUser).role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -194,7 +257,7 @@ export async function PUT(request: NextRequest) {
       userData.password = await hashPassword(userData.password)
     }
 
-    let user: any = null
+    let user: User | null = null
 
     if (Object.keys(userData).length > 0) {
       const { data, error } = await supabase
@@ -204,7 +267,7 @@ export async function PUT(request: NextRequest) {
         .select('id, name, email, role, status')
         .single()
       if (error) throw error
-      user = data
+      user = data as User | null
     } else {
       const { data, error } = await supabase
         .from('User')
@@ -212,11 +275,11 @@ export async function PUT(request: NextRequest) {
         .eq('id', id)
         .single()
       if (error) throw error
-      user = data
+      user = data as User | null
     }
 
-    if (user.role === 'STUDENT') {
-      const studentData: any = {}
+    if (user?.role === 'STUDENT') {
+      const studentData: Record<string, unknown> = {}
       if (admissionNo !== undefined) studentData.admissionNo = admissionNo || null
       if (dateOfBirth !== undefined) studentData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth).toISOString() : null
       if (gender !== undefined) studentData.gender = gender || null
@@ -236,8 +299,8 @@ export async function PUT(request: NextRequest) {
           if (sErr) throw sErr
         }
       }
-    } else if (user.role === 'TEACHER') {
-      const teacherData: any = {}
+    } else if (user?.role === 'TEACHER') {
+      const teacherData: Record<string, unknown> = {}
       if (department !== undefined) teacherData.department = department
       if (qualification !== undefined) teacherData.qualification = qualification
 
@@ -248,8 +311,8 @@ export async function PUT(request: NextRequest) {
           if (tErr) throw tErr
         }
       }
-    } else if (user.role === 'PARENT') {
-      const parentData: any = {}
+    } else if (user?.role === 'PARENT') {
+      const parentData: Record<string, unknown> = {}
       if (occupation !== undefined) parentData.occupation = occupation
 
       if (Object.keys(parentData).length > 0) {
@@ -271,7 +334,7 @@ export async function PUT(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user || (session.user as any).role !== 'ADMIN') {
+    if (!session?.user || (session.user as SessionUser).role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -300,7 +363,7 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user || (session.user as any).role !== 'ADMIN') {
+    if (!session?.user || (session.user as SessionUser).role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

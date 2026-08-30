@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
 import { hashPassword } from '@/lib/auth'
 import { generateAdmissionNo, generateEmployeeId } from '@/lib/utils'
+export const dynamic = 'force-dynamic'
+
 
 const ALLOWED_ROLES = ['STUDENT', 'TEACHER', 'PARENT', 'PRINCIPAL', 'ADMIN', 'ACCOUNTANT'] as const
 

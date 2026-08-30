@@ -77,8 +77,9 @@ export default function AssignmentsPage() {
     setLoading(true)
     try {
       const res = await fetch('/api/assignments')
+      if (!res.ok) { setAssignments([]); return }
       const data = await res.json()
-      setAssignments(data)
+      setAssignments(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching assignments:', error)
     } finally {
@@ -89,8 +90,9 @@ export default function AssignmentsPage() {
   const fetchSubjects = async () => {
     try {
       const res = await fetch('/api/subjects')
+      if (!res.ok) { setSubjects([]); return }
       const data = await res.json()
-      setSubjects(data)
+      setSubjects(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching subjects:', error)
     }
@@ -99,8 +101,9 @@ export default function AssignmentsPage() {
   const fetchClasses = async () => {
     try {
       const res = await fetch('/api/classes')
+      if (!res.ok) { setClasses([]); return }
       const data = await res.json()
-      setClasses(data)
+      setClasses(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching classes:', error)
     }
@@ -441,7 +444,7 @@ export default function AssignmentsPage() {
                 <h2 className="text-xl font-bold mb-2">Submit Assignment</h2>
                 <div className="p-3 bg-gray-50 rounded-lg">
                   <p className="font-medium text-gray-800">{selectedAssignment.title}</p>
-                  <p className="text-sm text-gray-500">{selectedAssignment.subject.name} | Due: {new Date(selectedAssignment.dueDate).toLocaleDateString()}</p>
+                  <p className="text-sm text-gray-500">{selectedAssignment.subject?.name || 'N/A'} | Due: {new Date(selectedAssignment.dueDate).toLocaleDateString()}</p>
                   {selectedAssignment.description && (
                     <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">{selectedAssignment.description}</p>
                   )}

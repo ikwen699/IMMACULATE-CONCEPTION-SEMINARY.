@@ -37,7 +37,7 @@ export default function SessionsPage() {
 
   useEffect(() => {
     fetchSessions()
-    fetch('/api/profile').then(r => r.json()).then(d => setRole(d.role || '')).catch(() => {})
+    fetch('/api/profile').then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
   }, [])
 
   const fetchSessions = async () => {
@@ -157,7 +157,7 @@ export default function SessionsPage() {
     return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   }
 
-  if (!['ADMIN'].includes(role)) return <DashboardLayout><div className="text-center py-12 text-gray-500">Access Denied</div></DashboardLayout>
+  if (role !== '' && !['ADMIN'].includes(role)) return <DashboardLayout><div className="text-center py-12 text-gray-500">Access Denied</div></DashboardLayout>
 
   return (
     <DashboardLayout>

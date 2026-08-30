@@ -41,6 +41,7 @@ export default function ProfilePage() {
     setLoading(true)
     try {
       const res = await fetch('/api/profile')
+      if (!res.ok) { setProfile(null); return }
       const data = await res.json()
       setProfile(data)
     } catch (error) {

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
+export const dynamic = 'force-dynamic'
+
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     const enriched = attendance.map(a => {
       const student = studentMap.get(a.studentId)
-      const user = student ? userMap.get(student.userId) : null
+      const user = student ? userMap.get(student.userId) || null : null
       return { ...a, student: student ? { ...student, user } : null }
     })
 
@@ -57,6 +59,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const { records, classId, date } = body
+    if (!Array.isArray(records)) return NextResponse.json({ error: 'Invalid records data' }, { status: 400 })
 
     for (const record of records) {
       const { data: existing } = await supabase

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
+export const dynamic = 'force-dynamic'
+
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,6 +22,10 @@ export async function GET(request: NextRequest) {
         .select()
         .single()
       schoolInfo = created
+    }
+
+    if (!schoolInfo) {
+      return NextResponse.json({ id: 'default', name: 'IMMACULATE CONCEPTION SEMINARY', address: '', phone: '', email: '', website: '', motto: '' })
     }
 
     return NextResponse.json(schoolInfo)

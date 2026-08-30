@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
+export const dynamic = 'force-dynamic'
+
 
 export async function GET(request: NextRequest) {
   try {
@@ -70,11 +72,11 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const notificationId = searchParams.get('id')
 
-    if (notificationId) {
-      await supabase.from('Notification').delete().eq('id', notificationId)
-    } else {
-      await supabase.from('Notification').delete().eq('userId', userId)
+    if (!notificationId) {
+      return NextResponse.json({ error: 'Notification ID required' }, { status: 400 })
     }
+
+    await supabase.from('Notification').delete().eq('id', notificationId).eq('userId', userId)
 
     return NextResponse.json({ success: true })
   } catch (error) {

@@ -1,11 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
+export const dynamic = 'force-dynamic'
+
+
+interface SessionUser {
+  role: string
+}
+
+interface Subject {
+  id: string
+  name: string
+  code: string
+  classId?: string
+  teacherId?: string
+}
 
 export async function GET(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!session?.user || (session.user as SessionUser).role !== 'ADMIN') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { searchParams } = new URL(request.url)
     const classId = searchParams.get('classId')
@@ -42,8 +56,8 @@ export async function GET(request: NextRequest) {
 
     const gMap = new Map<string, number>()
     const aMap = new Map<string, number>()
-    ;(gradeCounts.data || []).forEach((g: any) => { gMap.set(g.subjectId, (gMap.get(g.subjectId) || 0) + 1) })
-    ;(assignmentCounts.data || []).forEach((a: any) => { aMap.set(a.subjectId, (aMap.get(a.subjectId) || 0) + 1) })
+    ;(gradeCounts.data || []).forEach((g) => { gMap.set(g.subjectId, (gMap.get(g.subjectId) || 0) + 1) })
+    ;(assignmentCounts.data || []).forEach((a) => { aMap.set(a.subjectId, (aMap.get(a.subjectId) || 0) + 1) })
 
     const enriched = subjects.map(s => ({
       ...s,
@@ -62,7 +76,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user || (session.user as any).role !== 'ADMIN') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!session?.user || (session.user as SessionUser).role !== 'ADMIN') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await request.json()
     const { name, code, classId, teacherId } = body
@@ -85,7 +99,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user || (session.user as any).role !== 'ADMIN') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!session?.user || (session.user as SessionUser).role !== 'ADMIN') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = await request.json()
     const { id, ...updateData } = body
@@ -105,7 +119,7 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user || (session.user as any).role !== 'ADMIN') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!session?.user || (session.user as SessionUser).role !== 'ADMIN') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')

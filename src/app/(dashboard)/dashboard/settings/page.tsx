@@ -30,7 +30,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     fetchSchoolInfo()
-    fetch('/api/profile').then(r => r.json()).then(d => setRole(d.role || '')).catch(() => {})
+    fetch('/api/profile').then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
   }, [])
 
   const fetchSchoolInfo = async () => {
@@ -39,15 +39,17 @@ export default function SettingsPage() {
       const res = await fetch('/api/settings')
       if (res.ok) {
         const data = await res.json()
-        setSchoolInfo(data)
-        setFormData({
-          name: data.name || 'ICS',
-          address: data.address || '',
-          phone: data.phone || '',
-          email: data.email || '',
-          website: data.website || '',
-          motto: data.motto || ''
-        })
+        if (data) {
+          setSchoolInfo(data)
+          setFormData({
+            name: data.name || 'ICS',
+            address: data.address || '',
+            phone: data.phone || '',
+            email: data.email || '',
+            website: data.website || '',
+            motto: data.motto || ''
+          })
+        }
       }
     } catch (error) {
       console.error('Error fetching school info:', error)
@@ -78,7 +80,7 @@ export default function SettingsPage() {
     }
   }
 
-  if (!['ADMIN'].includes(role)) return <DashboardLayout><div className="text-center py-12 text-gray-500">Access Denied</div></DashboardLayout>
+  if (role !== '' && !['ADMIN'].includes(role)) return <DashboardLayout><div className="text-center py-12 text-gray-500">Access Denied</div></DashboardLayout>
 
   return (
     <DashboardLayout>

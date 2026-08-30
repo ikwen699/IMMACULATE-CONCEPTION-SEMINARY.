@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
+export const dynamic = 'force-dynamic'
+
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,15 +39,25 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { title, content, targetRole } = body
 
+    const authorId = (session.user as any).userId || (session.user as any).id || (session.user as any).sub
+
     const { data: announcement, error } = await supabase
       .from('Announcement')
-      .insert({ title, content, authorId: (session.user as any).userId || (session.user as any).id, targetRole: targetRole || null })
-      .select('*, author(id, name, role)')
+      .insert({ title, content, authorId, targetRole: targetRole || null })
+      .select('*')
       .single()
 
     if (error) throw error
-    return NextResponse.json(announcement, { status: 201 })
+
+    const { data: author } = await supabase
+      .from('User')
+      .select('id, name, role')
+      .eq('id', authorId)
+      .single()
+
+    return NextResponse.json({ ...announcement, author: author || null }, { status: 201 })
   } catch (error) {
+    console.error('Error creating announcement:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

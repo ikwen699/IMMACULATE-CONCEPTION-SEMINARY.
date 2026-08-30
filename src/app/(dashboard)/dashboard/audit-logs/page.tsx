@@ -26,7 +26,7 @@ export default function AuditLogsPage() {
 
   useEffect(() => {
     fetchLogs()
-    fetch('/api/profile').then(r => r.json()).then(d => setRole(d.role || '')).catch(() => {})
+    fetch('/api/profile').then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
   }, [actionFilter, entityFilter])
 
   const fetchLogs = async () => {
@@ -56,7 +56,7 @@ export default function AuditLogsPage() {
     return 'bg-gray-100 text-gray-800'
   }
 
-  if (!['ADMIN'].includes(role)) return <DashboardLayout><div className="text-center py-12 text-gray-500">Access Denied</div></DashboardLayout>
+  if (role !== '' && !['ADMIN'].includes(role)) return <DashboardLayout><div className="text-center py-12 text-gray-500">Access Denied</div></DashboardLayout>
 
   return (
     <DashboardLayout>
@@ -119,8 +119,8 @@ export default function AuditLogsPage() {
                 logs.map((log) => (
                   <tr key={log.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">{log.user.name}</div>
-                      <div className="text-sm text-gray-500">{log.user.role}</div>
+                      <div className="font-medium text-gray-900">{log.user?.name}</div>
+                      <div className="text-sm text-gray-500">{log.user?.role}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs rounded-full ${getActionBadgeColor(log.action)}`}>

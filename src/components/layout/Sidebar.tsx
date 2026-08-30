@@ -45,6 +45,7 @@ const navigationItems: Record<string, { title: string; href: string; icon: strin
   STUDENT: [
     { title: 'Dashboard', href: '/dashboard', icon: 'mdi-view-dashboard' },
     { title: 'My Profile', href: '/dashboard/profile', icon: 'mdi-account' },
+    { title: 'My Class', href: '/dashboard/my-classes', icon: 'mdi-door-open' },
     { title: 'Grades', href: '/dashboard/grades', icon: 'mdi-school' },
   ],
   PARENT: [
@@ -69,7 +70,7 @@ export default function Sidebar({ role, mobileOpen, onMobileClose }: SidebarProp
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const [showBadge, setShowBadge] = useState(false)
-  const items = navigationItems[role] || navigationItems.STUDENT
+  const items = navigationItems[role] || []
 
   return (
     <>

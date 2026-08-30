@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
 import { calculateGrade } from '@/lib/utils'
 import { notifyGradePosted } from '@/lib/notifications'
+export const dynamic = 'force-dynamic'
+
 
 export async function GET(request: NextRequest) {
   try {
@@ -49,10 +51,10 @@ export async function GET(request: NextRequest) {
 
     const enriched = grades.map(g => {
       const student = sMap.get(g.studentId)
-      const user = student ? uMap.get(student.userId) : null
-      const cls = student ? cMap.get(student.classId) : null
+      const user = student ? uMap.get(student.userId) || null : null
+      const cls = student ? cMap.get(student.classId) || null : null
       const term = tMap.get(g.termId)
-      const sess = term ? sessMap.get(term.sessionId) : null
+      const sess = term ? sessMap.get(term.sessionId) || null : null
       return {
         ...g,
         student: student ? { ...student, user, class: cls } : null,
@@ -79,6 +81,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const { grades } = body
+    if (!Array.isArray(grades)) return NextResponse.json({ error: 'Invalid grades data' }, { status: 400 })
 
     for (const grade of grades) {
       const calculatedGrade = calculateGrade(grade.score)

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
+export const dynamic = 'force-dynamic'
+
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,7 +19,8 @@ export async function GET(request: NextRequest) {
     const termMap = new Map<string, any[]>()
     ;(terms || []).forEach(t => {
       if (!termMap.has(t.sessionId)) termMap.set(t.sessionId, [])
-      termMap.get(t.sessionId)!.push(t)
+      const arr = termMap.get(t.sessionId)
+      if (arr) arr.push(t)
     })
 
     const { data: feeCounts } = sessIds.length > 0
@@ -48,9 +51,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { name, startDate, endDate, isCurrent, terms } = body
 
-    if (isCurrent) {
-      await supabase.from('AcademicSession').update({ isCurrent: false }).eq('isCurrent', true)
-    }
+    // Unset all other sessions' isCurrent flag when creating/updating
+    await supabase.from('AcademicSession').update({ isCurrent: false }).eq('isCurrent', true)
 
     const { data: academicSession, error: sessionErr } = await supabase
       .from('AcademicSession')
@@ -63,7 +65,9 @@ export async function POST(request: NextRequest) {
     if (terms && terms.length > 0) {
       const termInserts = terms.map((term: any) => ({
         sessionId: academicSession.id, name: term.name,
-        startDate: new Date(term.startDate).toISOString(), endDate: new Date(term.endDate).toISOString(), isCurrent: term.isCurrent || false,
+        startDate: term.startDate ? new Date(term.startDate).toISOString() : new Date().toISOString(),
+        endDate: term.endDate ? new Date(term.endDate).toISOString() : new Date().toISOString(),
+        isCurrent: term.isCurrent || false,
       }))
       const { error: termErr } = await supabase.from('Term').insert(termInserts)
       if (termErr) throw termErr
@@ -101,8 +105,8 @@ export async function PUT(request: NextRequest) {
         const termInserts = terms.map((term: any) => ({
           sessionId: id,
           name: term.name,
-          startDate: new Date(term.startDate).toISOString(),
-          endDate: new Date(term.endDate).toISOString(),
+          startDate: term.startDate ? new Date(term.startDate).toISOString() : new Date().toISOString(),
+          endDate: term.endDate ? new Date(term.endDate).toISOString() : new Date().toISOString(),
           isCurrent: term.isCurrent || false,
         }))
         const { error: termErr } = await supabase.from('Term').insert(termInserts)

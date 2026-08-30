@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import { cn } from '@/lib/utils'
 
 interface Student {
   id: string
@@ -83,8 +84,9 @@ function StudentGradesView() {
   const fetchGrades = async () => {
     try {
       const res = await fetch('/api/children')
+      if (!res.ok) return
       const data = await res.json()
-      if (data.length > 0) {
+      if (Array.isArray(data) && data.length > 0) {
         setStudentName(data[0].user?.name || '')
         setGrades(data[0].grades || [])
       }
@@ -202,9 +204,10 @@ function ParentGradesView() {
   const fetchChildren = async () => {
     try {
       const res = await fetch('/api/children')
+      if (!res.ok) { setChildren([]); return }
       const data = await res.json()
-      setChildren(data)
-      if (data.length > 0) setSelectedChild(data[0].id)
+      setChildren(Array.isArray(data) ? data : [])
+      if (Array.isArray(data) && data.length > 0) setSelectedChild(data[0].id)
     } catch (error) {
       console.error('Error fetching children:', error)
     } finally {
@@ -247,20 +250,26 @@ function ParentGradesView() {
           </div>
         ) : (
           <>
-            <div className="flex gap-2 flex-wrap">
-              {children.map((child) => (
-                <button
-                  key={child.id}
-                  onClick={() => setSelectedChild(child.id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                    selectedChild === child.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {child.user?.name || 'Child'}
-                </button>
-              ))}
+            <div className="border-b border-gray-200">
+              <div className="flex gap-1 overflow-x-auto -mb-px">
+                {children.map((child) => {
+                  const isActive = selectedChild === child.id
+                  return (
+                    <button
+                      key={child.id}
+                      onClick={() => setSelectedChild(child.id)}
+                      className={cn(
+                        'px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors -mb-px',
+                        isActive
+                          ? 'border-blue-600 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      )}
+                    >
+                      {child.user?.name || 'Child'}
+                    </button>
+                  )
+                })}
+              </div>
             </div>
 
             {grades.length === 0 ? (
@@ -360,8 +369,9 @@ function TeacherGradesView() {
   const fetchClasses = async () => {
     try {
       const res = await fetch('/api/classes')
+      if (!res.ok) { setClasses([]); return }
       const data = await res.json()
-      setClasses(data)
+      setClasses(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching classes:', error)
     }
@@ -370,8 +380,9 @@ function TeacherGradesView() {
   const fetchSubjects = async () => {
     try {
       const res = await fetch('/api/subjects')
+      if (!res.ok) { setSubjects([]); return }
       const data = await res.json()
-      setSubjects(data)
+      setSubjects(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error fetching subjects:', error)
     }
@@ -400,8 +411,9 @@ function TeacherGradesView() {
   const fetchClassStudents = async () => {
     try {
       const res = await fetch(`/api/users?role=STUDENT&classId=${selectedClass}`)
+      if (!res.ok) { setStudents([]); return }
       const data = await res.json()
-      const studentList = data
+      const studentList = (Array.isArray(data) ? data : [])
         .filter((u: any) => u.student?.classId === selectedClass)
         .map((u: any) => ({
           id: u.student?.id || u.id,

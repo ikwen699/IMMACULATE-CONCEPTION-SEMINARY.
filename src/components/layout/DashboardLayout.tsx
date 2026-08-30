@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import '@mdi/font/css/materialdesignicons.css'
 import Sidebar from './Sidebar'
 import Header from './Header'
 
@@ -34,7 +35,7 @@ export default function DashboardLayout({
   }
 
   const user = session.user as any
-  const role = user?.role || 'STUDENT'
+  const role = user?.role
 
   return (
     <div className="flex min-h-screen bg-gray-50">

@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
 import { generateReceiptNo } from '@/lib/utils'
 import { notifyPaymentSubmitted, notifyPaymentReviewed, notifyPaymentApproved } from '@/lib/notifications'
+export const dynamic = 'force-dynamic'
+
 
 export async function GET(request: NextRequest) {
   try {
@@ -72,16 +74,16 @@ export async function GET(request: NextRequest) {
     const enriched = payments.map(p => {
       const student = sMap.get(p.studentId)
       const fee = fMap.get(p.feeId)
-      const acc = p.accountantId ? aMap.get(p.accountantId) : null
-      const princ = p.principalId ? pMap.get(p.principalId) : null
-      const par = p.parentId ? parMap.get(p.parentId) : null
+      const acc = p.accountantId ? aMap.get(p.accountantId) || null : null
+      const princ = p.principalId ? pMap.get(p.principalId) || null : null
+      const par = p.parentId ? parMap.get(p.parentId) || null : null
       return {
         ...p,
-        student: student ? { ...student, user: uMap.get(student.userId) } : null,
+        student: student ? { ...student, user: uMap.get(student.userId) || null } : null,
         fee: fee || null,
-        accountant: acc ? { ...acc, user: uMap.get(acc.userId) } : null,
-        principal: princ ? { ...princ, user: uMap.get(princ.userId) } : null,
-        parent: par ? { ...par, user: uMap.get(par.userId) } : null,
+        accountant: acc ? { ...acc, user: uMap.get(acc.userId) || null } : null,
+        principal: princ ? { ...princ, user: uMap.get(princ.userId) || null } : null,
+        parent: par ? { ...par, user: uMap.get(par.userId) || null } : null,
       }
     })
 
@@ -152,12 +154,15 @@ export async function PATCH(request: NextRequest) {
 
     const userId = (session.user as any).userId || (session.user as any).id
     const role = (session.user as any).role
+    if (!['ADMIN', 'ACCOUNTANT'].includes(role)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
     const body = await request.json()
     const { id, status, accountantRemarks, principalRemarks } = body
 
     if (!id) return NextResponse.json({ error: 'Payment ID required' }, { status: 400 })
 
-    const updateData: any = { status }
+    const updateData: any = { status: status || 'PENDING' }
 
     if (role === 'ACCOUNTANT' && status === 'ACCOUNTANT_REVIEWED') {
       const { data: accountant } = await supabase.from('Accountant').select('id').eq('userId', userId).single()
@@ -175,7 +180,9 @@ export async function PATCH(request: NextRequest) {
     const { data: payment, error } = await supabase.from('Payment').update(updateData).eq('id', id).select('*').single()
     if (error) throw error
 
-    if (status === 'ACCOUNTANT_REVIEWED' || status === 'REJECTED') {
+    if (role === 'PRINCIPAL' && status === 'REJECTED') {
+      await notifyPaymentApproved(id, false, principalRemarks)
+    } else if (status === 'ACCOUNTANT_REVIEWED' || status === 'REJECTED') {
       await notifyPaymentReviewed(id, status, accountantRemarks)
     } else if (status === 'PRINCIPAL_APPROVED' || (status === 'REJECTED' && role === 'PRINCIPAL')) {
       await notifyPaymentApproved(id, status === 'PRINCIPAL_APPROVED', principalRemarks)
