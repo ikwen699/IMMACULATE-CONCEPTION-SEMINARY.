@@ -52,13 +52,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // ADMIN: full access, TEACHER: other teachers, PRINCIPAL: all users
+    // ADMIN: full access, TEACHER: other teachers, PRINCIPAL: all users, ACCOUNTANT: read-only
     // STUDENT/PARENT: denied
     const isAdmin = userRole === 'ADMIN'
     const isTeacher = userRole === 'TEACHER'
     const isPrincipal = userRole === 'PRINCIPAL'
+    const isAccountant = userRole === 'ACCOUNTANT'
 
-    if (!isAdmin && !isTeacher && !isPrincipal) {
+    if (!isAdmin && !isTeacher && !isPrincipal && !isAccountant) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -75,6 +76,8 @@ export async function GET(request: NextRequest) {
     } else if (isTeacher) {
       allowedRoleFilter = role === 'TEACHER' ? 'TEACHER' : null
     } else if (isPrincipal) {
+      allowedRoleFilter = role || null
+    } else if (isAccountant) {
       allowedRoleFilter = role || null
     }
 

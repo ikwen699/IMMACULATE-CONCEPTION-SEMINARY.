@@ -145,8 +145,17 @@ export default function ChildrenPage() {
     return Math.round(grades.reduce((s, g) => s + g.score, 0) / grades.length)
   }
 
-  const today = new Date()
-  const greeting = today.getHours() < 12 ? 'Good morning' : today.getHours() < 18 ? 'Good afternoon' : 'Good evening'
+  const [greeting, setGreeting] = useState('Good morning')
+  const [todayStr, setTodayStr] = useState('')
+
+  useEffect(() => {
+    const now = new Date()
+    const hour = now.getHours()
+    if (hour < 12) setGreeting('Good morning')
+    else if (hour < 18) setGreeting('Good afternoon')
+    else setGreeting('Good evening')
+    setTodayStr(format(now, 'EEEE, MMMM d, yyyy'))
+  }, [])
 
   return (
     <DashboardLayout>
@@ -162,7 +171,7 @@ export default function ChildrenPage() {
                 {greeting}, {parentName}
               </h1>
               <p className="text-sm text-gray-500">
-                {format(today, 'EEEE, MMMM d, yyyy')} &middot; {children.length} {children.length === 1 ? 'child' : 'children'} linked
+                {todayStr} &middot; {children.length} {children.length === 1 ? 'child' : 'children'} linked
               </p>
             </div>
           </div>

@@ -148,11 +148,11 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex bg-gradient-to-b from-blue-50 via-white to-blue-100">
       {/* ── Left brand panel (desktop) ─────────────────────────────── */}
-      <div className="hidden xl:flex w-[44%] relative flex-col overflow-hidden bg-gradient-to-br from-blue-600 via-blue-500 to-white">
+      <div className="hidden xl:flex w-[44%] relative flex-col overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800">
         {/* Decorative elements */}
-        <div className="absolute -top-40 -left-40 w-[30rem] h-[30rem] bg-blue-400/30 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-[26rem] h-[26rem] bg-sky-300/30 rounded-full blur-3xl" />
-        <div className="absolute top-1/4 right-16 w-56 h-56 bg-white/40 rounded-full blur-2xl" />
+        <div className="absolute -top-40 -left-40 w-[30rem] h-[30rem] bg-blue-500/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-[26rem] h-[26rem] bg-sky-400/20 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 right-16 w-56 h-56 bg-white/10 rounded-full blur-2xl" />
         {/* Subtle grid overlay */}
         <div className="absolute inset-0 opacity-[0.04] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:48px_48px]" />
 
@@ -161,13 +161,13 @@ export default function LoginPage() {
           <div className="flex flex-col items-center text-center -mt-6">
             <SchoolBadge className="w-40 h-40 mb-6" />
             <div>
-              <p className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-800 bg-white/60 px-3 py-1.5 rounded-full backdrop-blur">
+              <p className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-50 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur ring-1 ring-white/20">
                 <School className="w-3.5 h-3.5" />
                 ESTABLISHED &middot; EXCELLENCE IN EDUCATION
               </p>
-              <h1 className="text-3xl font-bold text-blue-900 mt-3 leading-tight tracking-wide">
+              <h1 className="text-3xl font-bold text-white mt-3 leading-tight tracking-wide">
                 IMMACULATE CONCEPTION
-                <span className="block text-lg font-semibold text-blue-700 tracking-[0.3em] mt-1">
+                <span className="block text-lg font-semibold text-blue-100 tracking-[0.3em] mt-1">
                   SCHOOL PORTAL
                 </span>
               </h1>
@@ -176,12 +176,12 @@ export default function LoginPage() {
 
           {/* Middle: messaging + features */}
           <div className="my-auto py-10 text-center">
-            <h2 className="text-3xl xl:text-4xl font-bold text-blue-900 leading-tight">
+            <h2 className="text-3xl xl:text-4xl font-bold text-white leading-tight">
               One portal for your
               <br />
               entire school journey.
             </h2>
-            <p className="text-blue-900/70 mt-4 text-base leading-relaxed max-w-md mx-auto">
+            <p className="text-blue-100/80 mt-4 text-base leading-relaxed max-w-md mx-auto">
               Access academic records, attendance, fees and announcements from a single secure
               sign-in — no matter your role.
             </p>
@@ -190,10 +190,10 @@ export default function LoginPage() {
               {features.map((f, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-3.5 text-blue-900 text-left animate-fade-in"
+                  className="flex items-center gap-3.5 text-blue-50 text-left animate-fade-in"
                   style={{ animationDelay: `${i * 120}ms` }}
                 >
-                  <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/60 ring-1 ring-blue-200 text-blue-700 shrink-0">
+                  <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 ring-1 ring-white/25 text-blue-100 shrink-0">
                     {f.icon}
                   </span>
                   <p className="text-sm font-medium">{f.text}</p>
@@ -203,7 +203,7 @@ export default function LoginPage() {
           </div>
 
           {/* Bottom: contact + copyright */}
-          <div className="flex flex-col gap-3 text-xs text-blue-900/70 text-center">
+          <div className="flex flex-col gap-3 text-xs text-blue-100/70 text-center">
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
               <span className="flex items-center gap-1.5">
                 <MapPin className="w-4 h-4" /> Main Campus, Nigeria
@@ -222,9 +222,9 @@ export default function LoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile / tablet: compact brand header with badge */}
           <div className="flex flex-col items-center mb-8 xl:hidden animate-fade-in">
-            <div className="relative w-full max-w-md -mx-4 rounded-b-3xl bg-gradient-to-b from-blue-600 via-blue-500 to-blue-100 px-6 pt-10 pb-14 overflow-hidden">
-              <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/20 rounded-full blur-2xl" />
-              <div className="absolute -bottom-20 -left-10 w-56 h-56 bg-blue-300/30 rounded-full blur-2xl" />
+            <div className="relative w-full max-w-md -mx-4 rounded-b-3xl bg-gradient-to-b from-blue-950 via-blue-900 to-blue-800 px-6 pt-10 pb-14 overflow-hidden">
+              <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/10 rounded-full blur-2xl" />
+              <div className="absolute -bottom-20 -left-10 w-56 h-56 bg-blue-500/20 rounded-full blur-2xl" />
               <div className="relative flex flex-col items-center text-center">
                 <SchoolBadge className="w-28 h-28 sm:w-32 sm:h-32 mb-5" />
                 <h1 className="text-xl font-bold text-white leading-tight text-center tracking-wide drop-shadow-sm">
@@ -369,9 +369,12 @@ export default function LoginPage() {
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                  onClick={() => setShowPassword(prev => !prev)}
+                  onMouseDown={(e) => e.preventDefault()}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors z-10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-pressed={showPassword}
+                  title={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
