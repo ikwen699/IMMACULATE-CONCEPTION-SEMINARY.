@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { cn } from '@/lib/utils'
 
@@ -34,6 +35,7 @@ interface GradeEntry {
 }
 
 export default function GradesPage() {
+  const { status } = useSession()
   const [role, setRole] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -73,6 +75,7 @@ export default function GradesPage() {
 }
 
 function StudentGradesView() {
+  const { status } = useSession()
   const [grades, setGrades] = useState<GradeEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [studentName, setStudentName] = useState('')
@@ -194,6 +197,7 @@ function StudentGradesView() {
 }
 
 function ParentGradesView() {
+  const { status } = useSession()
   const [children, setChildren] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedChild, setSelectedChild] = useState<string>('')
@@ -346,6 +350,7 @@ function ParentGradesView() {
 }
 
 function TeacherGradesView() {
+  const { status } = useSession()
   const [classes, setClasses] = useState<any[]>([])
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [terms, setTerms] = useState<Term[]>([])

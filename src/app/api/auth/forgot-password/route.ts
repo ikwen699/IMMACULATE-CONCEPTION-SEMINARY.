@@ -6,7 +6,8 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json()
+    const { email: rawEmail } = await request.json()
+    const email = rawEmail?.toLowerCase()
 
     if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 })

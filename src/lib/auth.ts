@@ -26,7 +26,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const { data: user, error: userError } = await supabase
           .from('User')
           .select('*')
-          .eq('email', credentials.email as string)
+          .eq('email', (credentials.email as string).toLowerCase())
           .single()
 
         if (userError) {

@@ -27,15 +27,6 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-const ROLE_DASHBOARD_MAP: Record<LoginRole, string> = {
-  STUDENT: '/dashboard/students',
-  PARENT: '/dashboard/children',
-  TEACHER: '/dashboard/my-classes',
-  PRINCIPAL: '/dashboard/overview',
-  ADMIN: '/dashboard/users',
-  ACCOUNTANT: '/dashboard/fees',
-}
-
 type LoginRole = 'STUDENT' | 'PARENT' | 'TEACHER' | 'PRINCIPAL' | 'ADMIN' | 'ACCOUNTANT'
 
 const roleConfig: Record<LoginRole, { icon: React.ReactNode; title: string; message: string; label: string }> = {
@@ -119,7 +110,7 @@ export default function LoginPage() {
 
     try {
       const result = await signIn('credentials', {
-        email,
+        email: email.toLowerCase(),
         password,
         rememberMe,
         redirect: false,
@@ -134,8 +125,7 @@ export default function LoginPage() {
           setError('Invalid email or password. Please check your credentials and try again.')
         }
       } else {
-        const callbackUrl = ROLE_DASHBOARD_MAP[selectedRole] || '/dashboard'
-        router.push(callbackUrl)
+        router.push('/dashboard')
         router.refresh()
       }
     } catch (err) {

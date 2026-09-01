@@ -118,7 +118,7 @@ export default function UsersPage() {
     e.preventDefault(); setSaving(true)
     try {
       const method = editingUser ? 'PUT' : 'POST'
-      const body = editingUser ? { id: editingUser.id, ...formData } : formData
+      const body = editingUser ? { id: editingUser.id, ...formData, email: formData.email.toLowerCase() } : { ...formData, email: formData.email.toLowerCase() }
       const res = await fetch('/api/users', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       if (!res.ok) { const d = await res.json(); alert(d.error || 'Failed to save user'); return }
       setShowModal(false); setEditingUser(null); resetForm(); fetchUsers(search, roleFilter)

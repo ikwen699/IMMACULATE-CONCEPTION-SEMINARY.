@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const {
       name,
-      email,
+      email: rawEmail,
       password,
       role,
       phone,
@@ -26,6 +26,8 @@ export async function POST(request: NextRequest) {
       qualification,
       occupation,
     } = body
+
+    const email = rawEmail?.toLowerCase()
 
     if (!name || !email || !password || !role) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -82,7 +84,7 @@ export async function POST(request: NextRequest) {
           .from('User')
           .insert({
             name: parentName,
-            email: parentEmail || `parent_${Date.now()}@placeholder.com`,
+            email: parentEmail?.toLowerCase() || `parent_${Date.now()}@placeholder.com`,
             password: parentPassword,
             role: 'PARENT',
             status: 'PENDING',

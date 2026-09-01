@@ -169,7 +169,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, email, password, role, phone, address, ...profileData } = body
+    const { name, email: rawEmail, password, role, phone, address, ...profileData } = body
+    const email = rawEmail?.toLowerCase()
 
     const { data: existingUser, error: existingUserError } = await supabase
       .from('User')
@@ -265,6 +266,9 @@ export async function PUT(request: NextRequest) {
 
     if (userData.password) {
       userData.password = await hashPassword(userData.password)
+    }
+    if (userData.email) {
+      userData.email = userData.email.toLowerCase()
     }
 
     let user: User | null = null
