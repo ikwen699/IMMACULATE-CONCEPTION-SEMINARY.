@@ -415,6 +415,24 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 })
     }
 
+    const { data: targetUser } = await supabase.from('User').select('role').eq('id', id).single()
+
+    if (targetUser?.role === 'TEACHER') {
+      const { data: teacher } = await supabase.from('Teacher').select('id').eq('userId', id).single()
+      if (teacher) {
+        await supabase.from('Class').update({ classTeacherId: null }).eq('classTeacherId', teacher.id)
+        await supabase.from('Subject').update({ teacherId: null }).eq('teacherId', teacher.id)
+      }
+    }
+
+    if (targetUser?.role === 'PARENT') {
+      const { data: parent } = await supabase.from('Parent').select('id').eq('userId', id).single()
+      if (parent) {
+        await supabase.from('Student').update({ parentId: null }).eq('parentId', parent.id)
+        await supabase.from('Payment').update({ parentId: null }).eq('parentId', parent.id)
+      }
+    }
+
     const { error } = await supabase.from('User').delete().eq('id', id)
     if (error) throw error
 
