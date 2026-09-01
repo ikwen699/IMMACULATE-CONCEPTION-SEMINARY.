@@ -57,7 +57,7 @@ self.addEventListener('fetch', (event) => {
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
           }
           return response;
-        });
+        }).catch(() => new Response('', { status: 404 }));
       })
     );
     return;
@@ -98,7 +98,7 @@ self.addEventListener('fetch', (event) => {
       .catch(async () => {
         const cached = await caches.match(event.request);
         if (cached) return cached;
-        return new Response('', { status: 408, headers: { 'Content-Type': 'text/plain' } });
+        return new Response('Offline', { status: 503, headers: { 'Content-Type': 'text/plain' } });
       })
   );
 });

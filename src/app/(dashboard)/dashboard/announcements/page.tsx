@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useSession } from 'next-auth/react'
 import { formatDistanceToNow } from 'date-fns'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { cn, getInitials } from '@/lib/utils'
@@ -57,6 +58,7 @@ function timeAgo(date: string) {
 const CONTENT_TRUNCATE_LENGTH = 220
 
 export default function AnnouncementsPage() {
+  const { status } = useSession()
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [loading, setLoading] = useState(true)
   const [role, setRole] = useState('')
