@@ -170,7 +170,7 @@ export async function PATCH(request: NextRequest) {
 
     const userId = (session.user as any).userId || (session.user as any).id
     const role = (session.user as any).role
-    if (!['ADMIN', 'ACCOUNTANT'].includes(role)) {
+    if (!['ADMIN', 'ACCOUNTANT', 'PRINCIPAL'].includes(role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
     const body = await request.json()

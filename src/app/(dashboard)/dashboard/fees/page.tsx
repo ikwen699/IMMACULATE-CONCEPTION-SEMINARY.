@@ -68,6 +68,12 @@ export default function FeesPage() {
   const [formData, setFormData] = useState({ name: '', amount: 0, classId: '', sessionId: '', termId: '', description: '', dueDate: '' })
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
+  const [showPayModal, setShowPayModal] = useState(false)
+  const [selectedFeeForPay, setSelectedFeeForPay] = useState<Fee | null>(null)
+  const [children, setChildren] = useState<{ id: string; user: { name: string } }[]>([])
+  const [payFormData, setPayFormData] = useState({ studentId: '', paymentMethod: 'CASH', reference: '', notes: '' })
+  const [paySaving, setPaySaving] = useState(false)
+
   const fetchFees = useCallback(async () => {
     if (status !== 'authenticated') return;
     setLoading(true); setError(false)
@@ -89,11 +95,16 @@ export default function FeesPage() {
     try { const r = await fetch('/api/sessions', { cache: 'no-store' }); if (r.ok) setSessions(await r.json()) } catch {}
   }, [status])
 
+  const fetchChildren = useCallback(async () => {
+    if (status !== 'authenticated') return;
+    try { const r = await fetch('/api/children', { cache: 'no-store' }); if (r.ok) { const d = await r.json(); setChildren(Array.isArray(d) ? d : []) } } catch {}
+  }, [status])
+
   useEffect(() => {
     if (status !== 'authenticated') return;
-    fetchFees(); fetchClasses(); fetchSessions()
+    fetchFees(); fetchClasses(); fetchSessions(); fetchChildren()
     fetch('/api/profile', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => setRole(d?.role || '')).catch(() => {})
-  }, [fetchFees, fetchClasses, fetchSessions, status])
+  }, [fetchFees, fetchClasses, fetchSessions, fetchChildren, status])
 
   const handleSearch = (v: string) => {
     setSearchInput(v)
@@ -141,6 +152,39 @@ export default function FeesPage() {
 
   const resetForm = () => setFormData({ name: '', amount: 0, classId: '', sessionId: '', termId: '', description: '', dueDate: '' })
 
+  const handlePaySubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!selectedFeeForPay || paySaving) return
+    setPaySaving(true)
+    try {
+      const res = await fetch('/api/payments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentId: payFormData.studentId || undefined,
+          feeId: selectedFeeForPay.id,
+          amount: selectedFeeForPay.amount,
+          paymentMethod: payFormData.paymentMethod,
+          reference: payFormData.reference,
+          notes: payFormData.notes,
+        }),
+      })
+      if (!res.ok) {
+        const d = await res.json()
+        alert(d.error || 'Failed to submit payment')
+        return
+      }
+      setShowPayModal(false)
+      setSelectedFeeForPay(null)
+      setPayFormData({ studentId: '', paymentMethod: 'CASH', reference: '', notes: '' })
+      alert('Payment submitted successfully! It will be reviewed by the accountant.')
+    } catch {
+      alert('Error submitting payment. Please try again.')
+    } finally {
+      setPaySaving(false)
+    }
+  }
+
   const selectedSession = sessions.find(s => s.id === formData.sessionId)
   const today = new Date()
   const greeting = today.getHours() < 12 ? 'Good morning' : today.getHours() < 18 ? 'Good afternoon' : 'Good evening'
@@ -162,11 +206,14 @@ export default function FeesPage() {
               <p className="text-sm text-gray-500">{format(today, 'EEEE, MMMM d, yyyy')} &middot; {fees.length} fee structure{fees.length === 1 ? '' : 's'}</p>
             </div>
           </div>
-          {role !== 'STUDENT' && (
+          {role === 'ACCOUNTANT' && (
             <button onClick={() => { resetForm(); setEditingFee(null); setShowModal(true) }}
               className="inline-flex items-center gap-2 px-4 py-2.5 bg-cyan-600 text-white text-sm font-medium rounded-xl hover:bg-cyan-700 transition-colors shadow-sm">
               <span className="mdi mdi-plus text-lg" /> Add Fee
             </button>
+          )}
+          {role === 'PARENT' && (
+            <p className="text-sm text-gray-500">Select a fee below to submit payment</p>
           )}
         </div>
 
@@ -312,7 +359,13 @@ export default function FeesPage() {
                         <span className="mdi mdi-clock-outline" /> {dueStatus.label}
                       </div>
                     )}
-{(role === 'ADMIN' || role === 'ACCOUNTANT') && (
+                    {role === 'PARENT' && (
+                      <button onClick={() => { setSelectedFeeForPay(f); setPayFormData({ studentId: '', paymentMethod: 'CASH', reference: '', notes: '' }); setShowPayModal(true) }}
+                        className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 transition-colors">
+                        <span className="mdi mdi-credit-card" /> Pay {formatCurrency(f.amount)}
+                      </button>
+                    )}
+                    {role === 'ACCOUNTANT' && (
                       <div className="flex gap-2">
                         <button onClick={() => handleEdit(f)}
                           className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 border border-gray-200 text-gray-600 text-xs font-medium rounded-lg hover:bg-gray-50 transition-colors">
@@ -349,7 +402,7 @@ export default function FeesPage() {
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase px-5 py-3 hidden lg:table-cell">Session</th>
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase px-5 py-3 hidden lg:table-cell">Due Date</th>
                   <th className="text-left text-xs font-semibold text-gray-500 uppercase px-5 py-3 hidden lg:table-cell">Payments</th>
-                  {role !== 'STUDENT' && <th className="text-right text-xs font-semibold text-gray-500 uppercase px-5 py-3">Actions</th>}
+                  {(role === 'ACCOUNTANT' || role === 'PARENT') && <th className="text-right text-xs font-semibold text-gray-500 uppercase px-5 py-3">Actions</th>}
                 </tr></thead>
                 <tbody className="divide-y divide-gray-50">
                   {filteredFees.map(f => {
@@ -402,21 +455,31 @@ export default function FeesPage() {
                             <span className="text-sm text-gray-700">{f._count.payments}</span>
                           </div>
                         </td>
-{role === 'ADMIN' || role === 'ACCOUNTANT' && (
+                        {(role === 'ACCOUNTANT' || role === 'PARENT') && (
                           <td className="px-5 py-3.5 text-right">
                             <div className="flex items-center justify-end gap-1">
-                              <button onClick={() => handleEdit(f)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
-                                <span className="mdi mdi-pencil text-lg" />
-                              </button>
-                              {deletingId === f.id ? (
-                                <div className="flex items-center gap-1">
-                                  <button onClick={() => handleDelete(f.id)} className="px-2 py-1 text-xs font-medium text-white bg-red-500 rounded-md hover:bg-red-600 transition-colors">Delete</button>
-                                  <button onClick={() => setDeletingId(null)} className="px-2 py-1 text-xs font-medium text-gray-500 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">Cancel</button>
-                                </div>
-                              ) : (
-                                <button onClick={() => setDeletingId(f.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
-                                  <span className="mdi mdi-trash-can-outline text-lg" />
+                              {role === 'PARENT' && (
+                                <button onClick={() => { setSelectedFeeForPay(f); setPayFormData({ studentId: '', paymentMethod: 'CASH', reference: '', notes: '' }); setShowPayModal(true) }}
+                                  className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors" title="Pay">
+                                  <span className="mdi mdi-credit-card" /> Pay
                                 </button>
+                              )}
+                              {role === 'ACCOUNTANT' && (
+                                <>
+                                  <button onClick={() => handleEdit(f)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
+                                    <span className="mdi mdi-pencil text-lg" />
+                                  </button>
+                                  {deletingId === f.id ? (
+                                    <div className="flex items-center gap-1">
+                                      <button onClick={() => handleDelete(f.id)} className="px-2 py-1 text-xs font-medium text-white bg-red-500 rounded-md hover:bg-red-600 transition-colors">Delete</button>
+                                      <button onClick={() => setDeletingId(null)} className="px-2 py-1 text-xs font-medium text-gray-500 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">Cancel</button>
+                                    </div>
+                                  ) : (
+                                    <button onClick={() => setDeletingId(f.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete">
+                                      <span className="mdi mdi-trash-can-outline text-lg" />
+                                    </button>
+                                  )}
+                                </>
                               )}
                             </div>
                           </td>
@@ -526,6 +589,87 @@ export default function FeesPage() {
                     className={cn('flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl transition-colors', editingFee ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-cyan-600 text-white hover:bg-cyan-700', saving && 'opacity-50 cursor-not-allowed')}>
                     {saving ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <span className={cn('mdi', editingFee ? 'mdi-check' : 'mdi-plus')} />}
                     {editingFee ? 'Update' : 'Create'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Pay Modal */}
+        {showPayModal && selectedFeeForPay && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl animate-scale-in">
+              <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl z-10">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+                  <span className="mdi mdi-credit-card text-emerald-600 text-xl" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Submit Payment</h2>
+                  <p className="text-xs text-gray-500">{selectedFeeForPay.name} — {formatCurrency(selectedFeeForPay.amount)}</p>
+                </div>
+                <button onClick={() => { setShowPayModal(false); setSelectedFeeForPay(null) }} className="ml-auto p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"><span className="mdi mdi-close text-lg" /></button>
+              </div>
+
+              <form onSubmit={handlePaySubmit} className="px-6 py-5 space-y-4">
+                {children.length > 1 && (
+                  <div>
+                    <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                      <span className="mdi mdi-account text-gray-400" /> Select Child
+                    </label>
+                    <select value={payFormData.studentId} onChange={(e) => setPayFormData({ ...payFormData, studentId: e.target.value })}
+                      className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-colors appearance-none" required>
+                      <option value="">Select a child</option>
+                      {children.map(c => <option key={c.id} value={c.id}>{c.user.name}</option>)}
+                    </select>
+                  </div>
+                )}
+                <div>
+                  <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                    <span className="mdi mdi-cash text-gray-400" /> Amount
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-gray-400">₦</span>
+                    <input type="number" value={selectedFeeForPay.amount} disabled
+                      className="w-full pl-9 pr-3.5 py-2.5 bg-gray-100 border border-gray-200 rounded-xl text-sm text-gray-700" />
+                  </div>
+                </div>
+                <div>
+                  <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                    <span className="mdi mdi-credit-card text-gray-400" /> Payment Method
+                  </label>
+                  <select value={payFormData.paymentMethod} onChange={(e) => setPayFormData({ ...payFormData, paymentMethod: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-colors appearance-none">
+                    <option value="CASH">Cash</option>
+                    <option value="BANK_TRANSFER">Bank Transfer</option>
+                    <option value="CARD">Card</option>
+                    <option value="MOBILE">Mobile</option>
+                    <option value="CHECK">Check</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                    <span className="mdi mdi-text text-gray-400" /> Reference <span className="text-gray-400 font-normal">(optional)</span>
+                  </label>
+                  <input type="text" value={payFormData.reference} onChange={(e) => setPayFormData({ ...payFormData, reference: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-colors"
+                    placeholder="e.g., Transfer receipt number" />
+                </div>
+                <div>
+                  <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
+                    <span className="mdi mdi-text-box-outline text-gray-400" /> Notes <span className="text-gray-400 font-normal">(optional)</span>
+                  </label>
+                  <textarea value={payFormData.notes} onChange={(e) => setPayFormData({ ...payFormData, notes: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-colors resize-none"
+                    rows={2} placeholder="Any additional notes..." />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => { setShowPayModal(false); setSelectedFeeForPay(null) }}
+                    className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors">Cancel</button>
+                  <button type="submit" disabled={paySaving || (children.length > 1 && !payFormData.studentId)}
+                    className={cn('flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl transition-colors bg-emerald-600 text-white hover:bg-emerald-700', (paySaving || (children.length > 1 && !payFormData.studentId)) && 'opacity-50 cursor-not-allowed')}>
+                    {paySaving ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <span className="mdi mdi-credit-card" />}
+                    {paySaving ? 'Submitting...' : 'Submit Payment'}
                   </button>
                 </div>
               </form>

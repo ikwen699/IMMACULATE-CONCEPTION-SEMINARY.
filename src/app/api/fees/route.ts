@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user || (session.user as SessionUser).role !== 'ADMIN' && (session.user as SessionUser).role !== 'ACCOUNTANT') {
+    if (!session?.user || (session.user as SessionUser).role !== 'ACCOUNTANT') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user || (session.user as SessionUser).role !== 'ADMIN' && (session.user as SessionUser).role !== 'ACCOUNTANT') {
+    if (!session?.user || (session.user as SessionUser).role !== 'ACCOUNTANT') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
@@ -109,7 +109,7 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user || (session.user as SessionUser).role !== 'ADMIN' && (session.user as SessionUser).role !== 'ACCOUNTANT') return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    if (!session?.user || (session.user as SessionUser).role !== 'ACCOUNTANT') return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
 
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
