@@ -74,13 +74,14 @@ export default function FeesPage() {
     try {
       const res = await fetch('/api/fees', { cache: 'no-store' })
       if (!res.ok) throw new Error()
-      setFees(Array.isArray(await res.json()) ? await res.json() : [])
+      const data = await res.json();
+      setFees(Array.isArray(data) ? data : [])
     } catch { setError(true) } finally { setLoading(false) }
   }, [status])
 
   const fetchClasses = useCallback(async () => {
     if (status !== 'authenticated') return;
-    try { const r = await fetch('/api/classes', { cache: 'no-store' }); if (r.ok) setClasses(Array.isArray(await r.json()) ? await r.json() : []) } catch {}
+    try { const r = await fetch('/api/classes', { cache: 'no-store' }); if (r.ok) { const d = await r.json(); setClasses(Array.isArray(d) ? d : []) } } catch {}
   }, [status])
 
   const fetchSessions = useCallback(async () => {
