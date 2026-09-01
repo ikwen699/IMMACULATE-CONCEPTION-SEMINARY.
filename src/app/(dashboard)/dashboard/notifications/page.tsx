@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useSession } from 'next-auth/react'
 import { formatDistanceToNow, format } from 'date-fns'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { cn } from '@/lib/utils'
@@ -37,6 +38,7 @@ function fullDate(date: string) {
 type FilterType = 'all' | 'unread' | 'read'
 
 export default function NotificationsPage() {
+  const { status } = useSession()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)

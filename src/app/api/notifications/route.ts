@@ -72,11 +72,11 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const notificationId = searchParams.get('id')
 
-    if (!notificationId) {
-      return NextResponse.json({ error: 'Notification ID required' }, { status: 400 })
+    if (notificationId) {
+      await supabase.from('Notification').delete().eq('id', notificationId).eq('userId', userId)
+    } else {
+      await supabase.from('Notification').delete().eq('userId', userId)
     }
-
-    await supabase.from('Notification').delete().eq('id', notificationId).eq('userId', userId)
 
     return NextResponse.json({ success: true })
   } catch (error) {

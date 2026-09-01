@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
+import { notifyNewAnnouncement } from '@/lib/notifications'
 export const dynamic = 'force-dynamic'
 
 
@@ -54,6 +55,8 @@ export async function POST(request: NextRequest) {
       .select('id, name, role')
       .eq('id', authorId)
       .single()
+
+    notifyNewAnnouncement(announcement.id, title, authorId, targetRole || undefined).catch(() => {})
 
     return NextResponse.json({ ...announcement, author: author || null }, { status: 201 })
   } catch (error) {

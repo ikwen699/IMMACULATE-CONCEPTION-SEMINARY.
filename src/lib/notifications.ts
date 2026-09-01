@@ -94,8 +94,8 @@ export async function notifyPaymentApproved(paymentId: string, approved: boolean
   })
 }
 
-export async function notifyNewAnnouncement(announcementId: string, title: string, targetRole?: string) {
-  let query = supabase.from('User').select('id').eq('status', 'ACTIVE')
+export async function notifyNewAnnouncement(announcementId: string, title: string, authorId: string, targetRole?: string) {
+  let query = supabase.from('User').select('id').eq('status', 'ACTIVE').neq('id', authorId)
   if (targetRole) query = query.eq('role', targetRole)
 
   const { data: users } = await query
