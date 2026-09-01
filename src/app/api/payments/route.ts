@@ -141,6 +141,7 @@ export async function POST(request: NextRequest) {
         parentId, accountantId, status: role === 'PARENT' ? 'SUBMITTED' : 'COMPLETED', submittedAt: new Date().toISOString(),
       })
       .select('*, student(id, admissionNo, userId), fee(id, name, amount)')
+      .single()
 
     if (payErr) {
       console.error('Database error creating payment:', payErr)

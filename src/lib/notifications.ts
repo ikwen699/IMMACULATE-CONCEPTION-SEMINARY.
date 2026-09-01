@@ -129,7 +129,7 @@ export async function notifyGradePosted(studentId: string, subjectName: string, 
   if (student[0].parentId) {
     const { data: parent } = await supabase.from('Parent').select('userId').eq('id', student[0].parentId)
     if (parent) {
-      const { data: studentUser } = await supabase.from('User').select('name').eq('id', student[0].userId)
+      const { data: studentUser } = await supabase.from('User').select('name').eq('id', student[0].userId).single()
       await createNotification({
         userId: parent[0].userId,
         title: 'Grade Posted',

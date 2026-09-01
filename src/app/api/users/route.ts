@@ -198,6 +198,7 @@ export async function POST(request: NextRequest) {
         address,
       })
       .select('id, name, email, role, status')
+      .single()
 
     if (userError) {
       console.error('Database error creating user:', userError)
