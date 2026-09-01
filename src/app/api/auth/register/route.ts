@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await hashPassword(password)
 
-const { data: user, error: userError } = await supabase
+    const { data: user, error: userError } = await supabase
       .from('User')
       .insert({
         name,
@@ -64,6 +64,8 @@ const { data: user, error: userError } = await supabase
         address,
       })
       .select()
+
+    const currentUser = user?.[0]
 
     if (userError) {
       console.error('Database error creating user:', userError)
@@ -93,22 +95,23 @@ const { data: user, error: userError } = await supabase
           return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
         }
 
+        const currentParentUser = parentUser?.[0]
+
         const { data: parentProfile, error: ppErr } = await supabase
           .from('Parent')
-          .insert({ userId: parentUser[0].id })
+          .insert({ userId: currentParentUser?.id })
           .select()
 
         if (ppErr) {
           console.error('Database error creating parent profile:', ppErr)
           return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
         }
-        parentId = parentProfile[0]?.id
-      }
+        parentId = currentParentUser?.id
 
       const { error: sErr } = await supabase
         .from('Student')
         .insert({
-          userId: user.id,
+          userId: currentUser?.id,
           admissionNo: generateAdmissionNo(),
           dateOfBirth: dateOfBirth ? (() => { const d = new Date(dateOfBirth); return isNaN(d.getTime()) ? null : d.toISOString() })() : null,
           gender: gender || null,
@@ -123,7 +126,7 @@ const { data: user, error: userError } = await supabase
       const { error: tErr } = await supabase
         .from('Teacher')
         .insert({
-          userId: user.id,
+          userId: currentUser?.id,
           employeeId: generateEmployeeId('TCH'),
           department,
           qualification,
@@ -137,7 +140,7 @@ const { data: user, error: userError } = await supabase
       const { error: pErr } = await supabase
         .from('Parent')
         .insert({
-          userId: user.id,
+          userId: currentUser?.id,
           occupation: occupation || null,
         })
 
@@ -149,7 +152,7 @@ const { data: user, error: userError } = await supabase
       const { error: aErr } = await supabase
         .from('Accountant')
         .insert({
-          userId: user.id,
+          userId: currentUser?.id,
           employeeId: generateEmployeeId('ACC'),
         })
 
@@ -161,7 +164,7 @@ const { data: user, error: userError } = await supabase
       const { error: prErr } = await supabase
         .from('Principal')
         .insert({
-          userId: user.id,
+          userId: currentUser?.id,
         })
 
       if (prErr) {
@@ -173,7 +176,7 @@ const { data: user, error: userError } = await supabase
 
     return NextResponse.json({
       message: 'Registration successful! Your account is pending admin approval.',
-      userId: user.id,
+      userId: currentUser?.id,
     }, { status: 201 })
   } catch (error) {
     console.error('Registration error:', error)
