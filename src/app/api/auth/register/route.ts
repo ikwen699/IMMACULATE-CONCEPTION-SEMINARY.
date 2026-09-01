@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
           console.error('Database error creating parent profile:', ppErr)
           return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
         }
-        parentId = currentParentUser?.id
+        parentId = parentProfile?.[0]?.id
       }
 
       const { error: sErr } = await supabase

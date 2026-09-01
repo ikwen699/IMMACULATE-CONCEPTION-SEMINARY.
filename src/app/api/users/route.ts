@@ -176,8 +176,9 @@ export async function POST(request: NextRequest) {
       .from('User')
       .select('id')
       .eq('email', email)
+      .single()
 
-    if (existingUserError) {
+    if (existingUserError && existingUserError.code !== 'PGRST116') {
       console.error('Database error checking existing user:', existingUserError)
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
@@ -209,13 +210,16 @@ export async function POST(request: NextRequest) {
     if (role === 'STUDENT') {
       const { error: sErr } = await supabase.from('Student').insert({
         userId: user.id,
-admissionNo: generateAdmissionNo(),
+        admissionNo: generateAdmissionNo(),
         dateOfBirth: profileData.dateOfBirth ? (() => { const d = new Date(profileData.dateOfBirth); return isNaN(d.getTime()) ? null : d.toISOString() })() : null,
         gender: profileData.gender,
-        classId: profileData.classId,
-        parentId: profileData.parentId,
+        classId: profileData.classId || null,
+        parentId: profileData.parentId || null,
       })
-      if (sErr) throw sErr
+      if (sErr) {
+        await supabase.from('User').delete().eq('id', user.id)
+        throw sErr
+      }
     } else if (role === 'TEACHER') {
       const { error: tErr } = await supabase.from('Teacher').insert({
         userId: user.id,
@@ -223,24 +227,36 @@ admissionNo: generateAdmissionNo(),
         department: profileData.department,
         qualification: profileData.qualification,
       })
-      if (tErr) throw tErr
+      if (tErr) {
+        await supabase.from('User').delete().eq('id', user.id)
+        throw tErr
+      }
     } else if (role === 'PARENT') {
       const { error: pErr } = await supabase.from('Parent').insert({
         userId: user.id,
         occupation: profileData.occupation,
       })
-      if (pErr) throw pErr
+      if (pErr) {
+        await supabase.from('User').delete().eq('id', user.id)
+        throw pErr
+      }
     } else if (role === 'ACCOUNTANT') {
       const { error: aErr } = await supabase.from('Accountant').insert({
         userId: user.id,
         employeeId: generateEmployeeId('ACC'),
       })
-      if (aErr) throw aErr
+      if (aErr) {
+        await supabase.from('User').delete().eq('id', user.id)
+        throw aErr
+      }
     } else if (role === 'PRINCIPAL') {
       const { error: prErr } = await supabase.from('Principal').insert({
         userId: user.id,
       })
-      if (prErr) throw prErr
+      if (prErr) {
+        await supabase.from('User').delete().eq('id', user.id)
+        throw prErr
+      }
     }
 
     return NextResponse.json(user, { status: 201 })

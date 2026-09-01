@@ -122,7 +122,7 @@ export default function UsersPage() {
       const res = await fetch('/api/users', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       if (!res.ok) { const d = await res.json(); alert(d.error || 'Failed to save user'); return }
       setShowModal(false); setEditingUser(null); resetForm(); fetchUsers(search, roleFilter)
-    } catch {} finally { setSaving(false) }
+    } catch (err) { console.error('Failed to save user:', err); alert('An unexpected error occurred. Please try again.') } finally { setSaving(false) }
   }
 
   const handleDelete = async (id: string) => {
