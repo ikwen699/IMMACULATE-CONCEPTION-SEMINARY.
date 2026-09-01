@@ -23,13 +23,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null
         }
 
-        const { data: user } = await supabase
+        const { data: user, error: userError } = await supabase
           .from('User')
           .select('*')
           .eq('email', credentials.email as string)
           .single()
 
+        if (userError) {
+          console.error('Database error fetching user:', userError)
+          return null
+        }
+
         if (!user) {
+          return null
+        }
+
+        if (user.status === 'PENDING') {
           return null
         }
 

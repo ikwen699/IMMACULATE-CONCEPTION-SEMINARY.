@@ -23,10 +23,18 @@ export async function GET(request: NextRequest) {
     let query = supabase.from('Payment').select('*').order('createdAt', { ascending: false })
 
     if (role === 'PARENT') {
-      const { data: parent } = await supabase.from('Parent').select('id').eq('userId', userId).single()
+      const { data: parent, error: parentErr } = await supabase.from('Parent').select('id').eq('userId', userId).single()
+      if (parentErr) {
+        console.error('Database error fetching parent:', parentErr)
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+      }
       if (parent) query = query.eq('parentId', parent.id)
     } else if (role === 'STUDENT') {
-      const { data: student } = await supabase.from('Student').select('id').eq('userId', userId).single()
+      const { data: student, error: studentErr } = await supabase.from('Student').select('id').eq('userId', userId).single()
+      if (studentErr) {
+        console.error('Database error fetching student:', studentErr)
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+      }
       if (student) query = query.eq('studentId', student.id)
     }
 
@@ -36,7 +44,10 @@ export async function GET(request: NextRequest) {
     if (childId) query = query.eq('studentId', childId)
 
     const { data: payments, error } = await query
-    if (error) throw error
+    if (error) {
+      console.error('Database error fetching payments:', error)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
     if (!payments) return NextResponse.json([])
 
     const allStudentIds = [...new Set(payments.map(p => p.studentId))]
@@ -130,9 +141,13 @@ export async function POST(request: NextRequest) {
         parentId, accountantId, status: role === 'PARENT' ? 'SUBMITTED' : 'COMPLETED', submittedAt: new Date().toISOString(),
       })
       .select('*, student(id, admissionNo, userId), fee(id, name, amount)')
-      .single()
 
-    if (payErr) throw payErr
+    if (payErr) {
+      console.error('Database error creating payment:', payErr)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
+
+    if (!payment) return NextResponse.json({ error: 'Failed to create payment' }, { status: 500 })
 
     if (role === 'PARENT') {
       const { data: sUser } = await supabase.from('Student').select('userId').eq('id', studentId).single()
@@ -177,8 +192,12 @@ export async function PATCH(request: NextRequest) {
       if (status === 'PRINCIPAL_APPROVED') updateData.principalApprovedAt = new Date().toISOString()
     }
 
-    const { data: payment, error } = await supabase.from('Payment').update(updateData).eq('id', id).select('*').single()
-    if (error) throw error
+    const { data: payment, error } = await supabase.from('Payment').update(updateData).eq('id', id).select('*')
+
+    if (error) {
+      console.error('Database error updating payment:', error)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
 
     if (role === 'PRINCIPAL' && status === 'REJECTED') {
       await notifyPaymentApproved(id, false, principalRemarks)

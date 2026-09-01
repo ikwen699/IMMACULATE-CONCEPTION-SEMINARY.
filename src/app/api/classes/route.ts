@@ -17,7 +17,10 @@ export async function GET(request: NextRequest) {
     if (search) query = query.or(`name.ilike.%${search}%,section.ilike.%${search}%`)
     if (teacherId) query = query.eq('classTeacherId', teacherId)
     const { data: classes, error } = await query
-    if (error) throw error
+    if (error) {
+      console.error('Database error fetching classes:', error)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
     if (!classes) return NextResponse.json([])
 
     const classIds = classes.map(c => c.id)
@@ -75,8 +78,13 @@ export async function POST(request: NextRequest) {
     const { name, section, classTeacherId, capacity } = body
     const insertData: any = { name, section, capacity: capacity || 40 }
     if (classTeacherId) insertData.classTeacherId = classTeacherId
-    const { data: newClass, error } = await supabase.from('Class').insert(insertData).select().single()
-    if (error) throw error
+    const { data: newClass, error } = await supabase.from('Class').insert(insertData).select()
+
+    if (error) {
+      console.error('Database error creating class:', error)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
+
     return NextResponse.json(newClass, { status: 201 })
   } catch (error) {
     console.error('Error creating class:', error)
@@ -94,8 +102,13 @@ export async function PUT(request: NextRequest) {
     if (!id) return NextResponse.json({ error: 'Class ID required' }, { status: 400 })
 
     if (updateData.classTeacherId === '') delete updateData.classTeacherId
-    const { data: updatedClass, error } = await supabase.from('Class').update(updateData).eq('id', id).select().single()
-    if (error) throw error
+    const { data: updatedClass, error } = await supabase.from('Class').update(updateData).eq('id', id).select()
+
+    if (error) {
+      console.error('Database error updating class:', error)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
+
     return NextResponse.json(updatedClass)
   } catch (error) {
     console.error('Error updating class:', error)
@@ -113,7 +126,12 @@ export async function DELETE(request: NextRequest) {
     if (!id) return NextResponse.json({ error: 'Class ID required' }, { status: 400 })
 
     const { error } = await supabase.from('Class').delete().eq('id', id)
-    if (error) throw error
+
+    if (error) {
+      console.error('Database error deleting class:', error)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
+
     return NextResponse.json({ message: 'Class deleted' })
   } catch (error) {
     console.error('Error deleting class:', error)

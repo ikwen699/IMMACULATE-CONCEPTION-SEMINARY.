@@ -171,11 +171,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { name, email, password, role, phone, address, ...profileData } = body
 
-    const { data: existingUser } = await supabase
+    const { data: existingUser, error: existingUserError } = await supabase
       .from('User')
       .select('id')
       .eq('email', email)
-      .single()
+
+    if (existingUserError) {
+      console.error('Database error checking existing user:', existingUserError)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
 
     if (existingUser) {
       return NextResponse.json({ error: 'Email already exists' }, { status: 400 })
@@ -194,15 +198,17 @@ export async function POST(request: NextRequest) {
         address,
       })
       .select('id, name, email, role, status')
-      .single()
 
-    if (userError) throw userError
+    if (userError) {
+      console.error('Database error creating user:', userError)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
 
     if (role === 'STUDENT') {
       const { error: sErr } = await supabase.from('Student').insert({
         userId: user.id,
-        admissionNo: generateAdmissionNo(),
-        dateOfBirth: profileData.dateOfBirth ? new Date(profileData.dateOfBirth).toISOString() : null,
+admissionNo: generateAdmissionNo(),
+        dateOfBirth: profileData.dateOfBirth ? (() => { const d = new Date(profileData.dateOfBirth); return isNaN(d.getTime()) ? null : d.toISOString() })() : null,
         gender: profileData.gender,
         classId: profileData.classId,
         parentId: profileData.parentId,
@@ -269,7 +275,10 @@ export async function PUT(request: NextRequest) {
         .eq('id', id)
         .select('id, name, email, role, status')
         .single()
-      if (error) throw error
+      if (error) {
+        console.error('Database error updating user:', error)
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+      }
       user = data as User | null
     } else {
       const { data, error } = await supabase
@@ -277,29 +286,38 @@ export async function PUT(request: NextRequest) {
         .select('id, name, email, role, status')
         .eq('id', id)
         .single()
-      if (error) throw error
+      if (error) {
+        console.error('Database error fetching user:', error)
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+      }
       user = data as User | null
     }
 
     if (user?.role === 'STUDENT') {
       const studentData: Record<string, unknown> = {}
       if (admissionNo !== undefined) studentData.admissionNo = admissionNo || null
-      if (dateOfBirth !== undefined) studentData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth).toISOString() : null
+      if (dateOfBirth !== undefined) studentData.dateOfBirth = dateOfBirth ? (() => { const d = new Date(dateOfBirth); return isNaN(d.getTime()) ? null : d.toISOString() })() : null
       if (gender !== undefined) studentData.gender = gender || null
       if (classId !== undefined) studentData.classId = classId || null
       if (parentId !== undefined && parentId !== '') studentData.parentId = parentId || null
 
       if (Object.keys(studentData).length > 0) {
-        const { data: existingStudent } = await supabase.from('Student').select('id').eq('userId', id).single()
+        const { data: existingStudent, error: sErr } = await supabase.from('Student').select('id').eq('userId', id)
 
-        if (existingStudent) {
-          const { error: sErr } = await supabase.from('Student').update(studentData).eq('id', existingStudent.id)
-          if (sErr) throw sErr
+        if (sErr) {
+          console.error('Database error checking student:', sErr)
+        } else if (existingStudent && existingStudent.length > 0) {
+          const { error: sUpdErr } = await supabase.from('Student').update(studentData).eq('id', existingStudent[0].id)
+          if (sUpdErr) {
+            console.error('Database error updating student:', sUpdErr)
+          }
         } else {
           studentData.userId = id
           studentData.admissionNo = admissionNo || generateAdmissionNo()
-          const { error: sErr } = await supabase.from('Student').insert(studentData)
-          if (sErr) throw sErr
+          const { error: sInsErr } = await supabase.from('Student').insert(studentData)
+          if (sInsErr) {
+            console.error('Database error inserting student:', sInsErr)
+          }
         }
       }
     } else if (user?.role === 'TEACHER') {
@@ -308,10 +326,15 @@ export async function PUT(request: NextRequest) {
       if (qualification !== undefined) teacherData.qualification = qualification
 
       if (Object.keys(teacherData).length > 0) {
-        const { data: existingTeacher } = await supabase.from('Teacher').select('id').eq('userId', id).single()
-        if (existingTeacher) {
-          const { error: tErr } = await supabase.from('Teacher').update(teacherData).eq('id', existingTeacher.id)
-          if (tErr) throw tErr
+        const { data: existingTeacher, error: tErr } = await supabase.from('Teacher').select('id').eq('userId', id)
+
+        if (tErr) {
+          console.error('Database error checking teacher:', tErr)
+        } else if (existingTeacher && existingTeacher.length > 0) {
+          const { error: tUpdErr } = await supabase.from('Teacher').update(teacherData).eq('id', existingTeacher[0].id)
+          if (tUpdErr) {
+            console.error('Database error updating teacher:', tUpdErr)
+          }
         }
       }
     } else if (user?.role === 'PARENT') {
@@ -319,10 +342,15 @@ export async function PUT(request: NextRequest) {
       if (occupation !== undefined) parentData.occupation = occupation
 
       if (Object.keys(parentData).length > 0) {
-        const { data: existingParent } = await supabase.from('Parent').select('id').eq('userId', id).single()
-        if (existingParent) {
-          const { error: pErr } = await supabase.from('Parent').update(parentData).eq('id', existingParent.id)
-          if (pErr) throw pErr
+        const { data: existingParent, error: pErr } = await supabase.from('Parent').select('id').eq('userId', id)
+
+        if (pErr) {
+          console.error('Database error checking parent:', pErr)
+        } else if (existingParent && existingParent.length > 0) {
+          const { error: pUpdErr } = await supabase.from('Parent').update(parentData).eq('id', existingParent[0].id)
+          if (pUpdErr) {
+            console.error('Database error updating parent:', pUpdErr)
+          }
         }
       }
     }
@@ -353,9 +381,14 @@ export async function PATCH(request: NextRequest) {
       .update({ status })
       .eq('id', id)
       .select('id, name, email, role, status')
-      .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Database error updating user status:', error)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
+
+    if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
     return NextResponse.json(user)
   } catch (error) {
     console.error('Error patching user:', error)

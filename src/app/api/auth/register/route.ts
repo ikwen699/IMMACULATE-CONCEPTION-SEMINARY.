@@ -35,11 +35,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
     }
 
-    const { data: existingUser } = await supabase
+    const { data: existingUser, error: existingUserError } = await supabase
       .from('User')
       .select('id')
       .eq('email', email)
       .single()
+
+    if (existingUserError) {
+      console.error('Database error checking existing user:', existingUserError)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
 
     if (existingUser) {
       return NextResponse.json({ error: 'Email already registered' }, { status: 400 })
@@ -47,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await hashPassword(password)
 
-    const { data: user, error: userError } = await supabase
+const { data: user, error: userError } = await supabase
       .from('User')
       .insert({
         name,
@@ -59,9 +64,11 @@ export async function POST(request: NextRequest) {
         address,
       })
       .select()
-      .single()
 
-    if (userError) throw userError
+    if (userError) {
+      console.error('Database error creating user:', userError)
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    }
 
     if (role === 'STUDENT') {
       let parentId: string | undefined
@@ -80,18 +87,22 @@ export async function POST(request: NextRequest) {
             phone: parentPhone,
           })
           .select()
-          .single()
 
-        if (puErr) throw puErr
+        if (puErr) {
+          console.error('Database error creating parent user:', puErr)
+          return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+        }
 
         const { data: parentProfile, error: ppErr } = await supabase
           .from('Parent')
-          .insert({ userId: parentUser.id })
+          .insert({ userId: parentUser[0].id })
           .select()
-          .single()
 
-        if (ppErr) throw ppErr
-        parentId = parentProfile.id
+        if (ppErr) {
+          console.error('Database error creating parent profile:', ppErr)
+          return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+        }
+        parentId = parentProfile[0]?.id
       }
 
       const { error: sErr } = await supabase
@@ -99,12 +110,15 @@ export async function POST(request: NextRequest) {
         .insert({
           userId: user.id,
           admissionNo: generateAdmissionNo(),
-          dateOfBirth: dateOfBirth ? new Date(dateOfBirth).toISOString() : null,
+          dateOfBirth: dateOfBirth ? (() => { const d = new Date(dateOfBirth); return isNaN(d.getTime()) ? null : d.toISOString() })() : null,
           gender: gender || null,
           parentId,
         })
 
-      if (sErr) throw sErr
+      if (sErr) {
+        console.error('Database error creating student profile:', sErr)
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+      }
     } else if (role === 'TEACHER') {
       const { error: tErr } = await supabase
         .from('Teacher')
@@ -115,7 +129,10 @@ export async function POST(request: NextRequest) {
           qualification,
         })
 
-      if (tErr) throw tErr
+      if (tErr) {
+        console.error('Database error creating teacher profile:', tErr)
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+      }
     } else if (role === 'PARENT') {
       const { error: pErr } = await supabase
         .from('Parent')
@@ -124,7 +141,10 @@ export async function POST(request: NextRequest) {
           occupation: occupation || null,
         })
 
-      if (pErr) throw pErr
+      if (pErr) {
+        console.error('Database error creating parent profile:', pErr)
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+      }
     } else if (role === 'ACCOUNTANT') {
       const { error: aErr } = await supabase
         .from('Accountant')
@@ -133,7 +153,10 @@ export async function POST(request: NextRequest) {
           employeeId: generateEmployeeId('ACC'),
         })
 
-      if (aErr) throw aErr
+      if (aErr) {
+        console.error('Database error creating accountant profile:', aErr)
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+      }
     } else if (role === 'PRINCIPAL') {
       const { error: prErr } = await supabase
         .from('Principal')
@@ -141,7 +164,10 @@ export async function POST(request: NextRequest) {
           userId: user.id,
         })
 
-      if (prErr) throw prErr
+      if (prErr) {
+        console.error('Database error creating principal profile:', prErr)
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+      }
     }
     // ADMIN doesn't have a separate profile table
 
