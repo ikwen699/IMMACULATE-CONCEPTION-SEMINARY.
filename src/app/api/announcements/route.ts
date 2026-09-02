@@ -37,6 +37,11 @@ export async function POST(request: NextRequest) {
     const session = await auth()
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    const role = (session.user as any).role
+    if (!['ADMIN', 'PRINCIPAL'].includes(role)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
     const body = await request.json()
     const { title, content, targetRole } = body
 
