@@ -1,8 +1,214 @@
 'use client'
 
+import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
+import { format, formatDistanceToNow } from 'date-fns'
 import DashboardLayout from '@/components/layout/DashboardLayout'
+import { cn } from '@/lib/utils'
+
+const STUDENT_ACTIONS = [
+  { label: 'My Grades', icon: 'mdi-school', color: 'bg-blue-100 text-blue-600 hover:bg-blue-200', href: '/dashboard/grades' },
+  { label: 'Assignments', icon: 'mdi-clipboard-text', color: 'bg-orange-100 text-orange-600 hover:bg-orange-200', href: '/dashboard/assignments' },
+  { label: 'Timetable', icon: 'mdi-calendar', color: 'bg-purple-100 text-purple-600 hover:bg-purple-200', href: '/dashboard/timetable' },
+  { label: 'Fees', icon: 'mdi-cash', color: 'bg-green-100 text-green-600 hover:bg-green-200', href: '/dashboard/fees' },
+  { label: 'My Class', icon: 'mdi-door-open', color: 'bg-amber-100 text-amber-600 hover:bg-amber-200', href: '/dashboard/my-classes' },
+  { label: 'Announcements', icon: 'mdi-bullhorn', color: 'bg-rose-100 text-rose-600 hover:bg-rose-200', href: '/dashboard/announcements' },
+]
+
+const NOTIF_DOT_COLORS: Record<string, string> = {
+  PAYMENT: 'bg-emerald-500',
+  GRADE: 'bg-blue-500',
+  ATTENDANCE: 'bg-amber-500',
+  ANNOUNCEMENT: 'bg-purple-500',
+}
+
+function StudentDashboard() {
+  const { data: session, status } = useSession()
+  const user = session?.user as any
+  const studentName = user?.name?.split(' ')[0] || 'Student'
+
+  const [className, setClassName] = useState('')
+  const [announcements, setAnnouncements] = useState<any[]>([])
+  const [notifications, setNotifications] = useState<any[]>([])
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  const fetchData = useCallback(async () => {
+    if (status !== 'authenticated') return
+    setLoading(true)
+    try {
+      const [profileRes, announceRes, notifRes] = await Promise.all([
+        fetch('/api/profile', { cache: 'no-store' }),
+        fetch('/api/announcements', { cache: 'no-store' }),
+        fetch('/api/notifications', { cache: 'no-store' }),
+      ])
+
+      if (profileRes.ok) {
+        const profile = await profileRes.json()
+        setClassName(profile.class?.name || '')
+      }
+
+      if (announceRes.ok) {
+        const data = await announceRes.json()
+        const items = Array.isArray(data) ? data : []
+        setAnnouncements(items.filter((a: any) => a.isPublished !== false).slice(0, 3))
+      }
+
+      if (notifRes.ok) {
+        const data = await notifRes.json()
+        setNotifications((data.notifications || []).slice(0, 5))
+        setUnreadCount(data.unreadCount || 0)
+      }
+    } catch {
+    } finally {
+      setLoading(false)
+    }
+  }, [status])
+
+  useEffect(() => {
+    if (status !== 'authenticated') return
+    fetchData()
+    const interval = setInterval(fetchData, 30000)
+    return () => clearInterval(interval)
+  }, [fetchData, status])
+
+  const today = new Date()
+  const greeting = today.getHours() < 12 ? 'Good morning' : today.getHours() < 18 ? 'Good afternoon' : 'Good evening'
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 border-3 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+            <p className="text-sm text-gray-500">Loading your dashboard...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{greeting}, {studentName}</h1>
+          <p className="text-sm text-gray-500">
+            {format(today, 'EEEE, MMMM d, yyyy')}
+            {className && <><span className="mx-1.5">&middot;</span>{className}</>}
+          </p>
+        </div>
+        {unreadCount > 0 && (
+          <Link
+            href="/dashboard/notifications"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm font-medium text-amber-700 bg-amber-50 rounded-lg hover:bg-amber-100 transition-colors"
+          >
+            <span className="mdi mdi-bell text-lg" />
+            {unreadCount} unread
+          </Link>
+        )}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {STUDENT_ACTIONS.map((action) => (
+          <Link
+            key={action.href}
+            href={action.href}
+            className={cn(
+              'flex flex-col items-center gap-2.5 p-4 rounded-xl transition-all duration-200 hover:shadow-sm',
+              action.color
+            )}
+          >
+            <span className={cn('mdi text-3xl', action.icon)} />
+            <p className="text-xs font-semibold">{action.label}</p>
+          </Link>
+        ))}
+      </div>
+
+      {/* Announcements + Notifications */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Announcements */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-rose-100 flex items-center justify-center">
+                <span className="mdi mdi-bullhorn text-rose-600" />
+              </div>
+              <h2 className="font-semibold text-gray-900">Announcements</h2>
+            </div>
+            <Link href="/dashboard/announcements" className="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
+              View all
+            </Link>
+          </div>
+          {announcements.length === 0 ? (
+            <div className="py-8 text-center">
+              <span className="mdi mdi-bullhorn-outline text-3xl text-gray-300 block mb-2" />
+              <p className="text-sm text-gray-500">No announcements yet</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {announcements.map((a) => (
+                <div key={a.id} className="p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                  <p className="text-sm font-medium text-gray-800 line-clamp-1">{a.title}</p>
+                  <p className="text-xs text-gray-500 mt-1 line-clamp-2">{a.content}</p>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    <span className="text-[11px] text-gray-400">{a.author?.name}</span>
+                    <span className="text-gray-300">&middot;</span>
+                    <span className="text-[11px] text-gray-400">{formatDistanceToNow(new Date(a.createdAt), { addSuffix: true })}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Notifications */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                <span className="mdi mdi-bell text-blue-600" />
+              </div>
+              <h2 className="font-semibold text-gray-900">Notifications</h2>
+            </div>
+            <Link href="/dashboard/notifications" className="text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
+              View all
+            </Link>
+          </div>
+          {notifications.length === 0 ? (
+            <div className="py-8 text-center">
+              <span className="mdi mdi-bell-off-outline text-3xl text-gray-300 block mb-2" />
+              <p className="text-sm text-gray-500">No notifications yet</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {notifications.map((n) => (
+                <div key={n.id} className={cn(
+                  'flex items-start gap-3 p-3 rounded-xl transition-colors',
+                  !n.read ? 'bg-indigo-50/50' : 'bg-gray-50 hover:bg-gray-100'
+                )}>
+                  <div className={cn('w-2 h-2 rounded-full mt-2 shrink-0', NOTIF_DOT_COLORS[n.type] || 'bg-gray-400')} />
+                  <div className="flex-1 min-w-0">
+                    <p className={cn('text-sm', !n.read ? 'font-semibold text-gray-900' : 'text-gray-700')}>
+                      {n.title}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{n.message}</p>
+                  </div>
+                  <span className="text-[11px] text-gray-400 shrink-0">
+                    {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function DashboardContent() {
   const { data: session, status } = useSession()
@@ -37,13 +243,6 @@ function DashboardContent() {
           { label: 'Pending Grades', value: '12', icon: 'mdi-clipboard-text', color: 'bg-orange-100 text-orange-600' },
           { label: 'Assignments', value: '8', icon: 'mdi-file-document', color: 'bg-purple-100 text-purple-600' },
         ]
-      case 'STUDENT':
-        return [
-          { label: 'My Grades', value: 'A', icon: 'mdi-school', color: 'bg-blue-100 text-blue-600' },
-          { label: 'Attendance', value: '95%', icon: 'mdi-check-circle', color: 'bg-green-100 text-green-600' },
-          { label: 'Assignments', value: '3', icon: 'mdi-clipboard-text', color: 'bg-orange-100 text-orange-600' },
-          { label: 'Fee Status', value: 'Paid', icon: 'mdi-cash', color: 'bg-purple-100 text-purple-600' },
-        ]
       case 'ACCOUNTANT':
         return [
           { label: 'Total Revenue', value: '$125,000', icon: 'mdi-cash-multiple', color: 'bg-green-100 text-green-600' },
@@ -76,13 +275,6 @@ function DashboardContent() {
           { label: 'Enter Grades', icon: 'mdi-clipboard-text', color: 'bg-green-100 text-green-600 hover:bg-green-200', href: '/dashboard/grades' },
           { label: 'Create Assignment', icon: 'mdi-file-plus', color: 'bg-purple-100 text-purple-600 hover:bg-purple-200', href: '/dashboard/assignments' },
           { label: 'Announcement', icon: 'mdi-bullhorn', color: 'bg-orange-100 text-orange-600 hover:bg-orange-200', href: '/dashboard/announcements' },
-        ]
-      case 'STUDENT':
-        return [
-          { label: 'View Grades', icon: 'mdi-school', color: 'bg-blue-100 text-blue-600 hover:bg-blue-200', href: '/dashboard/grades' },
-          { label: 'Attendance', icon: 'mdi-check-circle', color: 'bg-green-100 text-green-600 hover:bg-green-200', href: '/dashboard/attendance' },
-          { label: 'Assignments', icon: 'mdi-clipboard-text', color: 'bg-purple-100 text-purple-600 hover:bg-purple-200', href: '/dashboard/assignments' },
-          { label: 'Fee Status', icon: 'mdi-cash', color: 'bg-orange-100 text-orange-600 hover:bg-orange-200', href: '/dashboard/fees' },
         ]
       case 'ACCOUNTANT':
         return [
@@ -124,6 +316,8 @@ function DashboardContent() {
       { title: 'System update completed', time: '2 days ago', type: 'success' },
     ]
   }
+
+  if (role === 'STUDENT') return <StudentDashboard />
 
   return (
     <div className="space-y-6">
