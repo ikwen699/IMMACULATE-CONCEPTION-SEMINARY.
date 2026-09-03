@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
         studentId, feeId, amount, receiptNo: generateReceiptNo(), paymentMethod, reference, notes, receiptImageUrl,
         parentId, accountantId, status: role === 'PARENT' ? 'SUBMITTED' : 'COMPLETED', submittedAt: new Date().toISOString(),
       })
-      .select('*, student(id, admissionNo, userId), fee(id, name, amount)')
+      .select('*')
       .single()
 
     if (payErr) {
