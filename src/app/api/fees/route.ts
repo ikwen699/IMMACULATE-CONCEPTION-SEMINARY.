@@ -73,16 +73,26 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { name, amount, classId, sessionId, termId, description, dueDate } = body
 
+    if (!sessionId) return NextResponse.json({ error: 'Academic session is required' }, { status: 400 })
+
     const { data: fee, error } = await supabase
       .from('Fee')
-      .insert({ name, amount, classId, sessionId, termId, description, dueDate: dueDate ? new Date(dueDate).toISOString() : null })
+      .insert({
+        name, amount,
+        classId: classId || null,
+        sessionId,
+        termId: termId || null,
+        description,
+        dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+      })
       .select('*, class(id, name), session(id, name), term(id, name)')
       .single()
 
     if (error) throw error
     return NextResponse.json(fee, { status: 201 })
-  } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  } catch (error: any) {
+    console.error('Error creating fee:', error)
+    return NextResponse.json({ error: error?.message || 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -97,12 +107,15 @@ export async function PUT(request: NextRequest) {
     const { id, ...updateData } = body
     if (!id) return NextResponse.json({ error: 'Fee ID required' }, { status: 400 })
     if (updateData.dueDate) updateData.dueDate = new Date(updateData.dueDate).toISOString()
+    if (updateData.classId === '') updateData.classId = null
+    if (updateData.termId === '') updateData.termId = null
 
     const { data: fee, error } = await supabase.from('Fee').update(updateData).eq('id', id).select('*, class(id, name), session(id, name), term(id, name)').single()
     if (error) throw error
     return NextResponse.json(fee)
-  } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  } catch (error: any) {
+    console.error('Error updating fee:', error)
+    return NextResponse.json({ error: error?.message || 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -118,7 +131,8 @@ export async function DELETE(request: NextRequest) {
     const { error } = await supabase.from('Fee').delete().eq('id', id)
     if (error) throw error
     return NextResponse.json({ message: 'Fee deleted' })
-  } catch (error) {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  } catch (error: any) {
+    console.error('Error deleting fee:', error)
+    return NextResponse.json({ error: error?.message || 'Internal server error' }, { status: 500 })
   }
 }
