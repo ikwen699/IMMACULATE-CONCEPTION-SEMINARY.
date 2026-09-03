@@ -61,7 +61,9 @@ export async function POST(request: NextRequest) {
       .eq('id', authorId)
       .single()
 
-    notifyNewAnnouncement(announcement.id, title, authorId, targetRole || undefined).catch(() => {})
+    notifyNewAnnouncement(announcement.id, title, authorId, targetRole || undefined).catch((err) => {
+      console.error('Failed to send announcement notifications:', err)
+    })
 
     return NextResponse.json({ ...announcement, author: author || null }, { status: 201 })
   } catch (error) {

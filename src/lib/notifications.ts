@@ -95,22 +95,34 @@ export async function notifyPaymentApproved(paymentId: string, approved: boolean
 }
 
 export async function notifyNewAnnouncement(announcementId: string, title: string, authorId: string, targetRole?: string) {
-  let query = supabase.from('User').select('id').eq('status', 'ACTIVE').neq('id', authorId)
-  if (targetRole) query = query.eq('role', targetRole)
+  try {
+    let query = supabase.from('User').select('id').eq('status', 'ACTIVE').neq('id', authorId)
+    if (targetRole) query = query.eq('role', targetRole)
 
-  const { data: users } = await query
+    const { data: users, error: usersErr } = await query
 
-  if (!users || users.length === 0) return
+    if (usersErr) {
+      console.error('Error fetching users for announcement notification:', usersErr)
+      return
+    }
 
-  const notifications = users.map(user => ({
-    userId: user.id,
-    title: 'New Announcement',
-    message: `New announcement: ${title}`,
-    type: 'ANNOUNCEMENT',
-    link: '/dashboard/announcements',
-  }))
+    if (!users || users.length === 0) return
 
-  await supabase.from('Notification').insert(notifications)
+    const notifications = users.map(user => ({
+      userId: user.id,
+      title: 'New Announcement',
+      message: `New announcement: ${title}`,
+      type: 'ANNOUNCEMENT',
+      link: '/dashboard/announcements',
+    }))
+
+    const { error: insertErr } = await supabase.from('Notification').insert(notifications)
+    if (insertErr) {
+      console.error('Error inserting announcement notifications:', insertErr)
+    }
+  } catch (error) {
+    console.error('Error in notifyNewAnnouncement:', error)
+  }
 }
 
 export async function notifyGradePosted(studentId: string, subjectName: string, grade: string, score: number) {
