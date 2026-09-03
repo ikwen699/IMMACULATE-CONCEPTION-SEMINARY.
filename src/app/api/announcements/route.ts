@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     })
 
     return NextResponse.json({ ...announcement, author: author || null }, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating announcement:', error)
     return NextResponse.json({ error: error?.message || 'Internal server error' }, { status: 500 })
   }
