@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
         description,
         dueDate: dueDate ? new Date(dueDate).toISOString() : null,
       })
-      .select('*, class(id, name), session(id, name), term(id, name)')
+      .select('*')
       .single()
 
     if (error) throw error
@@ -110,7 +110,7 @@ export async function PUT(request: NextRequest) {
     if (updateData.classId === '') updateData.classId = null
     if (updateData.termId === '') updateData.termId = null
 
-    const { data: fee, error } = await supabase.from('Fee').update(updateData).eq('id', id).select('*, class(id, name), session(id, name), term(id, name)').single()
+    const { data: fee, error } = await supabase.from('Fee').update(updateData).eq('id', id).select('*').single()
     if (error) throw error
     return NextResponse.json(fee)
   } catch (error: any) {
