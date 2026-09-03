@@ -423,4 +423,4 @@ ALTER TABLE "AssignmentSubmission" ADD COLUMN IF NOT EXISTS "className" TEXT;
 ALTER TABLE "AssignmentSubmission" ADD COLUMN IF NOT EXISTS "admissionNo" TEXT;
 
 -- Change targetRole from Role enum to TEXT to support multiple roles (comma-separated)
-ALTER TABLE "Announcement" ALTER COLUMN "targetRole" TYPE TEXT;
+ALTER TABLE "Announcement" ALTER COLUMN "targetRole" TYPE TEXT USING "targetRole"::TEXT;

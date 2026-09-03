@@ -449,7 +449,7 @@ export default function AnnouncementsPage() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Target Audience
                   </label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                     {[
                       { value: 'ADMIN', label: 'Admin', icon: 'mdi-shield-crown' },
                       { value: 'PRINCIPAL', label: 'Principal', icon: 'mdi-school' },
@@ -461,7 +461,7 @@ export default function AnnouncementsPage() {
                       <label
                         key={value}
                         className={cn(
-                          'flex items-center gap-2 px-3 py-2.5 rounded-lg border cursor-pointer transition-colors',
+                          'flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-2 sm:py-2.5 rounded-lg border cursor-pointer transition-colors',
                           formData.targetRoles.includes(value)
                             ? 'border-blue-500 bg-blue-50 text-blue-700'
                             : 'border-gray-200 hover:bg-gray-50 text-gray-700'
@@ -478,8 +478,8 @@ export default function AnnouncementsPage() {
                           }}
                           className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
-                        <span className={cn('mdi', icon, 'text-lg shrink-0')} />
-                        <span className="text-sm font-medium">{label}</span>
+                        <span className={cn('mdi', icon, 'text-base sm:text-lg shrink-0')} />
+                        <span className="text-xs sm:text-sm font-medium">{label}</span>
                       </label>
                     ))}
                   </div>
