@@ -385,7 +385,7 @@ export default function AnnouncementsPage() {
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm animate-fade-in" />
             <div
               ref={modalRef}
-              className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg animate-scale-in"
+              className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto animate-scale-in"
             >
               {/* Modal header */}
               <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
