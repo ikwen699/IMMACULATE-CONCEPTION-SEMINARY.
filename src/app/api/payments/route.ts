@@ -144,8 +144,8 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (payErr) {
-      console.error('Database error creating payment:', payErr)
-      return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+      console.error('Database error creating payment:', JSON.stringify(payErr))
+      return NextResponse.json({ error: payErr.message || payErr.details || 'Internal server error' }, { status: 500 })
     }
 
     if (!payment) return NextResponse.json({ error: 'Failed to create payment' }, { status: 500 })
@@ -159,9 +159,9 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(payment, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating payment:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ error: error?.message || 'Internal server error' }, { status: 500 })
   }
 }
 
