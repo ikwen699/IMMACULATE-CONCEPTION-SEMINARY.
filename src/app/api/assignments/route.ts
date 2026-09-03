@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
+import { notifyNewAssignment } from '@/lib/notifications'
 export const dynamic = 'force-dynamic'
 
 
@@ -82,6 +83,11 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) throw error
+
+    notifyNewAssignment(title, classId).catch((err) => {
+      console.error('Failed to send assignment notifications:', err)
+    })
+
     return NextResponse.json(assignment, { status: 201 })
   } catch (error) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

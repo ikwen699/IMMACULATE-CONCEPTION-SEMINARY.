@@ -43,13 +43,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { title, content, targetRole } = body
+    const { title, content, targetRoles } = body
+    const targetRole = Array.isArray(targetRoles) && targetRoles.length > 0 ? targetRoles.join(',') : null
 
     const authorId = (session.user as any).userId || (session.user as any).id || (session.user as any).sub
 
     const { data: announcement, error } = await supabase
       .from('Announcement')
-      .insert({ title, content, authorId, targetRole: targetRole || null })
+      .insert({ title, content, authorId, targetRole })
       .select('*')
       .single()
 

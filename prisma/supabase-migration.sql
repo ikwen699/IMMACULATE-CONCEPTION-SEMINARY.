@@ -421,3 +421,6 @@ ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY
 ALTER TABLE "AssignmentSubmission" ADD COLUMN IF NOT EXISTS "studentName" TEXT;
 ALTER TABLE "AssignmentSubmission" ADD COLUMN IF NOT EXISTS "className" TEXT;
 ALTER TABLE "AssignmentSubmission" ADD COLUMN IF NOT EXISTS "admissionNo" TEXT;
+
+-- Change targetRole from Role enum to TEXT to support multiple roles (comma-separated)
+ALTER TABLE "Announcement" ALTER COLUMN "targetRole" TYPE TEXT;

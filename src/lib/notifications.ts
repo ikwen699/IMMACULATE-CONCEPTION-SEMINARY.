@@ -94,10 +94,17 @@ export async function notifyPaymentApproved(paymentId: string, approved: boolean
   })
 }
 
-export async function notifyNewAnnouncement(announcementId: string, title: string, authorId: string, targetRole?: string) {
+export async function notifyNewAnnouncement(announcementId: string, title: string, authorId: string, targetRoles?: string) {
   try {
     let query = supabase.from('User').select('id').eq('status', 'ACTIVE').neq('id', authorId)
-    if (targetRole) query = query.eq('role', targetRole)
+    if (targetRoles) {
+      const roles = targetRoles.split(',').map(r => r.trim()).filter(Boolean)
+      if (roles.length === 1) {
+        query = query.eq('role', roles[0])
+      } else if (roles.length > 1) {
+        query = query.in('role', roles)
+      }
+    }
 
     const { data: users, error: usersErr } = await query
 
@@ -150,5 +157,68 @@ export async function notifyGradePosted(studentId: string, subjectName: string, 
         link: '/dashboard/grades',
       })
     }
+  }
+}
+
+export async function notifyPaymentNeedsReview(paymentId: string, studentName: string, amount: number) {
+  try {
+    const { data: accountants, error } = await supabase
+      .from('User')
+      .select('id')
+      .eq('role', 'ACCOUNTANT')
+      .eq('status', 'ACTIVE')
+
+    if (error || !accountants || accountants.length === 0) return
+
+    const notifications = accountants.map(a => ({
+      userId: a.id,
+      title: 'Payment Awaiting Review',
+      message: `New payment of ₦${amount.toLocaleString()} for ${studentName} has been submitted and needs your review.`,
+      type: 'PAYMENT',
+      link: '/dashboard/payment-reviews',
+    }))
+
+    const { error: insertErr } = await supabase.from('Notification').insert(notifications)
+    if (insertErr) console.error('Error inserting payment review notifications:', insertErr)
+  } catch (error) {
+    console.error('Error in notifyPaymentNeedsReview:', error)
+  }
+}
+
+export async function notifyNewAssignment(assignmentTitle: string, classId: string) {
+  try {
+    const { data: students, error } = await supabase
+      .from('Student')
+      .select('userId')
+      .eq('classId', classId)
+
+    if (error || !students || students.length === 0) return
+
+    const notifications = students.map(s => ({
+      userId: s.userId,
+      title: 'New Assignment',
+      message: `A new assignment has been posted: ${assignmentTitle}`,
+      type: 'GRADE',
+      link: '/dashboard/assignments',
+    }))
+
+    const { error: insertErr } = await supabase.from('Notification').insert(notifications)
+    if (insertErr) console.error('Error inserting assignment notifications:', insertErr)
+  } catch (error) {
+    console.error('Error in notifyNewAssignment:', error)
+  }
+}
+
+export async function notifySubmissionCreated(studentName: string, assignmentTitle: string, teacherUserId: string) {
+  try {
+    await createNotification({
+      userId: teacherUserId,
+      title: 'Assignment Submitted',
+      message: `${studentName} has submitted their work for "${assignmentTitle}".`,
+      type: 'GRADE',
+      link: '/dashboard/assignments',
+    })
+  } catch (error) {
+    console.error('Error in notifySubmissionCreated:', error)
   }
 }

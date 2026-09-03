@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
+import { notifySubmissionCreated } from '@/lib/notifications'
 export const dynamic = 'force-dynamic'
 
 
@@ -112,6 +113,27 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (error) throw error
+
+      const { data: assignmentWithTeacher } = await supabase
+        .from('Assignment')
+        .select('title, teacherId')
+        .eq('id', assignmentId)
+        .single()
+
+      if (assignmentWithTeacher?.teacherId) {
+        const { data: teacher } = await supabase
+          .from('Teacher')
+          .select('userId')
+          .eq('id', assignmentWithTeacher.teacherId)
+          .single()
+
+        if (teacher?.userId) {
+          notifySubmissionCreated(studentName, assignmentWithTeacher.title, teacher.userId).catch((err) => {
+            console.error('Failed to send submission notification:', err)
+          })
+        }
+      }
+
       return NextResponse.json(submission, { status: 201 })
     }
 

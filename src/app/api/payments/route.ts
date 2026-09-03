@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { supabaseAdmin as supabase } from '@/lib/supabase-server'
 import { generateReceiptNo } from '@/lib/utils'
-import { notifyPaymentSubmitted, notifyPaymentReviewed, notifyPaymentApproved } from '@/lib/notifications'
+import { notifyPaymentSubmitted, notifyPaymentReviewed, notifyPaymentApproved, notifyPaymentNeedsReview } from '@/lib/notifications'
 export const dynamic = 'force-dynamic'
 
 
@@ -153,7 +153,9 @@ export async function POST(request: NextRequest) {
     if (role === 'PARENT') {
       const { data: sUser } = await supabase.from('Student').select('userId').eq('id', studentId).single()
       const { data: sName } = sUser ? await supabase.from('User').select('name').eq('id', sUser.userId).single() : { data: null }
-      await notifyPaymentSubmitted(payment.id, sName?.name || 'Student', amount)
+      const studentName = sName?.name || 'Student'
+      await notifyPaymentSubmitted(payment.id, studentName, amount)
+      await notifyPaymentNeedsReview(payment.id, studentName, amount)
     }
 
     return NextResponse.json(payment, { status: 201 })
@@ -200,12 +202,14 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
 
-    if (role === 'PRINCIPAL' && status === 'REJECTED') {
+    if (role === 'PRINCIPAL' && status === 'PRINCIPAL_APPROVED') {
+      await notifyPaymentApproved(id, true, principalRemarks)
+    } else if (role === 'PRINCIPAL' && status === 'REJECTED') {
       await notifyPaymentApproved(id, false, principalRemarks)
-    } else if (status === 'ACCOUNTANT_REVIEWED' || status === 'REJECTED') {
+    } else if (role === 'ACCOUNTANT' && status === 'ACCOUNTANT_REVIEWED') {
       await notifyPaymentReviewed(id, status, accountantRemarks)
-    } else if (status === 'PRINCIPAL_APPROVED' || (status === 'REJECTED' && role === 'PRINCIPAL')) {
-      await notifyPaymentApproved(id, status === 'PRINCIPAL_APPROVED', principalRemarks)
+    } else if (role === 'ACCOUNTANT' && status === 'REJECTED') {
+      await notifyPaymentReviewed(id, status, accountantRemarks)
     }
 
     return NextResponse.json(payment)

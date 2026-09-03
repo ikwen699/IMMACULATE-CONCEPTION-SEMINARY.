@@ -67,7 +67,7 @@ export default function AnnouncementsPage() {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
-  const [formData, setFormData] = useState({ title: '', content: '', targetRole: '' })
+  const [formData, setFormData] = useState({ title: '', content: '', targetRoles: [] as string[] })
   const modalRef = useRef<HTMLDivElement>(null)
   const titleInputRef = useRef<HTMLInputElement>(null)
 
@@ -128,7 +128,7 @@ export default function AnnouncementsPage() {
   }, [showModal, status])
 
   const resetForm = () => {
-    setFormData({ title: '', content: '', targetRole: '' })
+    setFormData({ title: '', content: '', targetRoles: [] })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -139,7 +139,11 @@ export default function AnnouncementsPage() {
       const res = await fetch('/api/announcements', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          title: formData.title,
+          content: formData.content,
+          targetRoles: formData.targetRoles,
+        }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -289,16 +293,17 @@ export default function AnnouncementsPage() {
                           <h3 className="text-lg font-semibold text-gray-900 break-words">
                             {announcement.title}
                           </h3>
-                          {announcement.targetRole && (
+                          {announcement.targetRole && announcement.targetRole.split(',').map(role => (
                             <span
+                              key={role}
                               className={cn(
                                 'inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full ring-1 ring-inset',
-                                ROLE_BADGE_COLORS[announcement.targetRole] || 'bg-gray-100 text-gray-700 ring-gray-600/20'
+                                ROLE_BADGE_COLORS[role] || 'bg-gray-100 text-gray-700 ring-gray-600/20'
                               )}
                             >
-                              {announcement.targetRole.charAt(0) + announcement.targetRole.slice(1).toLowerCase()}
+                              {role.charAt(0) + role.slice(1).toLowerCase()}
                             </span>
-                          )}
+                          ))}
                         </div>
                         <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">
                           {displayContent}
@@ -441,22 +446,48 @@ export default function AnnouncementsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Target Audience
                   </label>
-                  <select
-                    value={formData.targetRole}
-                    onChange={(e) => setFormData({ ...formData, targetRole: e.target.value })}
-                    className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-gray-900 transition-shadow bg-white"
-                  >
-                    <option value="">Everyone</option>
-                    <option value="ADMIN">Admin Only</option>
-                    <option value="PRINCIPAL">Principal Only</option>
-                    <option value="TEACHER">Teachers Only</option>
-                    <option value="STUDENT">Students Only</option>
-                    <option value="PARENT">Parents Only</option>
-                    <option value="ACCOUNTANT">Accountants Only</option>
-                  </select>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { value: 'ADMIN', label: 'Admin', icon: 'mdi-shield-crown' },
+                      { value: 'PRINCIPAL', label: 'Principal', icon: 'mdi-school' },
+                      { value: 'TEACHER', label: 'Teachers', icon: 'mdi-account-school' },
+                      { value: 'STUDENT', label: 'Students', icon: 'mdi-school-outline' },
+                      { value: 'PARENT', label: 'Parents', icon: 'mdi-account-group' },
+                      { value: 'ACCOUNTANT', label: 'Accountants', icon: 'mdi-cash' },
+                    ].map(({ value, label, icon }) => (
+                      <label
+                        key={value}
+                        className={cn(
+                          'flex items-center gap-2 px-3 py-2.5 rounded-lg border cursor-pointer transition-colors',
+                          formData.targetRoles.includes(value)
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-200 hover:bg-gray-50 text-gray-700'
+                        )}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={formData.targetRoles.includes(value)}
+                          onChange={(e) => {
+                            const newRoles = e.target.checked
+                              ? [...formData.targetRoles, value]
+                              : formData.targetRoles.filter(r => r !== value)
+                            setFormData({ ...formData, targetRoles: newRoles })
+                          }}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className={cn('mdi', icon, 'text-lg shrink-0')} />
+                        <span className="text-sm font-medium">{label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1.5">
+                    {formData.targetRoles.length === 0
+                      ? 'Will be sent to everyone'
+                      : `${formData.targetRoles.length} role(s) selected`}
+                  </p>
                 </div>
 
                 {/* Actions */}
