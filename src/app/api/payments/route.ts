@@ -134,6 +134,20 @@ export async function POST(request: NextRequest) {
       accountantId = accountant?.id
     }
 
+    if (!studentId) {
+      return NextResponse.json({ error: 'Student ID is required' }, { status: 400 })
+    }
+
+    const { data: existingStudent } = await supabase
+      .from('Student')
+      .select('id')
+      .eq('id', studentId)
+      .single()
+
+    if (!existingStudent) {
+      return NextResponse.json({ error: 'Invalid student: no student found with the provided ID' }, { status: 400 })
+    }
+
     const { data: payment, error: payErr } = await supabase
       .from('Payment')
       .insert({
