@@ -91,7 +91,7 @@ export default function PaymentsPage() {
       if (r.ok) {
         const data = await r.json()
         setStudents(data.filter((u: any) => u.student).map((u: any) => ({
-          id: u.id, admissionNo: u.student.admissionNo, user: { name: u.name }
+          id: u.student.id, admissionNo: u.student.admissionNo, user: { name: u.name }
         })))
       }
     } catch {}
