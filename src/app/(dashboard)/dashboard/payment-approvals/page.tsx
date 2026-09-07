@@ -168,7 +168,7 @@ export default function PaymentApprovalsPage() {
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg font-medium">
                 <span className="mdi mdi-cash text-base" />
-                ${totalAmount.toLocaleString()}
+                ₦{totalAmount.toLocaleString()}
               </span>
             </div>
           )}
@@ -259,7 +259,7 @@ export default function PaymentApprovalsPage() {
                         </td>
                         <td className="px-5 py-4 text-sm text-gray-600">{payment.fee.name}</td>
                         <td className="px-5 py-4">
-                          <span className="text-sm font-bold text-gray-900">${payment.amount.toLocaleString()}</span>
+                          <span className="text-sm font-bold text-gray-900">₦{payment.amount.toLocaleString()}</span>
                         </td>
                         <td className="px-5 py-4">
                           <span className="inline-flex items-center gap-1 text-sm text-gray-600">
@@ -314,7 +314,7 @@ export default function PaymentApprovalsPage() {
                 {/* Payment details grid */}
                 <div className="grid grid-cols-2 gap-4">
                   {[
-                    { label: 'Amount', value: `$${selectedPayment.amount.toLocaleString()}`, icon: 'mdi-cash', highlight: true },
+                    { label: 'Amount', value: `$₦{selectedPayment.amount.toLocaleString()}`, icon: 'mdi-cash', highlight: true },
                     { label: 'Student', value: selectedPayment.student.user?.name || '', icon: 'mdi-account' },
                     { label: 'Fee', value: selectedPayment.fee.name, icon: 'mdi-credit-card-outline' },
                     { label: 'Admission No', value: selectedPayment.student.admissionNo, icon: 'mdi-identifier' },

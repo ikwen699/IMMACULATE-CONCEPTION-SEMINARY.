@@ -33,60 +33,120 @@ export async function createNotification(params: CreateNotificationParams) {
 }
 
 export async function notifyPaymentSubmitted(paymentId: string, studentName: string, amount: number) {
-  const { data: payment } = await supabase.from('Payment').select('id, parentId').eq('id', paymentId)
+  const { data: payment } = await supabase.from('Payment').select('id, parentId, feeId').eq('id', paymentId).single()
 
-  if (!payment?.[0]?.parentId) return
+  if (!payment?.parentId) return
 
-  const { data: parent } = await supabase.from('Parent').select('userId').eq('id', payment[0].parentId)
+  const [{ data: parent }, { data: fee }] = await Promise.all([
+    supabase.from('Parent').select('userId').eq('id', payment.parentId).single(),
+    payment.feeId ? supabase.from('Fee').select('name').eq('id', payment.feeId).single() : { data: null },
+  ])
 
   if (!parent) return
 
+  const feeName = fee?.name || 'Fee'
+
   await createNotification({
-    userId: parent[0].userId,
+    userId: parent.userId,
     title: 'Payment Submitted',
-    message: `Your payment of $${amount} for ${studentName} has been submitted and is awaiting review.`,
+    message: `Your payment of ₦${amount.toLocaleString()} for ${feeName} (${studentName}) has been submitted and is awaiting review.`,
     type: 'PAYMENT',
     link: '/dashboard/fees',
   })
 }
 
 export async function notifyPaymentReviewed(paymentId: string, status: string, remarks?: string) {
-  const { data: payment } = await supabase.from('Payment').select('id, parentId').eq('id', paymentId)
+  const { data: payment } = await supabase.from('Payment').select('id, parentId, feeId, studentId, amount').eq('id', paymentId).single()
 
-  if (!payment?.[0]?.parentId) return
+  if (!payment) return
 
-  const { data: parent } = await supabase.from('Parent').select('userId').eq('id', payment[0].parentId)
+  const [{ data: parent }, { data: fee }, { data: student }] = await Promise.all([
+    payment.parentId ? supabase.from('Parent').select('userId').eq('id', payment.parentId).single() : { data: null },
+    payment.feeId ? supabase.from('Fee').select('name').eq('id', payment.feeId).single() : { data: null },
+    payment.studentId
+      ? supabase.from('Student').select('userId').eq('id', payment.studentId).single()
+          .then(async (res) => {
+            if (!res.data) return { data: null }
+            const { data: user } = await supabase.from('User').select('name').eq('id', res.data.userId).single()
+            return { data: user }
+          })
+      : Promise.resolve({ data: null }),
+  ])
 
-  if (!parent) return
+  const feeName = fee?.name || 'Fee'
+  const amount = payment.amount || 0
+  const studentName = student?.name || 'Student'
 
-  const message = status === 'ACCOUNTANT_REVIEWED'
-    ? `Your payment has been reviewed and forwarded to the principal for approval.`
-    : `Your payment has been rejected by the accountant. ${remarks ? `Reason: ${remarks}` : ''}`
+  // Notify parent
+  if (parent?.userId) {
+    const message = status === 'ACCOUNTANT_REVIEWED'
+      ? `Your payment of ₦${amount.toLocaleString()} for ${feeName} has been reviewed and forwarded to the principal for approval.`
+      : `Your payment of ₦${amount.toLocaleString()} for ${feeName} has been rejected by the accountant. ${remarks ? `Reason: ${remarks}` : ''}`
 
-  await createNotification({
-    userId: parent[0].userId,
-    title: status === 'ACCOUNTANT_REVIEWED' ? 'Payment Under Review' : 'Payment Rejected',
-    message,
-    type: 'PAYMENT',
-    link: '/dashboard/fees',
-  })
+    await createNotification({
+      userId: parent.userId,
+      title: status === 'ACCOUNTANT_REVIEWED' ? 'Payment Under Review' : 'Payment Rejected',
+      message,
+      type: 'PAYMENT',
+      link: '/dashboard/fees',
+    })
+  }
+
+  // Notify principal when accountant forwards
+  if (status === 'ACCOUNTANT_REVIEWED') {
+    const { data: principals } = await supabase
+      .from('User')
+      .select('id')
+      .eq('role', 'PRINCIPAL')
+      .eq('status', 'ACTIVE')
+
+    if (principals && principals.length > 0) {
+      const { data: parentUser } = payment.parentId
+        ? await supabase.from('Parent').select('userId').eq('id', payment.parentId).single()
+            .then(async (res) => {
+              if (!res.data) return { data: null }
+              const { data: user } = await supabase.from('User').select('name').eq('id', res.data.userId).single()
+              return { data: user }
+            })
+        : Promise.resolve({ data: null })
+
+      const parentName = parentUser?.name || 'A parent'
+
+      const notifications = principals.map(p => ({
+        userId: p.id,
+        title: 'Payment Forwarded for Approval',
+        message: `${parentName} has paid ₦${amount.toLocaleString()} for ${feeName} (Student: ${studentName}). The accountant has forwarded this payment for your approval.`,
+        type: 'PAYMENT',
+        link: '/dashboard/payment-approvals',
+      }))
+
+      const { error: insertErr } = await supabase.from('Notification').insert(notifications)
+      if (insertErr) console.error('Error inserting principal notification:', insertErr)
+    }
+  }
 }
 
 export async function notifyPaymentApproved(paymentId: string, approved: boolean, remarks?: string) {
-  const { data: payment } = await supabase.from('Payment').select('id, parentId').eq('id', paymentId)
+  const { data: payment } = await supabase.from('Payment').select('id, parentId, feeId, amount').eq('id', paymentId).single()
 
-  if (!payment?.[0]?.parentId) return
+  if (!payment) return
 
-  const { data: parent } = await supabase.from('Parent').select('userId').eq('id', payment[0].parentId)
+  const [{ data: parent }, { data: fee }] = await Promise.all([
+    payment.parentId ? supabase.from('Parent').select('userId').eq('id', payment.parentId).single() : { data: null },
+    payment.feeId ? supabase.from('Fee').select('name').eq('id', payment.feeId).single() : { data: null },
+  ])
 
-  if (!parent) return
+  if (!parent?.userId) return
+
+  const feeName = fee?.name || 'Fee'
+  const amount = payment.amount || 0
 
   const message = approved
-    ? `Your payment has been approved by the principal. Receipt is now available.`
-    : `Your payment has been rejected by the principal. ${remarks ? `Reason: ${remarks}` : ''}`
+    ? `Your payment of ₦${amount.toLocaleString()} for ${feeName} has been approved by the principal. Receipt is now available.`
+    : `Your payment of ₦${amount.toLocaleString()} for ${feeName} has been rejected by the principal. ${remarks ? `Reason: ${remarks}` : ''}`
 
   await createNotification({
-    userId: parent[0].userId,
+    userId: parent.userId,
     title: approved ? 'Payment Approved' : 'Payment Rejected',
     message,
     type: 'PAYMENT',
@@ -162,6 +222,28 @@ export async function notifyGradePosted(studentId: string, subjectName: string, 
 
 export async function notifyPaymentNeedsReview(paymentId: string, studentName: string, amount: number) {
   try {
+    const { data: payment } = await supabase
+      .from('Payment')
+      .select('id, parentId, feeId')
+      .eq('id', paymentId)
+      .single()
+
+    if (!payment) return
+
+    const [{ data: parentUser }, { data: fee }] = await Promise.all([
+      payment.parentId
+        ? supabase.from('Parent').select('userId').eq('id', payment.parentId).single()
+            .then(async (res) => {
+              if (!res.data) return { data: null }
+              const { data: user } = await supabase.from('User').select('name').eq('id', res.data.userId).single()
+              return { data: user }
+            })
+        : Promise.resolve({ data: null }),
+      payment.feeId
+        ? supabase.from('Fee').select('name').eq('id', payment.feeId).single()
+        : Promise.resolve({ data: null }),
+    ])
+
     const { data: accountants, error } = await supabase
       .from('User')
       .select('id')
@@ -170,10 +252,13 @@ export async function notifyPaymentNeedsReview(paymentId: string, studentName: s
 
     if (error || !accountants || accountants.length === 0) return
 
+    const parentName = parentUser?.name || 'A parent'
+    const feeName = fee?.name || 'Fee'
+
     const notifications = accountants.map(a => ({
       userId: a.id,
       title: 'Payment Awaiting Review',
-      message: `New payment of ₦${amount.toLocaleString()} for ${studentName} has been submitted and needs your review.`,
+      message: `${parentName} has paid ₦${amount.toLocaleString()} for ${feeName} (Student: ${studentName}). Please review.`,
       type: 'PAYMENT',
       link: '/dashboard/payment-reviews',
     }))
