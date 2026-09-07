@@ -13,6 +13,9 @@ export async function GET(request: NextRequest) {
     const session = await auth()
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    const userId = (session.user as any).userId || (session.user as any).id
+    const role = (session.user as any).role
+
     const { searchParams } = new URL(request.url)
     const classId = searchParams.get('classId')
     const sessionId = searchParams.get('sessionId')
@@ -20,6 +23,21 @@ export async function GET(request: NextRequest) {
     let query = supabase.from('Fee').select('*').order('createdAt', { ascending: false })
     if (classId) query = query.eq('classId', classId)
     if (sessionId) query = query.eq('sessionId', sessionId)
+
+    if (role === 'PARENT') {
+      const { data: parent } = await supabase.from('Parent').select('id').eq('userId', userId).single()
+      if (parent) {
+        const { data: children } = await supabase.from('Student').select('classId').eq('parentId', parent.id)
+        const childClassIds = [...new Set((children || []).map(c => c.classId).filter(Boolean))]
+        if (childClassIds.length > 0) {
+          query = query.or(`classId.is.null,classId.in.(${childClassIds.join(',')})`)
+        } else {
+          query = query.is('classId', null)
+        }
+      } else {
+        query = query.is('classId', null)
+      }
+    }
 
     const { data: fees, error } = await query
     if (error) throw error

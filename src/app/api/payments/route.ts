@@ -112,26 +112,22 @@ export async function POST(request: NextRequest) {
 
     const userId = (session.user as any).userId || (session.user as any).id
     const role = (session.user as any).role
+
+    if (role !== 'PARENT') {
+      return NextResponse.json({ error: 'Only parents can submit payments' }, { status: 403 })
+    }
+
     const body = await request.json()
     let { studentId, feeId, amount, paymentMethod, reference, notes, receiptImageUrl } = body
 
-    let parentId: string | undefined
-    let accountantId: string | undefined
+    const { data: parent } = await supabase.from('Parent').select('id').eq('userId', userId).single()
+    if (!parent) return NextResponse.json({ error: 'Parent profile not found' }, { status: 400 })
+    const parentId = parent.id
 
-    if (role === 'PARENT') {
-      const { data: parent } = await supabase.from('Parent').select('id').eq('userId', userId).single()
-      if (!parent) return NextResponse.json({ error: 'Parent profile not found' }, { status: 400 })
-      parentId = parent.id
-      if (!studentId) {
-        const { data: children } = await supabase.from('Student').select('id').eq('parentId', parent.id)
-        if (children && children.length === 1) studentId = children[0].id
-        else return NextResponse.json({ error: 'Please specify which child this payment is for' }, { status: 400 })
-      }
-    }
-
-    if (role === 'ACCOUNTANT') {
-      const { data: accountant } = await supabase.from('Accountant').select('id').eq('userId', userId).single()
-      accountantId = accountant?.id
+    if (!studentId) {
+      const { data: children } = await supabase.from('Student').select('id').eq('parentId', parent.id)
+      if (children && children.length === 1) studentId = children[0].id
+      else return NextResponse.json({ error: 'Please specify which child this payment is for' }, { status: 400 })
     }
 
     if (!studentId) {
@@ -152,7 +148,7 @@ export async function POST(request: NextRequest) {
       .from('Payment')
       .insert({
         studentId, feeId, amount, receiptNo: generateReceiptNo(), paymentMethod, reference, notes, receiptImageUrl,
-        parentId, accountantId, status: role === 'PARENT' ? 'SUBMITTED' : 'COMPLETED', submittedAt: new Date().toISOString(),
+        parentId, status: 'SUBMITTED', submittedAt: new Date().toISOString(),
       })
       .select('*')
       .single()
@@ -164,13 +160,11 @@ export async function POST(request: NextRequest) {
 
     if (!payment) return NextResponse.json({ error: 'Failed to create payment' }, { status: 500 })
 
-    if (role === 'PARENT') {
-      const { data: sUser } = await supabase.from('Student').select('userId').eq('id', studentId).single()
-      const { data: sName } = sUser ? await supabase.from('User').select('name').eq('id', sUser.userId).single() : { data: null }
-      const studentName = sName?.name || 'Student'
-      await notifyPaymentSubmitted(payment.id, studentName, amount)
-      await notifyPaymentNeedsReview(payment.id, studentName, amount)
-    }
+    const { data: sUser } = await supabase.from('Student').select('userId').eq('id', studentId).single()
+    const { data: sName } = sUser ? await supabase.from('User').select('name').eq('id', sUser.userId).single() : { data: null }
+    const studentName = sName?.name || 'Student'
+    await notifyPaymentSubmitted(payment.id, studentName, amount)
+    await notifyPaymentNeedsReview(payment.id, studentName, amount)
 
     return NextResponse.json(payment, { status: 201 })
   } catch (error: any) {
