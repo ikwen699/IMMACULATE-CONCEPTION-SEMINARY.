@@ -37,14 +37,15 @@ export async function notifyPaymentSubmitted(paymentId: string, studentName: str
 
   if (!payment?.parentId) return
 
-  const [{ data: parent }, { data: fee }] = await Promise.all([
-    supabase.from('Parent').select('userId').eq('id', payment.parentId).single(),
-    payment.feeId ? supabase.from('Fee').select('name').eq('id', payment.feeId).single() : { data: null },
-  ])
+  const { data: parent } = await supabase.from('Parent').select('userId').eq('id', payment.parentId).single()
 
   if (!parent) return
 
-  const feeName = fee?.name || 'Fee'
+  let feeName = 'Fee'
+  if (payment.feeId) {
+    const { data: fee } = await supabase.from('Fee').select('name').eq('id', payment.feeId).single()
+    if (fee) feeName = fee.name
+  }
 
   await createNotification({
     userId: parent.userId,
@@ -60,36 +61,39 @@ export async function notifyPaymentReviewed(paymentId: string, status: string, r
 
   if (!payment) return
 
-  const [{ data: parent }, { data: fee }, { data: student }] = await Promise.all([
-    payment.parentId ? supabase.from('Parent').select('userId').eq('id', payment.parentId).single() : { data: null },
-    payment.feeId ? supabase.from('Fee').select('name').eq('id', payment.feeId).single() : { data: null },
-    payment.studentId
-      ? supabase.from('Student').select('userId').eq('id', payment.studentId).single()
-          .then(async (res) => {
-            if (!res.data) return { data: null }
-            const { data: user } = await supabase.from('User').select('name').eq('id', res.data.userId).single()
-            return { data: user }
-          })
-      : Promise.resolve({ data: null }),
-  ])
+  let feeName = 'Fee'
+  if (payment.feeId) {
+    const { data: fee } = await supabase.from('Fee').select('name').eq('id', payment.feeId).single()
+    if (fee) feeName = fee.name
+  }
 
-  const feeName = fee?.name || 'Fee'
   const amount = payment.amount || 0
-  const studentName = student?.name || 'Student'
+
+  let studentName = 'Student'
+  if (payment.studentId) {
+    const { data: studentRec } = await supabase.from('Student').select('userId').eq('id', payment.studentId).single()
+    if (studentRec) {
+      const { data: studentUser } = await supabase.from('User').select('name').eq('id', studentRec.userId).single()
+      if (studentUser) studentName = studentUser.name
+    }
+  }
 
   // Notify parent
-  if (parent?.userId) {
-    const message = status === 'ACCOUNTANT_REVIEWED'
-      ? `Your payment of ₦${amount.toLocaleString()} for ${feeName} has been reviewed and forwarded to the principal for approval.`
-      : `Your payment of ₦${amount.toLocaleString()} for ${feeName} has been rejected by the accountant. ${remarks ? `Reason: ${remarks}` : ''}`
+  if (payment.parentId) {
+    const { data: parentRec } = await supabase.from('Parent').select('userId').eq('id', payment.parentId).single()
+    if (parentRec?.userId) {
+      const message = status === 'ACCOUNTANT_REVIEWED'
+        ? `Your payment of ₦${amount.toLocaleString()} for ${feeName} has been reviewed and forwarded to the principal for approval.`
+        : `Your payment of ₦${amount.toLocaleString()} for ${feeName} has been rejected by the accountant. ${remarks ? `Reason: ${remarks}` : ''}`
 
-    await createNotification({
-      userId: parent.userId,
-      title: status === 'ACCOUNTANT_REVIEWED' ? 'Payment Under Review' : 'Payment Rejected',
-      message,
-      type: 'PAYMENT',
-      link: '/dashboard/fees',
-    })
+      await createNotification({
+        userId: parentRec.userId,
+        title: status === 'ACCOUNTANT_REVIEWED' ? 'Payment Under Review' : 'Payment Rejected',
+        message,
+        type: 'PAYMENT',
+        link: '/dashboard/fees',
+      })
+    }
   }
 
   // Notify principal when accountant forwards
@@ -101,16 +105,14 @@ export async function notifyPaymentReviewed(paymentId: string, status: string, r
       .eq('status', 'ACTIVE')
 
     if (principals && principals.length > 0) {
-      const { data: parentUser } = payment.parentId
-        ? await supabase.from('Parent').select('userId').eq('id', payment.parentId).single()
-            .then(async (res) => {
-              if (!res.data) return { data: null }
-              const { data: user } = await supabase.from('User').select('name').eq('id', res.data.userId).single()
-              return { data: user }
-            })
-        : Promise.resolve({ data: null })
-
-      const parentName = parentUser?.name || 'A parent'
+      let parentName = 'A parent'
+      if (payment.parentId) {
+        const { data: parentRec } = await supabase.from('Parent').select('userId').eq('id', payment.parentId).single()
+        if (parentRec) {
+          const { data: parentUser } = await supabase.from('User').select('name').eq('id', parentRec.userId).single()
+          if (parentUser) parentName = parentUser.name
+        }
+      }
 
       const notifications = principals.map(p => ({
         userId: p.id,
@@ -131,22 +133,25 @@ export async function notifyPaymentApproved(paymentId: string, approved: boolean
 
   if (!payment) return
 
-  const [{ data: parent }, { data: fee }] = await Promise.all([
-    payment.parentId ? supabase.from('Parent').select('userId').eq('id', payment.parentId).single() : { data: null },
-    payment.feeId ? supabase.from('Fee').select('name').eq('id', payment.feeId).single() : { data: null },
-  ])
+  let feeName = 'Fee'
+  if (payment.feeId) {
+    const { data: fee } = await supabase.from('Fee').select('name').eq('id', payment.feeId).single()
+    if (fee) feeName = fee.name
+  }
 
-  if (!parent?.userId) return
-
-  const feeName = fee?.name || 'Fee'
   const amount = payment.amount || 0
+
+  if (!payment.parentId) return
+
+  const { data: parentRec } = await supabase.from('Parent').select('userId').eq('id', payment.parentId).single()
+  if (!parentRec?.userId) return
 
   const message = approved
     ? `Your payment of ₦${amount.toLocaleString()} for ${feeName} has been approved by the principal. Receipt is now available.`
     : `Your payment of ₦${amount.toLocaleString()} for ${feeName} has been rejected by the principal. ${remarks ? `Reason: ${remarks}` : ''}`
 
   await createNotification({
-    userId: parent.userId,
+    userId: parentRec.userId,
     title: approved ? 'Payment Approved' : 'Payment Rejected',
     message,
     type: 'PAYMENT',
@@ -230,19 +235,20 @@ export async function notifyPaymentNeedsReview(paymentId: string, studentName: s
 
     if (!payment) return
 
-    const [{ data: parentUser }, { data: fee }] = await Promise.all([
-      payment.parentId
-        ? supabase.from('Parent').select('userId').eq('id', payment.parentId).single()
-            .then(async (res) => {
-              if (!res.data) return { data: null }
-              const { data: user } = await supabase.from('User').select('name').eq('id', res.data.userId).single()
-              return { data: user }
-            })
-        : Promise.resolve({ data: null }),
-      payment.feeId
-        ? supabase.from('Fee').select('name').eq('id', payment.feeId).single()
-        : Promise.resolve({ data: null }),
-    ])
+    let parentName = 'A parent'
+    if (payment.parentId) {
+      const { data: parentRec } = await supabase.from('Parent').select('userId').eq('id', payment.parentId).single()
+      if (parentRec) {
+        const { data: parentUser } = await supabase.from('User').select('name').eq('id', parentRec.userId).single()
+        if (parentUser) parentName = parentUser.name
+      }
+    }
+
+    let feeName = 'Fee'
+    if (payment.feeId) {
+      const { data: fee } = await supabase.from('Fee').select('name').eq('id', payment.feeId).single()
+      if (fee) feeName = fee.name
+    }
 
     const { data: accountants, error } = await supabase
       .from('User')
@@ -251,9 +257,6 @@ export async function notifyPaymentNeedsReview(paymentId: string, studentName: s
       .eq('status', 'ACTIVE')
 
     if (error || !accountants || accountants.length === 0) return
-
-    const parentName = parentUser?.name || 'A parent'
-    const feeName = fee?.name || 'Fee'
 
     const notifications = accountants.map(a => ({
       userId: a.id,
