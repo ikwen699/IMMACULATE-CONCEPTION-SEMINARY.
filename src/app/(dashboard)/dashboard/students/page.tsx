@@ -79,7 +79,8 @@ export default function StudentsPage() {
       if (classId) params.append('classId', classId)
       const res = await fetch(`/api/users?${params}`, { cache: 'no-store' })
       if (!res.ok) throw new Error()
-      setStudents(Array.isArray(await res.json()) ? await res.json() : [])
+      const data = await res.json()
+      setStudents(Array.isArray(data) ? data : [])
     } catch { setError(true) } finally { setLoading(false) }
   }, [status])
 
