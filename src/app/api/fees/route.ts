@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
             .in('classId', childClassIds)
 
           const matchingFeeIds = (feeClasses || []).map(fc => fc.feeId)
-          const orFilter = `classId.is.null,id.in.(${matchingFeeIds.length > 0 ? matchingFeeIds.join(',') : 'no-match'})`
+          const orFilter = `classId.is.null,classId.in.(${childClassIds.join(',')}),id.in.(${matchingFeeIds.length > 0 ? matchingFeeIds.join(',') : 'no-match'})`
           query = query.or(orFilter)
         } else {
           query = query.is('classId', null)
