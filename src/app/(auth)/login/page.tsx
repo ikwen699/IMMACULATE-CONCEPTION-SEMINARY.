@@ -5,13 +5,6 @@ import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
-  GraduationCap,
-  Users,
-  UserCog,
-  ShieldCheck,
-  Settings,
-  BookOpen,
-  Banknote,
   Mail,
   Lock,
   Eye,
@@ -19,56 +12,16 @@ import {
   Loader2,
   AlertCircle,
   ArrowRight,
-  Check,
+  ShieldCheck,
   MapPin,
   Phone,
   School,
   X,
+  GraduationCap,
+  BookOpen,
+  Banknote,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-type LoginRole = 'STUDENT' | 'PARENT' | 'TEACHER' | 'PRINCIPAL' | 'ADMIN' | 'ACCOUNTANT'
-
-const roleConfig: Record<LoginRole, { icon: React.ReactNode; title: string; message: string; label: string }> = {
-  STUDENT: {
-    icon: <GraduationCap className="w-5 h-5" />,
-    title: 'Student Portal',
-    message: 'Access your grades, assignments & academic records',
-    label: 'Student',
-  },
-  PARENT: {
-    icon: <Users className="w-5 h-5" />,
-    title: 'Parent Portal',
-    message: 'Monitor your child\'s progress, fees & activities',
-    label: 'Parent',
-  },
-  TEACHER: {
-    icon: <UserCog className="w-5 h-5" />,
-    title: 'Teacher Portal',
-    message: 'Manage classes, attendance, grades & assignments',
-    label: 'Teacher',
-  },
-  PRINCIPAL: {
-    icon: <ShieldCheck className="w-5 h-5" />,
-    title: 'Principal Portal',
-    message: 'Oversee operations, staff & academic performance',
-    label: 'Principal',
-  },
-  ADMIN: {
-    icon: <Settings className="w-5 h-5" />,
-    title: 'Admin Portal',
-    message: 'Manage users, settings & school records',
-    label: 'Admin',
-  },
-  ACCOUNTANT: {
-    icon: <Banknote className="w-5 h-5" />,
-    title: 'Accountant Portal',
-    message: 'Manage fees, payments & financial reports',
-    label: 'Accountant',
-  },
-}
-
-const roles: LoginRole[] = ['STUDENT', 'PARENT', 'TEACHER', 'PRINCIPAL', 'ADMIN', 'ACCOUNTANT']
 
 const features = [
   { icon: <GraduationCap className="w-5 h-5" />, text: 'Live grades & real-time academic progress' },
@@ -79,7 +32,6 @@ const features = [
 function SchoolBadge({ className }: { className?: string }) {
   return (
     <div className={cn('relative', className)}>
-      {/* Glow ring behind the badge */}
       <div className="absolute inset-0 rounded-full bg-white/20 blur-lg scale-105" />
       <img
         src="/school-badge.jpg"
@@ -93,15 +45,12 @@ function SchoolBadge({ className }: { className?: string }) {
 
 export default function LoginPage() {
   const router = useRouter()
-  const [selectedRole, setSelectedRole] = useState<LoginRole>('STUDENT')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(true)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
-  const config = roleConfig[selectedRole]
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -128,7 +77,7 @@ export default function LoginPage() {
         router.push('/dashboard')
         router.refresh()
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.')
     } finally {
       setLoading(false)
@@ -137,17 +86,14 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex bg-gradient-to-b from-blue-50 via-white to-blue-100">
-      {/* ── Left brand panel (desktop) ─────────────────────────────── */}
+      {/* Left brand panel (desktop) */}
       <div className="hidden xl:flex w-[44%] relative flex-col overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800">
-        {/* Decorative elements */}
         <div className="absolute -top-40 -left-40 w-[30rem] h-[30rem] bg-blue-500/20 rounded-full blur-3xl" />
         <div className="absolute bottom-0 right-0 w-[26rem] h-[26rem] bg-sky-400/20 rounded-full blur-3xl" />
         <div className="absolute top-1/4 right-16 w-56 h-56 bg-white/10 rounded-full blur-2xl" />
-        {/* Subtle grid overlay */}
         <div className="absolute inset-0 opacity-[0.04] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:48px_48px]" />
 
         <div className="relative flex flex-col justify-between h-full p-14 xl:p-16 animate-fade-in">
-          {/* Top: brand identity with prominent badge */}
           <div className="flex flex-col items-center text-center -mt-6">
             <SchoolBadge className="w-40 h-40 mb-6" />
             <div>
@@ -164,7 +110,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Middle: messaging + features */}
           <div className="my-auto py-10 text-center">
             <h2 className="text-3xl xl:text-4xl font-bold text-white leading-tight">
               One portal for your
@@ -192,7 +137,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Bottom: contact + copyright */}
           <div className="flex flex-col gap-3 text-xs text-blue-100/70 text-center">
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
               <span className="flex items-center gap-1.5">
@@ -207,10 +151,10 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* ── Form panel ─────────────────────────────────────────────── */}
+      {/* Form panel */}
       <div className="flex-1 flex items-center justify-center py-6 px-4 sm:px-6 xl:py-8">
         <div className="w-full max-w-md">
-          {/* Mobile / tablet: compact brand header with badge */}
+          {/* Mobile brand header */}
           <div className="flex flex-col items-center mb-8 xl:hidden animate-fade-in">
             <div className="relative w-full max-w-md -mx-4 rounded-b-3xl bg-gradient-to-b from-blue-950 via-blue-900 to-blue-800 px-6 pt-10 pb-14 overflow-hidden">
               <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/10 rounded-full blur-2xl" />
@@ -230,9 +174,9 @@ export default function LoginPage() {
 
           {/* Desktop card header */}
           <div className="hidden xl:block mb-6 animate-fade-in">
-            <h1 className="text-2xl font-bold text-gray-900">Welcome back 👋</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
             <p className="text-gray-500 mt-1.5 text-sm">
-              Sign in to your {config.title.toLowerCase()} to continue.
+              Sign in to your account to continue.
             </p>
           </div>
 
@@ -251,54 +195,6 @@ export default function LoginPage() {
               </button>
             </div>
           )}
-
-          {/* Role selector */}
-          <div className="mb-6 animate-fade-in">
-            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
-              Continue as
-            </p>
-            {/* Role selector grid */}
-            <div className="grid grid-cols-3 gap-2">
-              {roles.map((role) => {
-                const r = roleConfig[role]
-                const active = selectedRole === role
-                return (
-                  <button
-                    key={role}
-                    type="button"
-                    onClick={() => setSelectedRole(role)}
-                    aria-pressed={active}
-                    className={cn(
-                      'relative flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border-2 text-xs font-bold transition-all duration-200',
-                      active
-                        ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm'
-                        : 'border-gray-200 bg-white text-gray-600 hover:border-blue-200 hover:bg-blue-50/40 hover:text-blue-600'
-                    )}
-                  >
-                    <span className={cn('transition-colors', active ? 'text-blue-600' : 'text-gray-400')}>
-                      {r.icon}
-                    </span>
-                    <span className="truncate w-full text-center font-bold">{r.label}</span>
-                    {active && (
-                      <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-blue-600 text-white rounded-full flex items-center justify-center">
-                        <Check className="w-3 h-3" strokeWidth={3} />
-                      </span>
-                    )}
-                  </button>
-                )
-              })}
-            </div>
-
-            <div className="mt-4 flex items-start gap-3 p-3.5 bg-blue-50/70 border border-blue-100 rounded-xl animate-scale-in">
-              <span className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-md">
-                {config.icon}
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-gray-800">{config.title}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{config.message}</p>
-              </div>
-            </div>
-          </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in" noValidate>
@@ -327,7 +223,7 @@ export default function LoginPage() {
                 />
                 {email && (
                   <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-green-500">
-                    <Check className="w-5 h-5" strokeWidth={3} />
+                    <ShieldCheck className="w-5 h-5" strokeWidth={3} />
                   </span>
                 )}
               </div>
@@ -385,7 +281,7 @@ export default function LoginPage() {
                       : 'border-gray-300 bg-white group-hover:border-blue-400'
                   )}
                 >
-                  {rememberMe && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
+                  {rememberMe && <span className="w-3.5 h-3.5 flex items-center justify-center text-white">&#10003;</span>}
                 </button>
                 <span className="text-sm text-gray-600 whitespace-nowrap">Remember me</span>
               </label>
