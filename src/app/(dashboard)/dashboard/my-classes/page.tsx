@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useSession } from 'next-auth/react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import { cn, getInitials } from '@/lib/utils'
 
@@ -72,7 +73,13 @@ function formatTime(time: string) {
 type Tab = 'overview' | 'subjects' | 'timetable' | 'classmates'
 
 export default function MyClassesPage() {
+  const { data: session, status } = useSession()
+  const user = session?.user as any
+  const role = user?.role
+
   const [activeTab, setActiveTab] = useState<Tab>('overview')
+  const [classes, setClasses] = useState<ClassData[]>([])
+  const [selectedClassId, setSelectedClassId] = useState<string>('')
   const [classData, setClassData] = useState<ClassData | null>(null)
   const [subjects, setSubjects] = useState<Subject[]>([])
   const [timetable, setTimetable] = useState<TimetableEntry[]>([])
@@ -80,30 +87,94 @@ export default function MyClassesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
+  const fetchTeacherClasses = useCallback(async (profile: any) => {
+    const teacherId = profile?.id
+    if (!teacherId) return
+
+    const [subjectsRes, timetableRes] = await Promise.all([
+      fetch('/api/subjects', { cache: 'no-store' }),
+      fetch('/api/timetable', { cache: 'no-store' }),
+    ])
+
+    const allSubjects = subjectsRes.ok ? await subjectsRes.json() : []
+    const allTimetable = timetableRes.ok ? await timetableRes.json() : []
+
+    const subjectClassIds = (Array.isArray(allSubjects) ? allSubjects : [])
+      .filter((s: any) => s.teacherId === teacherId || s.teacher?.id === teacherId)
+      .map((s: any) => s.classId)
+      .filter(Boolean)
+
+    const timetableClassIds = (Array.isArray(allTimetable) ? allTimetable : [])
+      .filter((t: any) => t.teacherId === teacherId || t.teacher?.id === teacherId)
+      .map((t: any) => t.classId)
+      .filter(Boolean)
+
+    const classIds = [...new Set([...subjectClassIds, ...timetableClassIds])]
+    return classIds
+  }, [])
+
   const fetchData = useCallback(async () => {
-    if (status !== 'authenticated') return;
+    if (status !== 'authenticated') return
     setLoading(true)
     setError(false)
     try {
       const profileRes = await fetch('/api/profile', { cache: 'no-store' })
       if (!profileRes.ok) { setError(true); return }
       const profile = await profileRes.json()
-      const classId = profile?.student?.classId
+
+      let classId: string | undefined
+
+      if (role === 'TEACHER') {
+        const classIds = await fetchTeacherClasses(profile)
+        if (classIds && classIds.length > 0) {
+          classId = classIds[0]
+          const allClassesRes = await fetch('/api/classes', { cache: 'no-store' })
+          if (allClassesRes.ok) {
+            const allClasses = await allClassesRes.json()
+            const matched = (Array.isArray(allClasses) ? allClasses : []).filter((c: ClassData) =>
+              classIds.includes(c.id)
+            )
+            setClasses(matched)
+            if (!selectedClassId && matched.length > 0) setSelectedClassId(matched[0].id)
+          }
+        }
+      } else {
+        classId = profile?.student?.classId
+        if (classId) {
+          const allClassesRes = await fetch('/api/classes', { cache: 'no-store' })
+          if (allClassesRes.ok) {
+            const allClasses = await allClassesRes.json()
+            const matched = (Array.isArray(allClasses) ? allClasses : []).filter((c: ClassData) => c.id === classId)
+            setClasses(matched)
+            setSelectedClassId(classId)
+          }
+        }
+      }
+
       if (!classId) { setLoading(false); return }
+
+      const activeClassId = selectedClassId || classId
 
       const [classesRes, subjectsRes, timetableRes, studentsRes] = await Promise.all([
         fetch('/api/classes', { cache: 'no-store' }),
-        fetch(`/api/subjects?classId=${classId}`, { cache: 'no-store' }),
-        fetch(`/api/timetable?classId=${classId}`, { cache: 'no-store' }),
-        fetch(`/api/users?role=STUDENT&classId=${classId}`, { cache: 'no-store' }),
+        fetch(`/api/subjects?classId=${activeClassId}`, { cache: 'no-store' }),
+        fetch(`/api/timetable?classId=${activeClassId}`, { cache: 'no-store' }),
+        fetch(`/api/users?role=STUDENT&classId=${activeClassId}`, { cache: 'no-store' }),
       ])
 
       if (classesRes.ok) {
         const allClasses = await classesRes.json()
-        setClassData(Array.isArray(allClasses) ? allClasses.find((c: ClassData) => c.id === classId) : null)
+        const found = Array.isArray(allClasses) ? allClasses.find((c: ClassData) => c.id === activeClassId) : null
+        setClassData(found)
       }
-      if (subjectsRes.ok) setSubjects(Array.isArray(await subjectsRes.json()) ? await subjectsRes.json() : [])
-      if (timetableRes.ok) setTimetable(Array.isArray(await timetableRes.json()) ? await timetableRes.json() : [])
+      if (subjectsRes.ok) {
+        const data = await subjectsRes.json()
+        setSubjects(Array.isArray(data) ? data : [])
+      }
+      if (timetableRes.ok) {
+        const data = await timetableRes.json()
+        setTimetable(Array.isArray(data) ? data : [])
+      }
       if (studentsRes.ok) {
         const data = await studentsRes.json()
         setClassmates(Array.isArray(data) ? data.filter((u: Classmate) => u.id !== profile.id) : [])
@@ -113,10 +184,48 @@ export default function MyClassesPage() {
     } finally {
       setLoading(false)
     }
-  }, [status])
+  }, [status, role, selectedClassId, fetchTeacherClasses])
 
-  useEffect(() => { if (status !== 'authenticated') return;
-    fetchData() }, [fetchData, status])
+  const selectClass = useCallback(async (newClassId: string) => {
+    setSelectedClassId(newClassId)
+    setLoading(true)
+    try {
+      const [subjectsRes, timetableRes, studentsRes, classesRes] = await Promise.all([
+        fetch(`/api/subjects?classId=${newClassId}`, { cache: 'no-store' }),
+        fetch(`/api/timetable?classId=${newClassId}`, { cache: 'no-store' }),
+        fetch(`/api/users?role=STUDENT&classId=${newClassId}`, { cache: 'no-store' }),
+        fetch('/api/classes', { cache: 'no-store' }),
+      ])
+
+      if (classesRes.ok) {
+        const allClasses = await classesRes.json()
+        const found = Array.isArray(allClasses) ? allClasses.find((c: ClassData) => c.id === newClassId) : null
+        setClassData(found)
+      }
+      if (subjectsRes.ok) {
+        const data = await subjectsRes.json()
+        setSubjects(Array.isArray(data) ? data : [])
+      }
+      if (timetableRes.ok) {
+        const data = await timetableRes.json()
+        setTimetable(Array.isArray(data) ? data : [])
+      }
+      if (studentsRes.ok) {
+        const profileRes = await fetch('/api/profile', { cache: 'no-store' })
+        const profile = profileRes.ok ? await profileRes.json() : null
+        const data = await studentsRes.json()
+        setClassmates(Array.isArray(data) ? data.filter((u: Classmate) => u.id !== profile?.id) : [])
+      }
+    } catch {
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (status !== 'authenticated') return
+    fetchData()
+  }, [fetchData, status])
 
   const today = new Date()
   const dayIndex = today.getDay() === 0 ? 6 : today.getDay() - 1
@@ -129,7 +238,7 @@ export default function MyClassesPage() {
     { key: 'overview', label: 'Overview', icon: 'mdi-information-outline' },
     { key: 'subjects', label: 'Subjects', icon: 'mdi-book-open-variant', count: subjects.length },
     { key: 'timetable', label: 'Timetable', icon: 'mdi-calendar' },
-    { key: 'classmates', label: 'Classmates', icon: 'mdi-account-group', count: classmates.length },
+    { key: 'classmates', label: 'Students', icon: 'mdi-account-group', count: classmates.length },
   ]
 
   return (
@@ -141,7 +250,7 @@ export default function MyClassesPage() {
             <span className="mdi mdi-door-open text-blue-600 text-xl" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Class</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{role === 'TEACHER' ? 'My Classes' : 'My Class'}</h1>
             <p className="text-sm text-gray-500">
               {classData
                 ? `${classData.name}${classData.section ? ` - ${classData.section}` : ''}`
@@ -149,6 +258,26 @@ export default function MyClassesPage() {
             </p>
           </div>
         </div>
+
+        {/* Class selector for teachers with multiple classes */}
+        {role === 'TEACHER' && classes.length > 1 && (
+          <div className="flex gap-2 flex-wrap">
+            {classes.map(c => (
+              <button
+                key={c.id}
+                onClick={() => selectClass(c.id)}
+                className={cn(
+                  'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
+                  selectedClassId === c.id
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                )}
+              >
+                {c.name}{c.section ? ` - ${c.section}` : ''}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Content */}
         {loading ? (
@@ -227,7 +356,7 @@ export default function MyClassesPage() {
                 <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl p-6 text-white">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-blue-200 text-sm font-medium">Your Class</p>
+                      <p className="text-blue-200 text-sm font-medium">{role === 'TEACHER' ? 'Teaching' : 'Your Class'}</p>
                       <h2 className="text-3xl font-bold mt-1">
                         {classData.name}
                         {classData.section && <span className="text-blue-200"> - {classData.section}</span>}
@@ -274,7 +403,7 @@ export default function MyClassesPage() {
                       )}
                       <div className="flex items-center justify-between text-sm py-2 border-b border-gray-100 last:border-0">
                         <span className="text-gray-500 flex items-center gap-1.5">
-                          <span className="mdi mdi-account-group text-gray-400" /> Classmates
+                          <span className="mdi mdi-account-group text-gray-400" /> Students
                         </span>
                         <span className="font-medium text-gray-800">{classData._count.students} students</span>
                       </div>
@@ -331,11 +460,11 @@ export default function MyClassesPage() {
                 {subjects.length === 0 ? (
                   <div className="p-12 text-center">
                     <span className="mdi mdi-book-off-outline text-3xl text-gray-300 block mb-2" />
-                    <p className="text-sm text-gray-500">No subjects found for your class</p>
+                    <p className="text-sm text-gray-500">No subjects found for this class</p>
                   </div>
                 ) : (
                   <div className="divide-y divide-gray-100">
-                    {subjects.map((subject, i) => (
+                    {subjects.map((subject) => (
                       <div key={subject.id} className="px-5 py-4 flex items-center gap-4 hover:bg-gray-50 transition-colors">
                         <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold shrink-0', getSubjectColor(subject.name))}>
                           {subject.code?.slice(0, 2).toUpperCase() || subject.name.slice(0, 2).toUpperCase()}
@@ -432,7 +561,7 @@ export default function MyClassesPage() {
                 {classmates.length === 0 ? (
                   <div className="bg-white rounded-xl border border-gray-100 p-12 text-center">
                     <span className="mdi mdi-account-off-outline text-3xl text-gray-300 block mb-2" />
-                    <p className="text-sm text-gray-500">No classmates found</p>
+                    <p className="text-sm text-gray-500">No students found</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
