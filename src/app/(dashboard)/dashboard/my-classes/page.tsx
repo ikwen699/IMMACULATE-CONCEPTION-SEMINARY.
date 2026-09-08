@@ -88,7 +88,7 @@ export default function MyClassesPage() {
   const [error, setError] = useState(false)
 
   const fetchTeacherClasses = useCallback(async (profile: any) => {
-    const teacherId = profile?.id
+    const teacherId = profile?.teacher?.id
     if (!teacherId) return []
 
     const [classesRes, timetableRes] = await Promise.all([
