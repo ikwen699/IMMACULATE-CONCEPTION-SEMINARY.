@@ -10,7 +10,8 @@ interface Fee {
   id: string
   name: string
   amount: number
-  class?: { id: string; name: string; section?: string }
+  class?: { id: string; name: string; section?: string } | null
+  classes?: { id: string; name: string; section?: string }[]
   session: { id: string; name: string }
   term?: { id: string; name: string }
   description?: string
@@ -65,7 +66,7 @@ export default function FeesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table')
-  const [formData, setFormData] = useState({ name: '', amount: 0, classId: '', sessionId: '', termId: '', description: '', dueDate: '' })
+  const [formData, setFormData] = useState({ name: '', amount: 0, classIds: [] as string[], sessionId: '', termId: '', description: '', dueDate: '' })
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const [showPayModal, setShowPayModal] = useState(false)
@@ -115,7 +116,8 @@ export default function FeesPage() {
   const filteredFees = fees.filter(f => {
     const q = search.toLowerCase()
     const matchesSearch = !q || f.name.toLowerCase().includes(q) || f.description?.toLowerCase().includes(q)
-    const matchesClass = !classFilter || f.class?.id === classFilter
+    const feeClasses = f.classes || (f.class ? [f.class] : [])
+    const matchesClass = !classFilter || feeClasses.some(c => c.id === classFilter) || (!f.classes && !f.class)
     return matchesSearch && matchesClass
   })
 
@@ -142,7 +144,8 @@ export default function FeesPage() {
   const handleEdit = (fee: Fee) => {
     setEditingFee(fee)
     setFormData({
-      name: fee.name, amount: fee.amount, classId: fee.class?.id || '',
+      name: fee.name, amount: fee.amount,
+      classIds: (fee.classes || []).map(c => c.id),
       sessionId: fee.session?.id || '', termId: fee.term?.id || '',
       description: fee.description || '',
       dueDate: fee.dueDate ? new Date(fee.dueDate).toISOString().split('T')[0] : ''
@@ -150,7 +153,7 @@ export default function FeesPage() {
     setShowModal(true)
   }
 
-  const resetForm = () => setFormData({ name: '', amount: 0, classId: '', sessionId: '', termId: '', description: '', dueDate: '' })
+  const resetForm = () => setFormData({ name: '', amount: 0, classIds: [], sessionId: '', termId: '', description: '', dueDate: '' })
 
   const handlePaySubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -339,7 +342,19 @@ export default function FeesPage() {
                     <div className="grid grid-cols-2 gap-2 text-xs mb-3">
                       <div className="flex items-center gap-1.5">
                         <span className="mdi mdi-domain text-gray-400 text-sm" />
-                        <span className={cn(f.class ? 'text-gray-900' : 'text-cyan-600', 'font-medium')}>{f.class ? `${f.class.name}${f.class.section ? ` - ${f.class.section}` : ''}` : 'All Classes'}</span>
+                        <span className="font-medium">
+                          {(f.classes && f.classes.length > 0) ? (
+                            <span className="flex flex-wrap gap-1">
+                              {f.classes.map(c => (
+                                <span key={c.id} className="inline-flex items-center px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-[10px] font-medium">{c.name}{c.section ? ` - ${c.section}` : ''}</span>
+                              ))}
+                            </span>
+                          ) : f.class ? (
+                            <span className="text-gray-900">{f.class.name}{f.class.section ? ` - ${f.class.section}` : ''}</span>
+                          ) : (
+                            <span className="text-cyan-600">All Classes</span>
+                          )}
+                        </span>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <span className="mdi mdi-calendar text-gray-400 text-sm" />
@@ -424,7 +439,15 @@ export default function FeesPage() {
                           <span className="text-sm font-bold text-gray-900">{formatCurrency(f.amount)}</span>
                         </td>
                         <td className="px-5 py-3.5 hidden sm:table-cell">
-                          {f.class ? (
+                          {(f.classes && f.classes.length > 0) ? (
+                            <div className="flex flex-wrap gap-1">
+                              {f.classes.map(c => (
+                                <span key={c.id} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium">
+                                  <span className="mdi mdi-domain text-sm" /> {c.name}{c.section ? ` - ${c.section}` : ''}
+                                </span>
+                              ))}
+                            </div>
+                          ) : f.class ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 text-xs font-medium">
                               <span className="mdi mdi-domain text-sm" /> {f.class.name}{f.class.section ? ` - ${f.class.section}` : ''}
                             </span>
@@ -535,13 +558,38 @@ export default function FeesPage() {
                 </div>
                 <div>
                   <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-                    <span className="mdi mdi-domain text-gray-400" /> Class <span className="text-gray-400 font-normal">(optional)</span>
+                    <span className="mdi mdi-domain text-gray-400" /> Classes <span className="text-gray-400 font-normal">(optional — leave empty for all classes)</span>
                   </label>
-                  <select value={formData.classId} onChange={(e) => setFormData({ ...formData, classId: e.target.value })}
-                    className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-400 transition-colors appearance-none">
-                    <option value="">All Classes</option>
-                    {classes.map(c => <option key={c.id} value={c.id}>{c.name}{c.section ? ` - ${c.section}` : ''}</option>)}
-                  </select>
+                  <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-xl bg-gray-50 p-3 space-y-1">
+                    <label className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white cursor-pointer transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={formData.classIds.length === 0}
+                        onChange={() => setFormData({ ...formData, classIds: [] })}
+                        className="w-4 h-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
+                      />
+                      <span className="text-sm text-gray-700 font-medium">All Classes</span>
+                    </label>
+                    {classes.map(c => (
+                      <label key={c.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white cursor-pointer transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={formData.classIds.includes(c.id)}
+                          onChange={() => {
+                            const newIds = formData.classIds.includes(c.id)
+                              ? formData.classIds.filter(id => id !== c.id)
+                              : [...formData.classIds, c.id]
+                            setFormData({ ...formData, classIds: newIds })
+                          }}
+                          className="w-4 h-4 text-cyan-600 border-gray-300 rounded focus:ring-cyan-500"
+                        />
+                        <span className="text-sm text-gray-700">{c.name}{c.section ? ` - ${c.section}` : ''}</span>
+                      </label>
+                    ))}
+                  </div>
+                  {formData.classIds.length > 0 && (
+                    <p className="mt-1 text-xs text-gray-500">{formData.classIds.length} class{formData.classIds.length === 1 ? '' : 'es'} selected</p>
+                  )}
                 </div>
                 <div>
                   <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">

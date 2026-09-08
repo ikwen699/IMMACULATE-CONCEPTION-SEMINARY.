@@ -424,3 +424,16 @@ ALTER TABLE "AssignmentSubmission" ADD COLUMN IF NOT EXISTS "admissionNo" TEXT;
 
 -- Change targetRole from Role enum to TEXT to support multiple roles (comma-separated)
 ALTER TABLE "Announcement" ALTER COLUMN "targetRole" TYPE TEXT USING "targetRole"::TEXT;
+
+-- FeeClass junction table (multi-class fee support)
+CREATE TABLE IF NOT EXISTS "FeeClass" (
+  "id" TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  "feeId" TEXT NOT NULL,
+  "classId" TEXT NOT NULL,
+  "createdAt" TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE("feeId", "classId")
+);
+ALTER TABLE "FeeClass" ADD CONSTRAINT "FeeClass_feeId_fkey" FOREIGN KEY ("feeId") REFERENCES "Fee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "FeeClass" ADD CONSTRAINT "FeeClass_classId_fkey" FOREIGN KEY ("classId") REFERENCES "Class"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+CREATE INDEX IF NOT EXISTS "FeeClass_feeId_idx" ON "FeeClass"("feeId");
+CREATE INDEX IF NOT EXISTS "FeeClass_classId_idx" ON "FeeClass"("classId");
