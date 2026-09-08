@@ -25,9 +25,12 @@ interface Term {
 
 interface GradeEntry {
   id: string
-  score: number
+  ca1: number
+  ca2: number
+  ca3: number
+  exam: number
+  total: number
   grade: string
-  type: string
   comments?: string
   subject: { name: string }
   term: { name: string }
@@ -66,7 +69,15 @@ export default function GradesPage() {
 
   if (role === 'STUDENT') return <StudentGradesView />
   if (role === 'PARENT') return <ParentGradesView />
-  if (['TEACHER', 'ADMIN', 'PRINCIPAL'].includes(role)) return <TeacherGradesView />
+  if (role === 'TEACHER') {
+    if (typeof window !== 'undefined') window.location.href = '/dashboard/results'
+    return (
+      <DashboardLayout>
+        <div className="text-center py-12 text-gray-500">Redirecting to Results...</div>
+      </DashboardLayout>
+    )
+  }
+  if (['ADMIN', 'PRINCIPAL'].includes(role)) return <TeacherGradesView />
   return (
     <DashboardLayout>
       <div className="text-center py-12 text-gray-500">Access denied</div>
@@ -141,14 +152,17 @@ function StudentGradesView() {
                     <div className="flex items-start justify-between">
                       <div className="font-medium text-gray-900">{g.subject?.name || 'N/A'}</div>
                       <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                        g.score >= 70 ? 'bg-green-100 text-green-800' :
-                        g.score >= 50 ? 'bg-yellow-100 text-yellow-800' :
+                        g.total >= 70 ? 'bg-green-100 text-green-800' :
+                        g.total >= 50 ? 'bg-yellow-100 text-yellow-800' :
                         'bg-red-100 text-red-800'
                       }`}>{g.grade}</span>
                     </div>
-                    <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                      <div><span className="text-gray-500">Score:</span> <span className="text-gray-900">{g.score}%</span></div>
-                      <div><span className="text-gray-500">Type:</span> <span className="text-gray-900">{g.type}</span></div>
+                    <div className="mt-2 grid grid-cols-3 gap-2 text-sm">
+                      <div><span className="text-gray-500">CA1:</span> <span className="text-gray-900">{g.ca1}/10</span></div>
+                      <div><span className="text-gray-500">CA2:</span> <span className="text-gray-900">{g.ca2}/10</span></div>
+                      <div><span className="text-gray-500">CA3:</span> <span className="text-gray-900">{g.ca3}/10</span></div>
+                      <div><span className="text-gray-500">Exam:</span> <span className="text-gray-900">{g.exam}/70</span></div>
+                      <div><span className="text-gray-500">Total:</span> <span className="text-gray-900 font-bold">{g.total}/100</span></div>
                       <div><span className="text-gray-500">Term:</span> <span className="text-gray-900">{g.term?.name || 'N/A'}</span></div>
                     </div>
                   </div>
@@ -160,29 +174,35 @@ function StudentGradesView() {
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Grade</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Term</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">CA1</th>
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">CA2</th>
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">CA3</th>
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">Exam</th>
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total</th>
+                    <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">Grade</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Term</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {grades.map((g) => (
                     <tr key={g.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 font-medium text-gray-900">{g.subject?.name || 'N/A'}</td>
-                      <td className="px-6 py-4 text-gray-700">{g.score}%</td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3 font-medium text-gray-900">{g.subject?.name || 'N/A'}</td>
+                      <td className="px-3 py-3 text-center text-sm text-gray-700">{g.ca1}/10</td>
+                      <td className="px-3 py-3 text-center text-sm text-gray-700">{g.ca2}/10</td>
+                      <td className="px-3 py-3 text-center text-sm text-gray-700">{g.ca3}/10</td>
+                      <td className="px-3 py-3 text-center text-sm text-gray-700">{g.exam}/70</td>
+                      <td className="px-3 py-3 text-center text-sm font-bold text-gray-900">{g.total}/100</td>
+                      <td className="px-3 py-3 text-center">
                         <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                          g.score >= 70 ? 'bg-green-100 text-green-800' :
-                          g.score >= 50 ? 'bg-yellow-100 text-yellow-800' :
+                          g.total >= 70 ? 'bg-green-100 text-green-800' :
+                          g.total >= 50 ? 'bg-yellow-100 text-yellow-800' :
                           'bg-red-100 text-red-800'
                         }`}>
                           {g.grade}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-gray-500 text-sm">{g.type}</td>
-                      <td className="px-6 py-4 text-gray-500 text-sm">{g.term?.name || 'N/A'}</td>
+                      <td className="px-4 py-3 text-gray-500 text-sm">{g.term?.name || 'N/A'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -292,14 +312,17 @@ function ParentGradesView() {
                         <div className="flex items-start justify-between">
                           <div className="font-medium text-gray-900">{g.subject?.name || 'N/A'}</div>
                           <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                            g.score >= 70 ? 'bg-green-100 text-green-800' :
-                            g.score >= 50 ? 'bg-yellow-100 text-yellow-800' :
+                            g.total >= 70 ? 'bg-green-100 text-green-800' :
+                            g.total >= 50 ? 'bg-yellow-100 text-yellow-800' :
                             'bg-red-100 text-red-800'
                           }`}>{g.grade}</span>
                         </div>
-                        <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                          <div><span className="text-gray-500">Score:</span> <span className="text-gray-900">{g.score}%</span></div>
-                          <div><span className="text-gray-500">Type:</span> <span className="text-gray-900">{g.type}</span></div>
+                        <div className="mt-2 grid grid-cols-3 gap-2 text-sm">
+                          <div><span className="text-gray-500">CA1:</span> <span className="text-gray-900">{g.ca1}/10</span></div>
+                          <div><span className="text-gray-500">CA2:</span> <span className="text-gray-900">{g.ca2}/10</span></div>
+                          <div><span className="text-gray-500">CA3:</span> <span className="text-gray-900">{g.ca3}/10</span></div>
+                          <div><span className="text-gray-500">Exam:</span> <span className="text-gray-900">{g.exam}/70</span></div>
+                          <div><span className="text-gray-500">Total:</span> <span className="text-gray-900 font-bold">{g.total}/100</span></div>
                           <div><span className="text-gray-500">Term:</span> <span className="text-gray-900">{g.term?.name || 'N/A'}</span></div>
                         </div>
                       </div>
@@ -311,29 +334,35 @@ function ParentGradesView() {
                   <table className="w-full">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Score</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Grade</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Term</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Subject</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">CA1</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">CA2</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">CA3</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">Exam</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">Total</th>
+                        <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">Grade</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Term</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {grades.map((g: GradeEntry) => (
                         <tr key={g.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 font-medium text-gray-900">{g.subject?.name || 'N/A'}</td>
-                          <td className="px-6 py-4 text-gray-700">{g.score}%</td>
-                          <td className="px-6 py-4">
+                          <td className="px-4 py-3 font-medium text-gray-900">{g.subject?.name || 'N/A'}</td>
+                          <td className="px-3 py-3 text-center text-sm text-gray-700">{g.ca1}/10</td>
+                          <td className="px-3 py-3 text-center text-sm text-gray-700">{g.ca2}/10</td>
+                          <td className="px-3 py-3 text-center text-sm text-gray-700">{g.ca3}/10</td>
+                          <td className="px-3 py-3 text-center text-sm text-gray-700">{g.exam}/70</td>
+                          <td className="px-3 py-3 text-center text-sm font-bold text-gray-900">{g.total}/100</td>
+                          <td className="px-3 py-3 text-center">
                             <span className={`px-2 py-1 text-xs rounded-full font-medium ${
-                              g.score >= 70 ? 'bg-green-100 text-green-800' :
-                              g.score >= 50 ? 'bg-yellow-100 text-yellow-800' :
+                              g.total >= 70 ? 'bg-green-100 text-green-800' :
+                              g.total >= 50 ? 'bg-yellow-100 text-yellow-800' :
                               'bg-red-100 text-red-800'
                             }`}>
                               {g.grade}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-gray-500 text-sm">{g.type}</td>
-                          <td className="px-6 py-4 text-gray-500 text-sm">{g.term?.name || 'N/A'}</td>
+                          <td className="px-4 py-3 text-gray-500 text-sm">{g.term?.name || 'N/A'}</td>
                         </tr>
                       ))}
                     </tbody>
