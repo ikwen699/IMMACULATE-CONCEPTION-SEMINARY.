@@ -19,7 +19,8 @@ interface Subject {
 export async function GET(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user || (session.user as SessionUser).role !== 'ADMIN') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const role = (session?.user as any)?.role
+    if (!session?.user || !['ADMIN', 'TEACHER', 'STUDENT', 'PARENT', 'ACCOUNTANT', 'PRINCIPAL'].includes(role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const { searchParams } = new URL(request.url)
     const classId = searchParams.get('classId')

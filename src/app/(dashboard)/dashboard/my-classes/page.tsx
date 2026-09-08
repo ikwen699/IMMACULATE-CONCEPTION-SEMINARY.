@@ -89,28 +89,25 @@ export default function MyClassesPage() {
 
   const fetchTeacherClasses = useCallback(async (profile: any) => {
     const teacherId = profile?.id
-    if (!teacherId) return
+    if (!teacherId) return []
 
-    const [subjectsRes, timetableRes] = await Promise.all([
-      fetch('/api/subjects', { cache: 'no-store' }),
+    const [classesRes, timetableRes] = await Promise.all([
+      fetch(`/api/classes?teacherId=${teacherId}`, { cache: 'no-store' }),
       fetch('/api/timetable', { cache: 'no-store' }),
     ])
 
-    const allSubjects = subjectsRes.ok ? await subjectsRes.json() : []
-    const allTimetable = timetableRes.ok ? await timetableRes.json() : []
-
-    const subjectClassIds = (Array.isArray(allSubjects) ? allSubjects : [])
-      .filter((s: any) => s.teacherId === teacherId || s.teacher?.id === teacherId)
-      .map((s: any) => s.classId)
+    const teacherClasses = classesRes.ok ? await classesRes.json() : []
+    const classTeacherClassIds = (Array.isArray(teacherClasses) ? teacherClasses : [])
+      .map((c: any) => c.id)
       .filter(Boolean)
 
+    const allTimetable = timetableRes.ok ? await timetableRes.json() : []
     const timetableClassIds = (Array.isArray(allTimetable) ? allTimetable : [])
       .filter((t: any) => t.teacherId === teacherId || t.teacher?.id === teacherId)
       .map((t: any) => t.classId)
       .filter(Boolean)
 
-    const classIds = [...new Set([...subjectClassIds, ...timetableClassIds])]
-    return classIds
+    return [...new Set([...classTeacherClassIds, ...timetableClassIds])]
   }, [])
 
   const fetchData = useCallback(async () => {
@@ -127,7 +124,6 @@ export default function MyClassesPage() {
       if (role === 'TEACHER') {
         const classIds = await fetchTeacherClasses(profile)
         if (classIds && classIds.length > 0) {
-          classId = classIds[0]
           const allClassesRes = await fetch('/api/classes', { cache: 'no-store' })
           if (allClassesRes.ok) {
             const allClasses = await allClassesRes.json()
@@ -135,7 +131,8 @@ export default function MyClassesPage() {
               classIds.includes(c.id)
             )
             setClasses(matched)
-            if (!selectedClassId && matched.length > 0) setSelectedClassId(matched[0].id)
+            classId = selectedClassId && classIds.includes(selectedClassId) ? selectedClassId : classIds[0]
+            if (classId) setSelectedClassId(classId)
           }
         }
       } else {
