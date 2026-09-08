@@ -272,8 +272,8 @@ function DashboardContent() {
       case 'TEACHER':
         return [
           { label: 'Take Attendance', icon: 'mdi-check-circle', color: 'bg-blue-100 text-blue-600 hover:bg-blue-200', href: '/dashboard/attendance' },
-          { label: 'Enter Grades', icon: 'mdi-clipboard-text', color: 'bg-green-100 text-green-600 hover:bg-green-200', href: '/dashboard/grades' },
-          { label: 'Create Assignment', icon: 'mdi-file-plus', color: 'bg-purple-100 text-purple-600 hover:bg-purple-200', href: '/dashboard/assignments' },
+          { label: 'Upload Results', icon: 'mdi-file-document-edit', color: 'bg-green-100 text-green-600 hover:bg-green-200', href: '/dashboard/results' },
+          { label: 'My Classes', icon: 'mdi-door-open', color: 'bg-purple-100 text-purple-600 hover:bg-purple-200', href: '/dashboard/my-classes' },
           { label: 'Announcement', icon: 'mdi-bullhorn', color: 'bg-orange-100 text-orange-600 hover:bg-orange-200', href: '/dashboard/announcements' },
         ]
       case 'ACCOUNTANT':

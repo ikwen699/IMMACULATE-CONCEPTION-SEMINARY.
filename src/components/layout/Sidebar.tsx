@@ -39,6 +39,7 @@ const navigationItems: Record<string, { title: string; href: string; icon: strin
   TEACHER: [
     { title: 'Dashboard', href: '/dashboard', icon: 'mdi-view-dashboard' },
     { title: 'My Classes', href: '/dashboard/my-classes', icon: 'mdi-door-open' },
+    { title: 'Results', href: '/dashboard/results', icon: 'mdi-file-document-edit' },
     { title: 'Timetable', href: '/dashboard/timetable', icon: 'mdi-calendar' },
     { title: 'Announcements', href: '/dashboard/announcements', icon: 'mdi-bullhorn' },
   ],
