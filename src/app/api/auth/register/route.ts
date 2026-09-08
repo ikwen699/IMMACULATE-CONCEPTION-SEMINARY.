@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     const hashedPassword = await hashPassword(password)
-    const name = email.split('@')[0].replace(/[^a-zA-Z]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+    const name = email.split('@')[0].replace(/[^a-zA-Z]/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
 
     const { data: user, error: userError } = await supabase
       .from('User')
