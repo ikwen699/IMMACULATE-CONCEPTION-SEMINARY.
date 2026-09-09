@@ -42,6 +42,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(submissions || [])
     }
 
+    if (role === 'PARENT') {
+      const { data: parentChildren } = await supabase.from('Parent').select('id').eq('userId', userId).single()
+      if (!parentChildren) return NextResponse.json([])
+
+      const { data: children } = await supabase.from('Student').select('id').eq('parentId', parentChildren.id)
+      const childIds = (children || []).map((c: any) => c.id)
+      if (childIds.length === 0) return NextResponse.json([])
+
+      let query = supabase.from('AssignmentSubmission').select('*').order('submittedAt', { ascending: false }).in('studentId', childIds)
+      if (assignmentId) query = query.eq('assignmentId', assignmentId)
+      const { data: submissions, error } = await query
+      if (error) throw error
+
+      return NextResponse.json(submissions || [])
+    }
+
     if (role === 'TEACHER' || role === 'ADMIN') {
       if (role === 'TEACHER') {
         const { data: teacher } = await supabase.from('Teacher').select('id').eq('userId', userId).single()

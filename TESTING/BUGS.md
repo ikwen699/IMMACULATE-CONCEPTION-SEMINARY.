@@ -16,7 +16,7 @@ Maintained bug table from the codebase audit (2026-09-09).
 | BUG-010 | Data | High | `src/app/(dashboard)/dashboard/page.tsx` | Hardcoded fake stats on admin/teacher/accountant dashboards. **Not yet fixed. Needs real API data.** | Open |
 | BUG-011 | Data | High | `src/app/api/payments/route.ts` POST | No duplicate payment detection. Same fee could be paid twice. Added SUBMITTED/REVIEWED/APPROVED check. | Fixed (2026-09-09) |
 | BUG-012 | Data | High | `src/app/api/grades/route.ts` POST | No teacher-assignment check. Added verification that teacher is assigned to subject. | Fixed (2026-09-09) |
-| BUG-013 | Data | High | `prisma/supabase-migration.sql` | Grade table had legacy `score`/`type` columns that don't match app code. Migration SQL (lines 442-450) already provides the ALTER to `ca1/ca2/ca3/exam/total`; app code and migration are consistent. **Verify migration applied to live DB.** | Needs verification |
+| BUG-013 | Data | High | `prisma/supabase-migration.sql` | Grade table had legacy `score`/`type` columns that don't match app code. Migration SQL (lines 442-450) provides the ALTER to `ca1/ca2/ca3/exam/total`. **Verified 2026-09-09 against live Supabase DB via PostgREST column probe: `select=ca1,ca2,ca3,exam,total,grade` returns HTTP 200 (columns exist).** | Verified (2026-09-09) |
 | BUG-014 | Data | High | `src/app/api/fees/route.ts` DELETE | Fee deletion didn't handle existing payments. Added payment count check. | Fixed (2026-09-09) |
 | BUG-015 | Data | High | `src/app/api/classes/route.ts` DELETE | Class deletion didn't handle students/subjects/timetable. Added count checks. | Fixed (2026-09-09) |
 | BUG-016 | Data | High | `src/app/api/subjects/route.ts` DELETE | Subject deletion didn't handle grades/assignments. Added count checks. | Fixed (2026-09-09) |
@@ -43,13 +43,15 @@ Maintained bug table from the codebase audit (2026-09-09).
 | BUG-037 | Medium | Security/Data | `src/app/api/assignments/route.ts` | GET exposed all assignments to any user; DELETE let any teacher delete any assignment; POST had no teacher-subject check or validation. Now role-filtered GET, teacher ownership on DELETE, subject-ownership + title/dueDate/totalMarks validation on POST, and deletion is blocked once students have submitted. | Fixed (2026-09-09) |
 | BUG-038 | Medium | Security | `src/app/api/submissions/route.ts` GET | Teachers could view submissions for any assignment. Now a TEACHER only sees submissions for their own assignments (or a specific own assignment). | Fixed (2026-09-09) |
 | BUG-039 | Medium | Security/Data | `src/app/api/grades/template/route.ts` + `src/app/api/grades/route.ts` POST | Grade template let any teacher export student names for any class/subject. Now templates are restricted to subjects the teacher actually teaches (matching classId). Grade POST also verified teacher's subject assignment but not student's class — added student-in-subject-class validation. Removed dead `ADMIN_ONLY` middleware constant. | Fixed (2026-09-09) |
+| BUG-040 | Medium | Functional | `src/app/api/submissions/route.ts` GET | Parents could not see their children's assignment submissions (returned empty array). Now PARENT submissions are scoped to the parent's own children. | Fixed (2026-09-09) |
 
 ## Fix Status Summary (2026-09-09)
 
-**Fixed: 34 of 37**
+**Fixed: 39 of 40**
 - BUG-001 through BUG-009: All Critical security + High security issues
-- BUG-011, BUG-012, BUG-014 through BUG-018: Data integrity issues
 - BUG-010: Dashboard fake stats replaced with real API data
+- BUG-011, BUG-012, BUG-014 through BUG-018: Data integrity issues
+- BUG-013: Grade migration verified applied to live DB (PostgREST column probe, HTTP 200)
 - BUG-019: PRINCIPAL granted fee management (per master checklist)
 - BUG-020: Teacher data leak through users API
 - BUG-021: Rate limiting on auth endpoints
@@ -58,6 +60,7 @@ Maintained bug table from the codebase audit (2026-09-09).
 - BUG-024: Sidebar active state highlights sub-routes
 - BUG-025: Currency format (USD → NGN)
 - BUG-026: Announcement XSS sanitization
+- BUG-028: `$₦` literal bug on payment-approvals
 - BUG-029: Registration privilege escalation → least-privileged + role-at-approval
 - BUG-030: Payment IDOR (parent→own children only) + amount/method validation
 - BUG-031: Fee POST/PUT validation + PUT field whitelist
@@ -68,8 +71,9 @@ Maintained bug table from the codebase audit (2026-09-09).
 - BUG-036: Timetable GET role filter + POST day/time/assignment validation
 - BUG-037: Assignment GET/DELETE role filter + POST validation + submission-cascade guard
 - BUG-038: Submission GET scoped to teacher's own assignments
-- BUG-028: `$₦` literal bug on payment-approvals
+- BUG-039: Grade template restricted to own subjects + grade POST student-class check
+- BUG-040: Parents can now see their children's assignment submissions
+- Middleware migrated to Next 16 `proxy.ts` (deprecation warning cleared)
 
-**Needs verification:**
-- BUG-013: Grade schema migration in `supabase-migration.sql` must be confirmed applied against the live Supabase DB
-- BUG-027: Settings GET readable by any authenticated user (intentional — school info is public)
+**Open (by design, intentionally left):**
+- BUG-027: Settings GET readable by any authenticated user (school info is public)
