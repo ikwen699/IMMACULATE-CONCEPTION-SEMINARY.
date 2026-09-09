@@ -314,7 +314,7 @@ export default function PaymentApprovalsPage() {
                 {/* Payment details grid */}
                 <div className="grid grid-cols-2 gap-4">
                   {[
-                    { label: 'Amount', value: `$₦{selectedPayment.amount.toLocaleString()}`, icon: 'mdi-cash', highlight: true },
+                    { label: 'Amount', value: `₦${selectedPayment.amount.toLocaleString()}`, icon: 'mdi-cash', highlight: true },
                     { label: 'Student', value: selectedPayment.student.user?.name || '', icon: 'mdi-account' },
                     { label: 'Fee', value: selectedPayment.fee.name, icon: 'mdi-credit-card-outline' },
                     { label: 'Admission No', value: selectedPayment.student.admissionNo, icon: 'mdi-identifier' },

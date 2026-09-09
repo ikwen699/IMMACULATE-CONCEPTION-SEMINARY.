@@ -11,11 +11,37 @@ export async function GET(request: NextRequest) {
     const session = await auth()
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    const userId = (session.user as any).userId || (session.user as any).id
+    const role = (session.user as any).role
+
     const { searchParams } = new URL(request.url)
     const studentId = searchParams.get('studentId')
     const subjectId = searchParams.get('subjectId')
     const termId = searchParams.get('termId')
     const classId = searchParams.get('classId')
+
+    let allowedStudentIds: string[] | null = null
+
+    if (role === 'STUDENT') {
+      const { data: student } = await supabase.from('Student').select('id').eq('userId', userId).single()
+      if (student) allowedStudentIds = [student.id]
+      else return NextResponse.json([])
+    } else if (role === 'PARENT') {
+      const { data: parent } = await supabase.from('Parent').select('id').eq('userId', userId).single()
+      if (!parent) return NextResponse.json([])
+      const { data: children } = await supabase.from('Student').select('id').eq('parentId', parent.id)
+      if (!children || children.length === 0) return NextResponse.json([])
+      allowedStudentIds = children.map((c: any) => c.id)
+    } else if (role === 'TEACHER') {
+      const { data: teacher } = await supabase.from('Teacher').select('id').eq('userId', userId).single()
+      if (teacher) {
+        const { data: teacherSubjects } = await supabase.from('Subject').select('classId').eq('teacherId', teacher.id)
+        const teacherClassIds = [...new Set((teacherSubjects || []).map((s: any) => s.classId))]
+        if (teacherClassIds.length === 0) return NextResponse.json([])
+        const { data: classStudents } = await supabase.from('Student').select('id').in('classId', teacherClassIds)
+        allowedStudentIds = (classStudents || []).map((s: any) => s.id)
+      }
+    }
 
     let query = supabase.from('Grade').select('*').order('createdAt', { ascending: false })
     if (studentId) query = query.eq('studentId', studentId)
@@ -26,9 +52,15 @@ export async function GET(request: NextRequest) {
     if (error) throw error
     if (!grades) return NextResponse.json([])
 
-    const sIds = [...new Set(grades.map(g => g.studentId))]
-    const subIds = [...new Set(grades.map(g => g.subjectId))]
-    const tIds = [...new Set(grades.map(g => g.termId))]
+    let filteredGrades = grades
+    if (allowedStudentIds) {
+      const allowedSet = new Set(allowedStudentIds)
+      filteredGrades = grades.filter(g => allowedSet.has(g.studentId))
+    }
+
+    const sIds = [...new Set(filteredGrades.map(g => g.studentId))]
+    const subIds = [...new Set(filteredGrades.map(g => g.subjectId))]
+    const tIds = [...new Set(filteredGrades.map(g => g.termId))]
 
     const [studentsRes, subjectsRes, termsRes] = await Promise.all([
       sIds.length > 0 ? supabase.from('Student').select('id, admissionNo, userId, classId').in('id', sIds) : { data: [] },
@@ -42,7 +74,7 @@ export async function GET(request: NextRequest) {
     }
 
     const filteredStudentIds = new Set(filteredStudents.map(s => s.id))
-    const filteredGrades = classId ? grades.filter(g => filteredStudentIds.has(g.studentId)) : grades
+    filteredGrades = classId ? filteredGrades.filter(g => filteredStudentIds.has(g.studentId)) : filteredGrades
 
     const sUserIds = filteredStudents.map(s => s.userId).filter(Boolean)
     const { data: sUsers } = sUserIds.length > 0 ? await supabase.from('User').select('id, name').in('id', sUserIds) : { data: [] }
@@ -83,6 +115,7 @@ export async function POST(request: NextRequest) {
     const session = await auth()
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    const userId = (session.user as any).userId || (session.user as any).id
     const role = (session.user as any).role
     if (!['TEACHER', 'ADMIN', 'PRINCIPAL'].includes(role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
@@ -92,7 +125,19 @@ export async function POST(request: NextRequest) {
     const { grades } = body
     if (!Array.isArray(grades)) return NextResponse.json({ error: 'Invalid grades data' }, { status: 400 })
 
+    let teacherAssignedSubjects: Set<string> | null = null
+    if (role === 'TEACHER') {
+      const { data: teacher } = await supabase.from('Teacher').select('id').eq('userId', userId).single()
+      if (!teacher) return NextResponse.json({ error: 'Teacher profile not found' }, { status: 403 })
+      const { data: subjects } = await supabase.from('Subject').select('id').eq('teacherId', teacher.id)
+      teacherAssignedSubjects = new Set((subjects || []).map((s: any) => s.id))
+    }
+
     for (const grade of grades) {
+      if (teacherAssignedSubjects && !teacherAssignedSubjects.has(grade.subjectId)) {
+        return NextResponse.json({ error: 'You are not assigned to teach this subject' }, { status: 403 })
+      }
+
       const ca1 = Math.min(10, Math.max(0, parseFloat(grade.ca1) || 0))
       const ca2 = Math.min(10, Math.max(0, parseFloat(grade.ca2) || 0))
       const ca3 = Math.min(10, Math.max(0, parseFloat(grade.ca3) || 0))

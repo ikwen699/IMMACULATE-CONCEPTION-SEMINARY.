@@ -20,6 +20,14 @@ export async function GET(request: NextRequest) {
     const classId = searchParams.get('classId')
     const sessionId = searchParams.get('sessionId')
 
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (classId && !UUID_RE.test(classId)) {
+      return NextResponse.json({ error: 'Invalid class ID format' }, { status: 400 })
+    }
+    if (sessionId && !UUID_RE.test(sessionId)) {
+      return NextResponse.json({ error: 'Invalid session ID format' }, { status: 400 })
+    }
+
     let query = supabase.from('Fee').select('*').order('createdAt', { ascending: false })
     if (sessionId) query = query.eq('sessionId', sessionId)
 
@@ -219,8 +227,21 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id')
     if (!id) return NextResponse.json({ error: 'Fee ID required' }, { status: 400 })
 
-    const { error } = await supabase.from('Fee').delete().eq('id', id)
+    const { count: paymentCount, error: countErr } = await supabase
+      .from('Payment')
+      .select('*', { count: 'exact', head: true })
+      .eq('feeId', id)
+
+    if (countErr) throw countErr
+    if ((paymentCount ?? 0) > 0) {
+      return NextResponse.json({ error: 'Cannot delete fee: it has existing payment records.' }, { status: 400 })
+    }
+
+    const { error } = await supabase.from('FeeClass').delete().eq('feeId', id)
     if (error) throw error
+
+    const { error: feeErr } = await supabase.from('Fee').delete().eq('id', id)
+    if (feeErr) throw feeErr
     return NextResponse.json({ message: 'Fee deleted' })
   } catch (error: any) {
     console.error('Error deleting fee:', error)

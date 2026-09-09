@@ -14,6 +14,10 @@ export async function GET(request: NextRequest) {
     const userId = (session.user as any).userId || (session.user as any).id
     const role = (session.user as any).role
 
+    if (role === 'TEACHER') {
+      return NextResponse.json({ error: 'Teachers do not have access to payment records' }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const studentId = searchParams.get('studentId')
     const feeId = searchParams.get('feeId')
@@ -144,6 +148,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid student: no student found with the provided ID' }, { status: 400 })
     }
 
+    if (feeId) {
+      const { data: existingPayment } = await supabase
+        .from('Payment')
+        .select('id, status')
+        .eq('studentId', studentId)
+        .eq('feeId', feeId)
+        .in('status', ['SUBMITTED', 'ACCOUNTANT_REVIEWED', 'PRINCIPAL_APPROVED', 'PARTIAL'])
+        .maybeSingle()
+
+      if (existingPayment) {
+        return NextResponse.json({ error: 'A payment for this fee is already in progress or has been completed.' }, { status: 400 })
+      }
+    }
+
     const { data: payment, error: payErr } = await supabase
       .from('Payment')
       .insert({
@@ -187,8 +205,36 @@ export async function PATCH(request: NextRequest) {
     const { id, status, accountantRemarks, principalRemarks } = body
 
     if (!id) return NextResponse.json({ error: 'Payment ID required' }, { status: 400 })
+    if (!status) return NextResponse.json({ error: 'Status required' }, { status: 400 })
 
-    const updateData: any = { status: status || 'PENDING' }
+    const { data: existingPayment, error: fetchError } = await supabase
+      .from('Payment')
+      .select('id, status')
+      .eq('id', id)
+      .single()
+
+    if (fetchError || !existingPayment) {
+      return NextResponse.json({ error: 'Payment not found' }, { status: 404 })
+    }
+
+    const currentStatus = existingPayment.status
+    let allowedTransition = false
+
+    if (role === 'ACCOUNTANT') {
+      allowedTransition = currentStatus === 'SUBMITTED' && status === 'ACCOUNTANT_REVIEWED'
+      if (currentStatus === 'SUBMITTED' && status === 'REJECTED') allowedTransition = true
+    } else if (role === 'PRINCIPAL') {
+      allowedTransition = currentStatus === 'ACCOUNTANT_REVIEWED' && status === 'PRINCIPAL_APPROVED'
+      if (currentStatus === 'ACCOUNTANT_REVIEWED' && status === 'REJECTED') allowedTransition = true
+    } else if (role === 'ADMIN') {
+      allowedTransition = true
+    }
+
+    if (!allowedTransition) {
+      return NextResponse.json({ error: `Invalid payment status transition from "${currentStatus}" to "${status}"` }, { status: 400 })
+    }
+
+    const updateData: any = { status }
 
     if (role === 'ACCOUNTANT' && status === 'ACCOUNTANT_REVIEWED') {
       const { data: accountant } = await supabase.from('Accountant').select('id').eq('userId', userId).single()

@@ -130,6 +130,22 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id')
     if (!id) return NextResponse.json({ error: 'Session ID required' }, { status: 400 })
 
+    const { data: terms } = await supabase.from('Term').select('id').eq('sessionId', id)
+    const termIds = (terms || []).map((t: any) => t.id)
+
+    if (termIds.length > 0) {
+      const [{ count: gradeCount }, { count: feeCount }] = await Promise.all([
+        supabase.from('Grade').select('*', { count: 'exact', head: true }).in('termId', termIds),
+        supabase.from('Fee').select('*', { count: 'exact', head: true }).eq('sessionId', id),
+      ])
+
+      if ((gradeCount ?? 0) > 0) return NextResponse.json({ error: 'Cannot delete session: its terms have existing grades.' }, { status: 400 })
+      if ((feeCount ?? 0) > 0) return NextResponse.json({ error: 'Cannot delete session: it has associated fees.' }, { status: 400 })
+    } else {
+      const { count: feeCount } = await supabase.from('Fee').select('*', { count: 'exact', head: true }).eq('sessionId', id)
+      if ((feeCount ?? 0) > 0) return NextResponse.json({ error: 'Cannot delete session: it has associated fees.' }, { status: 400 })
+    }
+
     const { error } = await supabase.from('AcademicSession').delete().eq('id', id)
     if (error) throw error
     return NextResponse.json({ message: 'Session deleted' })

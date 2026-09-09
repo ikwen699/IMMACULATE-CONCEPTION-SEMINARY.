@@ -74,11 +74,16 @@ export async function GET(request: NextRequest) {
     if (isAdmin) {
       allowedRoleFilter = role || null
     } else if (isTeacher) {
-      allowedRoleFilter = role === 'TEACHER' ? 'TEACHER' : null
+      allowedRoleFilter = 'TEACHER'
     } else if (isPrincipal) {
       allowedRoleFilter = role || null
     } else if (isAccountant) {
       allowedRoleFilter = role || null
+    }
+
+    // TEACHER must only ever see other teachers, regardless of requested role param
+    if (isTeacher && allowedRoleFilter !== 'TEACHER') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
     let filteredUserIds: string[] | null = null
@@ -432,12 +437,25 @@ export async function DELETE(request: NextRequest) {
     }
 
     const { data: targetUser } = await supabase.from('User').select('role').eq('id', id).single()
+    if (!targetUser) return NextResponse.json({ error: 'User not found' }, { status: 404 })
 
     if (targetUser?.role === 'TEACHER') {
       const { data: teacher } = await supabase.from('Teacher').select('id').eq('userId', id).single()
       if (teacher) {
         await supabase.from('Class').update({ classTeacherId: null }).eq('classTeacherId', teacher.id)
         await supabase.from('Subject').update({ teacherId: null }).eq('teacherId', teacher.id)
+        await supabase.from('Assignment').delete().eq('teacherId', teacher.id)
+        await supabase.from('Timetable').delete().eq('teacherId', teacher.id)
+      }
+    }
+
+    if (targetUser?.role === 'STUDENT') {
+      const { data: student } = await supabase.from('Student').select('id').eq('userId', id).single()
+      if (student) {
+        await supabase.from('Grade').delete().eq('studentId', student.id)
+        await supabase.from('Attendance').delete().eq('studentId', student.id)
+        await supabase.from('AssignmentSubmission').delete().eq('studentId', student.id)
+        await supabase.from('Payment').delete().eq('studentId', student.id)
       }
     }
 
@@ -448,6 +466,9 @@ export async function DELETE(request: NextRequest) {
         await supabase.from('Payment').update({ parentId: null }).eq('parentId', parent.id)
       }
     }
+
+    await supabase.from('Notification').delete().eq('userId', id)
+    await supabase.from('Announcement').delete().eq('authorId', id)
 
     const { error } = await supabase.from('User').delete().eq('id', id)
     if (error) throw error

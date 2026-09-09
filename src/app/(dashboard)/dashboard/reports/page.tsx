@@ -43,7 +43,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
           {entry.name}: {typeof entry.value === 'number' && entry.name?.toLowerCase().includes('rate')
             ? `${entry.value}%`
             : entry.name?.toLowerCase().includes('revenue') || entry.name?.toLowerCase().includes('amount')
-              ? `$${entry.value.toLocaleString()}`
+              ? `₦${entry.value.toLocaleString()}`
               : entry.value}
         </p>
       ))}
@@ -138,7 +138,7 @@ export default function ReportsPage() {
   const summaryCards = [
     { label: 'Total Students', value: stats.totalStudents, icon: 'mdi-school', color: 'bg-blue-100 text-blue-600', ringColor: 'ring-blue-600/10' },
     { label: 'Total Teachers', value: stats.totalTeachers, icon: 'mdi-account-school', color: 'bg-emerald-100 text-emerald-600', ringColor: 'ring-emerald-600/10' },
-    { label: 'Total Revenue', value: `$${stats.totalRevenue.toLocaleString()}`, icon: 'mdi-cash', color: 'bg-purple-100 text-purple-600', ringColor: 'ring-purple-600/10' },
+    { label: 'Total Revenue', value: `₦${stats.totalRevenue.toLocaleString()}`, icon: 'mdi-cash', color: 'bg-purple-100 text-purple-600', ringColor: 'ring-purple-600/10' },
     { label: 'Pending Approvals', value: stats.pendingPayments, icon: 'mdi-clock-outline', color: 'bg-amber-100 text-amber-600', ringColor: 'ring-amber-600/10' },
   ]
 
@@ -164,7 +164,7 @@ export default function ReportsPage() {
             <div className="flex items-center gap-3 text-sm">
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg font-medium">
                 <span className="mdi mdi-check-circle text-base" />
-                ${stats.totalRevenue.toLocaleString()} revenue
+                ₦{stats.totalRevenue.toLocaleString()} revenue
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-700 rounded-lg font-medium">
                 <span className="mdi mdi-clock-outline text-base" />

@@ -39,10 +39,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         if (user.status === 'PENDING') {
-          return null
-        }
-
-        if (user.status === 'PENDING') {
           throw new Error('PENDING_APPROVAL')
         }
 

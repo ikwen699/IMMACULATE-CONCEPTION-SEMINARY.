@@ -32,13 +32,13 @@ const features = [
 function SchoolBadge({ className }: { className?: string }) {
   return (
     <div className={cn('relative', className)}>
-      <div className="absolute inset-0 rounded-full bg-white/20 blur-lg scale-105" />
+      <div className="absolute inset-0 rounded-full bg-blue-400/25 blur-xl scale-110" />
       <img
         src="/school-badge.jpg"
         alt="ICS School Badge"
-        className="relative w-full h-full rounded-full object-cover ring-4 ring-white/40 shadow-2xl"
+        className="relative w-full h-full rounded-full object-cover ring-[3px] ring-white/30 shadow-[0_0_40px_rgba(255,255,255,0.15)]"
       />
-      <div className="absolute inset-0 rounded-full ring-1 ring-white/50" />
+      <div className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/20" />
     </div>
   )
 }
@@ -85,110 +85,117 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-b from-blue-50 via-white to-blue-100">
-      {/* Left brand panel (desktop) */}
+    <div className="min-h-screen flex bg-gradient-to-br from-blue-50 via-white to-blue-100">
+      {/* ── Left brand panel (desktop) ─────────────────────────────── */}
       <div className="hidden xl:flex w-[44%] relative flex-col overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800">
-        <div className="absolute -top-40 -left-40 w-[30rem] h-[30rem] bg-blue-500/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-0 w-[26rem] h-[26rem] bg-sky-400/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/4 right-16 w-56 h-56 bg-white/10 rounded-full blur-2xl" />
-        <div className="absolute inset-0 opacity-[0.04] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:48px_48px]" />
+        {/* Ambient glow orbs */}
+        <div className="absolute -top-32 -left-32 w-[28rem] h-[28rem] bg-blue-500/15 rounded-full blur-[100px]" />
+        <div className="absolute bottom-0 right-0 w-[24rem] h-[24rem] bg-sky-400/15 rounded-full blur-[100px]" />
+        <div className="absolute top-1/3 right-20 w-48 h-48 bg-white/5 rounded-full blur-3xl" />
+        {/* Subtle grid overlay */}
+        <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:48px_48px]" />
+        {/* Vignette */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.3)_100%)]" />
 
         <div className="relative flex flex-col justify-between h-full p-14 xl:p-16 animate-fade-in">
-          <div className="flex flex-col items-center text-center -mt-6">
+          <div className="flex flex-col items-center text-center -mt-4">
             <SchoolBadge className="w-40 h-40 mb-6" />
             <div>
-              <p className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-50 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur ring-1 ring-white/20">
+              <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-blue-100 bg-white/10 px-3.5 py-1.5 rounded-full backdrop-blur-md ring-1 ring-white/15 uppercase">
                 <School className="w-3.5 h-3.5" />
-                ESTABLISHED &middot; EXCELLENCE IN EDUCATION
+                Established &middot; Excellence in Education
               </p>
-              <h1 className="text-3xl font-bold text-white mt-3 leading-tight tracking-wide">
+              <h1 className="text-3xl font-extrabold text-white mt-4 leading-[1.15] tracking-wide">
                 IMMACULATE CONCEPTION
-                <span className="block text-lg font-semibold text-blue-100 tracking-[0.3em] mt-1">
-                  SCHOOL PORTAL
+                <span className="block text-[15px] font-semibold text-blue-200/90 tracking-[0.25em] mt-1.5 uppercase">
+                  School Portal
                 </span>
               </h1>
             </div>
           </div>
 
           <div className="my-auto py-10 text-center">
-            <h2 className="text-3xl xl:text-4xl font-bold text-white leading-tight">
+            <h2 className="text-[28px] xl:text-3xl font-bold text-white leading-snug">
               One portal for your
               <br />
               entire school journey.
             </h2>
-            <p className="text-blue-100/80 mt-4 text-base leading-relaxed max-w-md mx-auto">
+            <p className="text-blue-100/70 mt-4 text-[15px] leading-relaxed max-w-sm mx-auto">
               Access academic records, attendance, fees and announcements from a single secure
               sign-in — no matter your role.
             </p>
 
-            <div className="mt-10 space-y-4 mx-auto max-w-sm">
+            <div className="mt-8 space-y-3 mx-auto max-w-sm">
               {features.map((f, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-3.5 text-blue-50 text-left animate-fade-in"
+                  className="flex items-center gap-3.5 text-blue-50 text-left group cursor-default"
                   style={{ animationDelay: `${i * 120}ms` }}
                 >
-                  <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 ring-1 ring-white/25 text-blue-100 shrink-0">
+                  <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/10 ring-1 ring-white/20 text-blue-100 shrink-0 transition-all duration-300 group-hover:bg-white/15 group-hover:ring-white/30 group-hover:scale-105">
                     {f.icon}
                   </span>
-                  <p className="text-sm font-medium">{f.text}</p>
+                  <p className="text-sm font-medium transition-colors duration-200 group-hover:text-white">{f.text}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 text-xs text-blue-100/70 text-center">
+          <div className="flex flex-col gap-3 text-xs text-blue-200/50 text-center pt-6 border-t border-white/[0.08]">
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
               <span className="flex items-center gap-1.5">
-                <MapPin className="w-4 h-4" /> Main Campus, Nigeria
+                <MapPin className="w-3.5 h-3.5" /> Main Campus, Nigeria
               </span>
               <span className="flex items-center gap-1.5">
-                <Phone className="w-4 h-4" /> +234 (0) 000 000 0000
+                <Phone className="w-3.5 h-3.5" /> +234 (0) 000 000 0000
               </span>
             </div>
-            <p>&copy; 2026 Immaculate Conception School. All rights reserved.</p>
+            <p className="text-blue-200/40">&copy; 2026 Immaculate Conception School. All rights reserved.</p>
           </div>
         </div>
       </div>
 
-      {/* Form panel */}
-      <div className="flex-1 flex items-center justify-center py-6 px-4 sm:px-6 xl:py-8">
-        <div className="w-full max-w-md">
-          {/* Mobile brand header */}
+      {/* ── Form panel ─────────────────────────────────────────────── */}
+      <div className="flex-1 flex items-center justify-center py-8 px-4 sm:px-6 xl:py-10">
+        <div className="w-full max-w-[400px]">
+          {/* Mobile / tablet: compact brand header */}
           <div className="flex flex-col items-center mb-8 xl:hidden animate-fade-in">
-            <div className="relative w-full max-w-md -mx-4 rounded-b-3xl bg-gradient-to-b from-blue-950 via-blue-900 to-blue-800 px-6 pt-10 pb-14 overflow-hidden">
-              <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/10 rounded-full blur-2xl" />
-              <div className="absolute -bottom-20 -left-10 w-56 h-56 bg-blue-500/20 rounded-full blur-2xl" />
+            <div className="relative w-full rounded-b-3xl bg-gradient-to-b from-blue-950 via-blue-900 to-blue-800 px-6 pt-8 pb-12 overflow-hidden shadow-lg">
+              <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/5 rounded-full blur-3xl" />
+              <div className="absolute -bottom-20 -left-10 w-56 h-56 bg-blue-500/10 rounded-full blur-3xl" />
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_50%,rgba(0,0,0,0.25)_100%)]" />
               <div className="relative flex flex-col items-center text-center">
-                <SchoolBadge className="w-28 h-28 sm:w-32 sm:h-32 mb-5" />
-                <h1 className="text-xl font-bold text-white leading-tight text-center tracking-wide drop-shadow-sm">
+                <SchoolBadge className="w-24 h-24 sm:w-28 sm:h-28 mb-4" />
+                <h1 className="text-lg font-extrabold text-white leading-tight text-center tracking-wide">
                   IMMACULATE CONCEPTION
-                  <span className="block text-xs font-semibold text-blue-100 tracking-[0.3em] mt-1.5">
-                    SCHOOL PORTAL
+                  <span className="block text-[11px] font-semibold text-blue-200/80 tracking-[0.25em] mt-1.5 uppercase">
+                    School Portal
                   </span>
                 </h1>
-                <p className="text-sm text-blue-50/90 mt-3 font-medium">Sign in to continue</p>
+                <p className="text-sm text-blue-100/80 mt-3 font-medium">Sign in to continue</p>
               </div>
             </div>
           </div>
 
           {/* Desktop card header */}
-          <div className="hidden xl:block mb-6 animate-fade-in">
-            <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
-            <p className="text-gray-500 mt-1.5 text-sm">
+          <div className="hidden xl:block mb-7 animate-fade-in">
+            <h1 className="text-[26px] font-bold text-gray-900 leading-tight">Welcome back</h1>
+            <p className="text-gray-400 mt-1.5 text-[15px]">
               Sign in to your account to continue.
             </p>
           </div>
 
           {/* Error alert */}
           {error && (
-            <div className="mb-5 flex items-start gap-3 p-3.5 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm animate-slide-in-top" role="alert">
-              <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-              <span className="flex-1">{error}</span>
+            <div className="mb-5 flex items-start gap-3 p-4 bg-red-50/80 border border-red-200/80 rounded-2xl text-red-700 text-sm animate-slide-in-top shadow-sm" role="alert">
+              <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-4 h-4 text-red-500" />
+              </div>
+              <span className="flex-1 pt-1">{error}</span>
               <button
                 type="button"
                 onClick={() => setError('')}
-                className="shrink-0 text-red-400 hover:text-red-600 transition-colors"
+                className="shrink-0 text-red-300 hover:text-red-600 transition-colors p-1 -m-1 rounded-lg hover:bg-red-100"
                 aria-label="Dismiss error"
               >
                 <X className="w-4 h-4" />
@@ -199,11 +206,11 @@ export default function LoginPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5 animate-fade-in" noValidate>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label htmlFor="email" className="block text-[13px] font-semibold text-gray-600 mb-1.5">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400 pointer-events-none" />
                 <input
                   id="email"
                   type="email"
@@ -212,18 +219,18 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className={cn(
-                    'w-full pl-11 pr-11 py-3 rounded-xl border-2 outline-none transition-all duration-200 text-gray-800 placeholder-gray-400',
-                    'bg-white focus:bg-white',
+                    'w-full pl-11 pr-11 py-3 rounded-2xl border border-gray-200/80 outline-none transition-all duration-200 text-[15px] text-gray-800 placeholder-gray-400',
+                    'bg-gray-50/50 focus:bg-white',
                     email && !loading
-                      ? 'border-green-200 focus:border-green-400 focus:ring-4 focus:ring-green-100'
-                      : 'border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100'
+                      ? 'border-green-300/60 focus:border-green-400 focus:ring-4 focus:ring-green-100/80'
+                      : 'focus:border-blue-400 focus:ring-4 focus:ring-blue-100/80 hover:border-gray-300'
                   )}
                   placeholder="you@example.com"
                   required
                 />
                 {email && (
-                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-green-500">
-                    <ShieldCheck className="w-5 h-5" strokeWidth={3} />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-400">
+                    <ShieldCheck className="w-5 h-5" strokeWidth={2.5} />
                   </span>
                 )}
               </div>
@@ -231,25 +238,25 @@ export default function LoginPage() {
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="block text-[13px] font-semibold text-gray-600">
                   Password
                 </label>
                 <Link
                   href="/forgot-password"
-                  className="text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                  className="text-[13px] font-medium text-blue-500 hover:text-blue-700 transition-colors duration-200"
                 >
                   Forgot password?
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400 pointer-events-none" />
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-11 pr-11 py-3 rounded-xl border-2 border-gray-200 outline-none transition-all duration-200 text-gray-800 placeholder-gray-400 bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-100"
+                  className="w-full pl-11 pr-11 py-3 rounded-2xl border border-gray-200/80 bg-gray-50/50 outline-none transition-all duration-200 text-[15px] text-gray-800 placeholder-gray-400 focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-100/80 hover:border-gray-300"
                   placeholder="Enter your password"
                   required
                 />
@@ -257,17 +264,17 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => setShowPassword(prev => !prev)}
                   onMouseDown={(e) => e.preventDefault()}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors z-10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all duration-200 z-10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                   aria-pressed={showPassword}
                   title={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center justify-between gap-2 pt-0.5">
               <label className="flex items-center gap-2.5 cursor-pointer select-none group min-w-0">
                 <button
                   type="button"
@@ -275,19 +282,23 @@ export default function LoginPage() {
                   aria-checked={rememberMe}
                   onClick={() => setRememberMe(!rememberMe)}
                   className={cn(
-                    'w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all duration-200 shrink-0',
+                    'w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all duration-200 shrink-0',
                     rememberMe
-                      ? 'bg-blue-600 border-blue-600 text-white'
+                      ? 'bg-blue-600 border-blue-600 shadow-sm shadow-blue-200'
                       : 'border-gray-300 bg-white group-hover:border-blue-400'
                   )}
                 >
-                  {rememberMe && <span className="w-3.5 h-3.5 flex items-center justify-center text-white">&#10003;</span>}
+                  {rememberMe && (
+                    <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="2 6 5 9 10 3" />
+                    </svg>
+                  )}
                 </button>
-                <span className="text-sm text-gray-600 whitespace-nowrap">Remember me</span>
+                <span className="text-sm text-gray-500 whitespace-nowrap">Remember me</span>
               </label>
 
-              <span className="text-xs text-gray-400 flex items-center gap-1 shrink-0">
-                <ShieldCheck className="w-4 h-4 text-green-500" />
+              <span className="text-[13px] text-gray-400 flex items-center gap-1.5 shrink-0">
+                <ShieldCheck className="w-4 h-4 text-emerald-400/80" />
                 Secure sign-in
               </span>
             </div>
@@ -296,10 +307,10 @@ export default function LoginPage() {
               type="submit"
               disabled={loading}
               className={cn(
-                'w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl font-semibold text-white transition-all duration-200 shadow-lg',
+                'w-full flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-2xl font-semibold text-[15px] text-white transition-all duration-200',
                 loading
-                  ? 'bg-blue-400 cursor-not-allowed shadow-blue-200'
-                  : 'bg-blue-600 hover:bg-blue-700 active:scale-[0.98] shadow-blue-200 hover:shadow-blue-300'
+                  ? 'bg-blue-400 cursor-not-allowed shadow-lg shadow-blue-200/50'
+                  : 'bg-blue-600 hover:bg-blue-700 active:scale-[0.985] shadow-lg shadow-blue-200/60 hover:shadow-xl hover:shadow-blue-300/60'
               )}
             >
               {loading ? (
@@ -310,17 +321,17 @@ export default function LoginPage() {
               ) : (
                 <>
                   Sign In
-                  <ArrowRight className="w-5 h-5" />
+                  <ArrowRight className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </>
               )}
             </button>
           </form>
 
           {/* Divider */}
-          <div className="flex items-center gap-3 my-6">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400 font-medium">NEW HERE?</span>
-            <div className="flex-1 h-px bg-gray-200" />
+          <div className="flex items-center gap-3 my-7">
+            <div className="flex-1 h-px bg-gray-200/80" />
+            <span className="text-[11px] text-gray-400 font-semibold tracking-wide uppercase">New here?</span>
+            <div className="flex-1 h-px bg-gray-200/80" />
           </div>
 
           <div className="text-center">
@@ -328,10 +339,10 @@ export default function LoginPage() {
               Don&apos;t have an account?{' '}
               <Link
                 href="/register"
-                className="text-blue-600 font-semibold hover:text-blue-800 transition-colors inline-flex items-center gap-1 group"
+                className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 inline-flex items-center gap-1 group"
               >
                 Create Account
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </Link>
             </p>
           </div>

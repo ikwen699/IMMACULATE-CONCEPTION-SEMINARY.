@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function DashboardGroupLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
-  if (!session) {
+  if (!session?.user) {
     redirect('/login')
   }
   return <>{children}</>

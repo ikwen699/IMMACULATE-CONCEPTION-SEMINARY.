@@ -126,6 +126,16 @@ export async function DELETE(request: NextRequest) {
     const id = searchParams.get('id')
     if (!id) return NextResponse.json({ error: 'Subject ID required' }, { status: 400 })
 
+    const [{ count: gradeCount }, { count: assignmentCount }, { count: timetableCount }] = await Promise.all([
+      supabase.from('Grade').select('*', { count: 'exact', head: true }).eq('subjectId', id),
+      supabase.from('Assignment').select('*', { count: 'exact', head: true }).eq('subjectId', id),
+      supabase.from('Timetable').select('*', { count: 'exact', head: true }).eq('subjectId', id),
+    ])
+
+    if ((gradeCount ?? 0) > 0) return NextResponse.json({ error: 'Cannot delete subject: it has existing grades.' }, { status: 400 })
+    if ((assignmentCount ?? 0) > 0) return NextResponse.json({ error: 'Cannot delete subject: it has assignments.' }, { status: 400 })
+    if ((timetableCount ?? 0) > 0) return NextResponse.json({ error: 'Cannot delete subject: it has timetable entries.' }, { status: 400 })
+
     const { error } = await supabase.from('Subject').delete().eq('id', id)
     if (error) throw error
     return NextResponse.json({ message: 'Subject deleted' })

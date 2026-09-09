@@ -215,6 +215,107 @@ function DashboardContent() {
   const user = session?.user as any
   const role = user?.role || 'STUDENT'
 
+  const [stats, setStats] = useState<Array<{ label: string; value: string; icon: string; color: string }>>([])
+  const [statsLoading, setStatsLoading] = useState(true)
+  const [activities, setActivities] = useState<Array<{ title: string; time: string; type: string }>>([])
+
+  const fetchStats = useCallback(async () => {
+    if (status !== 'authenticated') return
+    setStatsLoading(true)
+
+    const getCount = async (url: string) => {
+      try {
+        const res = await fetch(url, { cache: 'no-store' })
+        if (!res.ok) return null
+        const data = await res.json()
+        return Array.isArray(data) ? data.length : null
+      } catch {
+        return null
+      }
+    }
+
+    try {
+      if (role === 'ADMIN' || role === 'PRINCIPAL') {
+        const [studentCount, teacherCount, classCount, sessionData] = await Promise.all([
+          getCount('/api/users?role=STUDENT'),
+          getCount('/api/users?role=TEACHER'),
+          getCount('/api/classes'),
+          fetch('/api/sessions', { cache: 'no-store' }).then(r => r.ok ? r.json() : []).catch(() => []),
+        ])
+
+        const activeSessions = (Array.isArray(sessionData) ? sessionData : []).filter((s: any) => s.isActive).length
+
+        setStats([
+          { label: 'Total Students', value: studentCount != null ? studentCount.toLocaleString() : '—', icon: 'mdi-school', color: 'bg-blue-100 text-blue-600' },
+          { label: 'Total Teachers', value: teacherCount != null ? teacherCount.toLocaleString() : '—', icon: 'mdi-account-school', color: 'bg-green-100 text-green-600' },
+          { label: 'Total Classes', value: classCount != null ? classCount.toLocaleString() : '—', icon: 'mdi-door-open', color: 'bg-purple-100 text-purple-600' },
+          { label: 'Active Sessions', value: activeSessions.toLocaleString() || '0', icon: 'mdi-calendar-clock', color: 'bg-orange-100 text-orange-600' },
+        ])
+
+        if (role === 'ADMIN') {
+          const [usersRes, paymentRes] = await Promise.all([
+            fetch('/api/users', { cache: 'no-store' }).then(r => r.ok ? r.json() : []).catch(() => []),
+            fetch('/api/payments', { cache: 'no-store' }).then(r => r.ok ? r.json() : []).catch(() => []),
+          ])
+          const recentUsers = Array.isArray(usersRes) ? usersRes.filter((u: any) => u.status === 'PENDING').slice(0, 3) : []
+          const recentPayments = Array.isArray(paymentRes) ? paymentRes.filter((p: any) => p.status === 'SUBMITTED').slice(0, 2) : []
+          setActivities([
+            ...recentUsers.map((u: any) => ({ title: `Pending approval: ${u.name} (${u.role})`, time: 'Awaiting review', type: 'warning' })),
+            ...recentPayments.map((p: any) => ({ title: 'Payment submitted for review', time: 'Awaiting review', type: 'info' })),
+          ])
+          if (recentUsers.length === 0 && recentPayments.length === 0) setActivities([])
+        }
+      } else if (role === 'TEACHER') {
+        const [classesData, gradesData, assignmentsData] = await Promise.all([
+          fetch('/api/classes', { cache: 'no-store' }).then(r => r.ok ? r.json() : []).catch(() => []),
+          fetch('/api/grades', { cache: 'no-store' }).then(r => r.ok ? r.json() : []).catch(() => []),
+          fetch('/api/assignments', { cache: 'no-store' }).then(r => r.ok ? r.json() : []).catch(() => []),
+        ])
+
+        const classes = Array.isArray(classesData) ? classesData : []
+        const grades = Array.isArray(gradesData) ? gradesData : []
+        const assignments = Array.isArray(assignmentsData) ? assignmentsData : []
+
+        const systemCount = new Set(assignments.map((a: any) => a.subjectId)).size
+
+        setStats([
+          { label: 'My Classes', value: classes.length.toLocaleString(), icon: 'mdi-door-open', color: 'bg-blue-100 text-blue-600' },
+          { label: 'My Students', value: '—', icon: 'mdi-account-group', color: 'bg-green-100 text-green-600' },
+          { label: 'Grades Recorded', value: grades.length.toLocaleString(), icon: 'mdi-clipboard-text', color: 'bg-orange-100 text-orange-600' },
+          { label: 'Assigned Subjects', value: systemCount.toLocaleString() || '0', icon: 'mdi-book-open-variant', color: 'bg-purple-100 text-purple-600' },
+        ])
+      } else if (role === 'ACCOUNTANT') {
+        const paymentsData = await fetch('/api/payments', { cache: 'no-store' }).then(r => r.ok ? r.json() : []).catch(() => [])
+        const payments = Array.isArray(paymentsData) ? paymentsData : []
+
+        const totalAmount = payments.reduce((sum: number, p: any) => sum + (Number(p.amount) || 0), 0)
+        const approved = payments.filter((p: any) => p.status === 'PRINCIPAL_APPROVED' || p.status === 'PAID')
+        const paidAmount = approved.reduce((sum: number, p: any) => sum + (Number(p.amount) || 0), 0)
+        const pending = payments.filter((p: any) => p.status === 'SUBMITTED' || p.status === 'ACCOUNTANT_REVIEWED')
+
+        const fmt = (n: number) => n.toLocaleString('en-NG', { maximumFractionDigits: 0 })
+
+        setStats([
+          { label: 'Total Collections', value: `₦${fmt(paidAmount)}`, icon: 'mdi-cash-multiple', color: 'bg-green-100 text-green-600' },
+          { label: 'Pending Payments', value: pending.length.toLocaleString(), icon: 'mdi-clock-outline', color: 'bg-orange-100 text-orange-600' },
+          { label: 'Total Payments', value: payments.length.toLocaleString(), icon: 'mdi-chart-line', color: 'bg-blue-100 text-blue-600' },
+          { label: 'In Review', value: `₦${fmt(totalAmount - paidAmount)}`, icon: 'mdi-alert-circle', color: 'bg-red-100 text-red-600' },
+        ])
+      } else {
+        setStats([])
+      }
+    } catch {
+      setStats([])
+    } finally {
+      setStatsLoading(false)
+    }
+  }, [role, status])
+
+  useEffect(() => {
+    if (status !== 'authenticated') return
+    fetchStats()
+  }, [fetchStats, status])
+
   const getWelcomeMessage = () => {
     switch (role) {
       case 'ADMIN': return 'Welcome to the Admin Dashboard'
@@ -228,36 +329,10 @@ function DashboardContent() {
   }
 
   const getStats = () => {
-    switch (role) {
-      case 'ADMIN':
-        return [
-          { label: 'Total Students', value: '1,234', icon: 'mdi-school', color: 'bg-blue-100 text-blue-600' },
-          { label: 'Total Teachers', value: '56', icon: 'mdi-account-school', color: 'bg-green-100 text-green-600' },
-          { label: 'Total Classes', value: '24', icon: 'mdi-door-open', color: 'bg-purple-100 text-purple-600' },
-          { label: 'Active Sessions', value: '2', icon: 'mdi-calendar-clock', color: 'bg-orange-100 text-orange-600' },
-        ]
-      case 'TEACHER':
-        return [
-          { label: 'My Classes', value: '5', icon: 'mdi-door-open', color: 'bg-blue-100 text-blue-600' },
-          { label: 'My Students', value: '150', icon: 'mdi-account-group', color: 'bg-green-100 text-green-600' },
-          { label: 'Pending Grades', value: '12', icon: 'mdi-clipboard-text', color: 'bg-orange-100 text-orange-600' },
-          { label: 'Assignments', value: '8', icon: 'mdi-file-document', color: 'bg-purple-100 text-purple-600' },
-        ]
-      case 'ACCOUNTANT':
-        return [
-          { label: 'Total Revenue', value: '$125,000', icon: 'mdi-cash-multiple', color: 'bg-green-100 text-green-600' },
-          { label: 'Pending Payments', value: '$12,500', icon: 'mdi-clock-outline', color: 'bg-orange-100 text-orange-600' },
-          { label: 'Today Collections', value: '$2,500', icon: 'mdi-chart-line', color: 'bg-blue-100 text-blue-600' },
-          { label: 'Outstanding', value: '$8,500', icon: 'mdi-alert-circle', color: 'bg-red-100 text-red-600' },
-        ]
-      default:
-        return [
-          { label: 'Overview', value: '100%', icon: 'mdi-chart-line', color: 'bg-blue-100 text-blue-600' },
-          { label: 'Activities', value: '25', icon: 'mdi-lightning-bolt', color: 'bg-green-100 text-green-600' },
-          { label: 'Reports', value: '10', icon: 'mdi-chart-bar', color: 'bg-purple-100 text-purple-600' },
-          { label: 'Messages', value: '5', icon: 'mdi-email', color: 'bg-orange-100 text-orange-600' },
-        ]
+    if (statsLoading && stats.length === 0) {
+      return [{ label: 'Loading...', value: '—', icon: 'mdi-loading', color: 'bg-gray-100 text-gray-400' }]
     }
+    return stats
   }
 
   const getQuickActions = () => {
@@ -307,16 +382,6 @@ function DashboardContent() {
     }
   }
 
-  const getRecentActivities = () => {
-    return [
-      { title: 'New student admitted', time: '2 hours ago', type: 'success' },
-      { title: 'Fee payment received', time: '3 hours ago', type: 'info' },
-      { title: 'Exam results published', time: '5 hours ago', type: 'warning' },
-      { title: 'Parent meeting scheduled', time: '1 day ago', type: 'info' },
-      { title: 'System update completed', time: '2 days ago', type: 'success' },
-    ]
-  }
-
   if (role === 'STUDENT') return <StudentDashboard />
 
   return (
@@ -346,8 +411,11 @@ function DashboardContent() {
         {(role === 'ADMIN' || role === 'PRINCIPAL') && (
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Activities</h3>
+          {activities.length === 0 ? (
+            <p className="text-sm text-gray-400 py-4">No recent activity</p>
+          ) : (
           <div className="space-y-4">
-            {getRecentActivities().map((activity, index) => (
+            {activities.map((activity, index) => (
               <div key={index} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
                 <div className={`w-2 h-2 rounded-full shrink-0 ${
                   activity.type === 'success' ? 'bg-green-500' :
@@ -360,6 +428,7 @@ function DashboardContent() {
               </div>
             ))}
           </div>
+          )}
         </div>
         )}
 

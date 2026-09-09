@@ -9,12 +9,45 @@ export async function GET(request: NextRequest) {
     const session = await auth()
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    const userId = (session.user as any).userId || (session.user as any).id
+    const role = (session.user as any).role
+
     const { searchParams } = new URL(request.url)
     const classId = searchParams.get('classId')
     const studentId = searchParams.get('studentId')
     const date = searchParams.get('date')
 
     let query = supabase.from('Attendance').select('*').order('date', { ascending: false })
+
+    if (role === 'STUDENT') {
+      const { data: student } = await supabase.from('Student').select('id').eq('userId', userId).single()
+      if (student) query = query.eq('studentId', student.id)
+      else return NextResponse.json([])
+    } else if (role === 'PARENT') {
+      const { data: parent } = await supabase.from('Parent').select('id').eq('userId', userId).single()
+      if (!parent) return NextResponse.json([])
+      const { data: children } = await supabase.from('Student').select('id').eq('parentId', parent.id)
+      const childIds = (children || []).map((c: any) => c.id)
+      if (childIds.length === 0) return NextResponse.json([])
+      query = query.in('studentId', childIds)
+    } else if (role === 'TEACHER' && !studentId) {
+      const { data: teacher } = await supabase.from('Teacher').select('id').eq('userId', userId).single()
+      if (teacher) {
+        const [{ data: teacherSubjects }, { data: teacherClasses }] = await Promise.all([
+          supabase.from('Subject').select('classId').eq('teacherId', teacher.id),
+          supabase.from('Class').select('id').eq('classTeacherId', teacher.id),
+        ])
+        const classIds = new Set<string>()
+        ;(teacherSubjects || []).forEach((s: any) => { if (s.classId) classIds.add(s.classId) })
+        ;(teacherClasses || []).forEach((c: any) => classIds.add(c.id))
+        if (classIds.size === 0) return NextResponse.json([])
+        const { data: classStudents } = await supabase.from('Student').select('id').in('classId', [...classIds])
+        const studentIds = (classStudents || []).map((s: any) => s.id)
+        if (studentIds.length === 0) return NextResponse.json([])
+        query = query.in('studentId', studentIds)
+      }
+    }
+
     if (classId) query = query.eq('classId', classId)
     if (studentId) query = query.eq('studentId', studentId)
     if (date) {
@@ -57,9 +90,42 @@ export async function POST(request: NextRequest) {
     const session = await auth()
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    const role = (session.user as any).role
+    if (!['TEACHER', 'ADMIN', 'PRINCIPAL'].includes(role)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
+    const userId = (session.user as any).userId || (session.user as any).id
+
     const body = await request.json()
     const { records, classId, date } = body
     if (!Array.isArray(records)) return NextResponse.json({ error: 'Invalid records data' }, { status: 400 })
+
+    if (role === 'TEACHER') {
+      const { data: teacher } = await supabase.from('Teacher').select('id').eq('userId', userId).single()
+      if (!teacher) return NextResponse.json({ error: 'Teacher profile not found' }, { status: 403 })
+
+      const [{ data: teacherSubjects }, { data: teacherClasses }] = await Promise.all([
+        supabase.from('Subject').select('classId').eq('teacherId', teacher.id),
+        supabase.from('Class').select('id').eq('classTeacherId', teacher.id),
+      ])
+      const allowedClassIds = new Set<string>()
+      ;(teacherSubjects || []).forEach((s: any) => { if (s.classId) allowedClassIds.add(s.classId) })
+      ;(teacherClasses || []).forEach((c: any) => allowedClassIds.add(c.id))
+
+      if (classId && !allowedClassIds.has(classId)) {
+        return NextResponse.json({ error: 'You are not assigned to this class' }, { status: 403 })
+      }
+
+      const { data: classStudents } = await supabase.from('Student').select('id').in('classId', classId ? [classId] : [...allowedClassIds])
+      const allowedStudentIds = new Set((classStudents || []).map((s: any) => s.id))
+
+      for (const record of records) {
+        if (!allowedStudentIds.has(record.studentId)) {
+          return NextResponse.json({ error: `Student is not in your assigned class: ${record.studentId}` }, { status: 403 })
+        }
+      }
+    }
 
     for (const record of records) {
       const { data: existing } = await supabase
@@ -67,7 +133,7 @@ export async function POST(request: NextRequest) {
         .select('id')
         .eq('studentId', record.studentId)
         .eq('date', new Date(date).toISOString())
-        .single()
+        .maybeSingle()
 
       if (existing) {
         await supabase.from('Attendance').update({ status: record.status, remarks: record.remarks }).eq('id', existing.id)

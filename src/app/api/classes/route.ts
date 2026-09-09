@@ -9,11 +9,34 @@ export async function GET(request: NextRequest) {
     const session = await auth()
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    const userId = (session.user as any).userId || (session.user as any).id
+    const role = (session.user as any).role
+
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')
     const teacherId = searchParams.get('teacherId')
 
     let query = supabase.from('Class').select('*').order('name', { ascending: true })
+
+    if (role === 'STUDENT') {
+      const { data: student } = await supabase.from('Student').select('classId').eq('userId', userId).single()
+      if (!student?.classId) return NextResponse.json([])
+      query = query.eq('id', student.classId)
+    } else if (role === 'TEACHER' && !teacherId) {
+      const { data: teacher } = await supabase.from('Teacher').select('id').eq('userId', userId).single()
+      if (teacher) {
+        const [{ data: subjects }, { data: assignedClasses }] = await Promise.all([
+          supabase.from('Subject').select('classId').eq('teacherId', teacher.id),
+          supabase.from('Class').select('id').eq('classTeacherId', teacher.id),
+        ])
+        const classIds = new Set<string>()
+        ;(subjects || []).forEach((s: any) => { if (s.classId) classIds.add(s.classId) })
+        ;(assignedClasses || []).forEach((c: any) => classIds.add(c.id))
+        if (classIds.size === 0) return NextResponse.json([])
+        query = query.in('id', [...classIds])
+      }
+    }
+
     if (search) query = query.or(`name.ilike.%${search}%,section.ilike.%${search}%`)
     if (teacherId) query = query.eq('classTeacherId', teacherId)
     const { data: classes, error } = await query
@@ -124,6 +147,16 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
     if (!id) return NextResponse.json({ error: 'Class ID required' }, { status: 400 })
+
+    const [{ count: studentCount }, { count: subjectCount }, { count: timetableCount }] = await Promise.all([
+      supabase.from('Student').select('*', { count: 'exact', head: true }).eq('classId', id),
+      supabase.from('Subject').select('*', { count: 'exact', head: true }).eq('classId', id),
+      supabase.from('Timetable').select('*', { count: 'exact', head: true }).eq('classId', id),
+    ])
+
+    if ((studentCount ?? 0) > 0) return NextResponse.json({ error: 'Cannot delete class: it has assigned students.' }, { status: 400 })
+    if ((subjectCount ?? 0) > 0) return NextResponse.json({ error: 'Cannot delete class: it has assigned subjects.' }, { status: 400 })
+    if ((timetableCount ?? 0) > 0) return NextResponse.json({ error: 'Cannot delete class: it has timetable entries.' }, { status: 400 })
 
     const { error } = await supabase.from('Class').delete().eq('id', id)
 
