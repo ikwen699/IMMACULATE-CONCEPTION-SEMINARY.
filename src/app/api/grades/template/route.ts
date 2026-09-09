@@ -23,6 +23,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'classId and subjectId are required' }, { status: 400 })
     }
 
+    if (role === 'TEACHER') {
+      const { data: teacher } = await supabase.from('Teacher').select('id').eq('userId', (session.user as any).userId || (session.user as any).id).single()
+      if (!teacher) return NextResponse.json({ error: 'Teacher profile not found' }, { status: 403 })
+
+      const { data: subject } = await supabase.from('Subject').select('classId').eq('id', subjectId).eq('teacherId', teacher.id).single()
+      if (!subject) return NextResponse.json({ error: 'You can only download templates for subjects you teach' }, { status: 403 })
+      if (subject.classId !== classId) return NextResponse.json({ error: 'Subject does not belong to this class' }, { status: 403 })
+    }
+
+    const { data: clsCount } = await supabase.from('Class').select('id', { count: 'exact', head: true }).eq('id', classId)
+    if (!clsCount) return NextResponse.json({ error: 'Invalid class' }, { status: 400 })
+
     const { data: students, error } = await supabase
       .from('Student')
       .select('id, admissionNo, userId')

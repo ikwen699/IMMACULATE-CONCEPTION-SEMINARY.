@@ -126,16 +126,36 @@ export async function POST(request: NextRequest) {
     if (!Array.isArray(grades)) return NextResponse.json({ error: 'Invalid grades data' }, { status: 400 })
 
     let teacherAssignedSubjects: Set<string> | null = null
+    let subjectClassMap = new Map<string, string | null>()
+    let studentClassMap = new Map<string, string | null>()
+
     if (role === 'TEACHER') {
       const { data: teacher } = await supabase.from('Teacher').select('id').eq('userId', userId).single()
       if (!teacher) return NextResponse.json({ error: 'Teacher profile not found' }, { status: 403 })
-      const { data: subjects } = await supabase.from('Subject').select('id').eq('teacherId', teacher.id)
+      const { data: subjects } = await supabase.from('Subject').select('id, classId').eq('teacherId', teacher.id)
       teacherAssignedSubjects = new Set((subjects || []).map((s: any) => s.id))
+      subjectClassMap = new Map((subjects || []).map((s: any) => [s.id, s.classId || null]))
+    }
+
+    const gradeSubjectIds = [...new Set(grades.map(g => g.subjectId).filter(Boolean))]
+    const gradeStudentIds = [...new Set(grades.map(g => g.studentId).filter(Boolean))]
+
+    if (role === 'TEACHER' && subjectClassMap.size > 0 && gradeStudentIds.length > 0) {
+      const { data: studentRows } = await supabase.from('Student').select('id, classId').in('id', gradeStudentIds)
+      studentClassMap = new Map((studentRows || []).map((s: any) => [s.id, s.classId || null]))
     }
 
     for (const grade of grades) {
       if (teacherAssignedSubjects && !teacherAssignedSubjects.has(grade.subjectId)) {
         return NextResponse.json({ error: 'You are not assigned to teach this subject' }, { status: 403 })
+      }
+
+      if (role === 'TEACHER') {
+        const subjectClass = subjectClassMap.get(grade.subjectId)
+        const studentClass = studentClassMap.get(grade.studentId)
+        if (subjectClass && studentClass !== subjectClass) {
+          return NextResponse.json({ error: 'This student does not belong to the subject\u2019s class' }, { status: 403 })
+        }
       }
 
       const ca1 = Math.min(10, Math.max(0, parseFloat(grade.ca1) || 0))

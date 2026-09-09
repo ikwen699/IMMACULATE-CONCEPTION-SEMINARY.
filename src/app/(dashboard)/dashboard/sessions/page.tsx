@@ -32,7 +32,7 @@ export default function SessionsPage() {
     startDate: '',
     endDate: '',
     isCurrent: false,
-    terms: [{ name: '', startDate: '', endDate: '' }]
+    terms: [{ id: '', name: '', startDate: '', endDate: '' }]
   })
   const [role, setRole] = useState('')
   const { status } = useSession()
@@ -106,6 +106,7 @@ export default function SessionsPage() {
       endDate: new Date(session.endDate).toISOString().split('T')[0],
       isCurrent: session.isCurrent,
       terms: session.terms.map(term => ({
+        id: term.id || '',
         name: term.name,
         startDate: new Date(term.startDate).toISOString().split('T')[0],
         endDate: new Date(term.endDate).toISOString().split('T')[0]
@@ -120,14 +121,14 @@ export default function SessionsPage() {
       startDate: '',
       endDate: '',
       isCurrent: false,
-      terms: [{ name: '', startDate: '', endDate: '' }]
+terms: [{ id: '', name: '', startDate: '', endDate: '' }]
     })
   }
 
   const addTerm = () => {
     setFormData(prev => ({
       ...prev,
-      terms: [...prev.terms, { name: '', startDate: '', endDate: '' }]
+      terms: [...prev.terms, { id: '', name: '', startDate: '', endDate: '' }]
     }))
   }
 

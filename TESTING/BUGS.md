@@ -37,10 +37,16 @@ Maintained bug table from the codebase audit (2026-09-09).
 | BUG-031 | Medium | Data | `src/app/api/fees/route.ts` POST/PUT | Fees accepted empty names, non-numeric amounts, invalid sessions; PUT allowed mass-assignment of arbitrary fields. Now validates name/amount and whitelists updatable fields. | Fixed (2026-09-09) |
 | BUG-032 | Medium | Security | `src/app/api/users/route.ts` PATCH | Approval PATCH accepted arbitrary `status` values and had no role validation. Now validates status (ACTIVE/INACTIVE/PENDING) and role enum. | Fixed (2026-09-09) |
 | BUG-033 | Medium | Security | `src/app/api/fees/route.ts` GET | Students could see fees for every class. Now STUDENT/PARENT only see fees for their own class(es) plus school-wide (classId null) fees. | Fixed (2026-09-09) |
+| BUG-034 | Medium | Security/Data | `src/app/api/subjects/route.ts` | Students could see all subjects of all classes. Now STUDENT restricted to own class. POST/PUT lacked validation (empty names) and PUT allowed mass-assignment. Now validates name/code, verifies teacher exists, whitelists PUT fields, enforces unique code on PUT. | Fixed (2026-09-09) |
+| BUG-035 | High | Data | `src/app/api/sessions/route.ts` PUT | Editing a session's terms deleted ALL terms and re-inserted them, cascading-deleting grades of every term (silent grade loss). Now term upsert is non-destructive: existing terms (by id) are updated, new ones inserted, and removing a term with grades is rejected. POST also lacked name/date validation. | Fixed (2026-09-09) |
+| BUG-036 | Medium | Security | `src/app/api/timetable/route.ts` | GET showed any class/teacher timetable to any authenticated user. Now STUDENT sees own class, TEACHER sees own, PARENT sees children's classes only. POST added day/time validation and teacher-subject/class verification; teachers can only schedule themselves. | Fixed (2026-09-09) |
+| BUG-037 | Medium | Security/Data | `src/app/api/assignments/route.ts` | GET exposed all assignments to any user; DELETE let any teacher delete any assignment; POST had no teacher-subject check or validation. Now role-filtered GET, teacher ownership on DELETE, subject-ownership + title/dueDate/totalMarks validation on POST, and deletion is blocked once students have submitted. | Fixed (2026-09-09) |
+| BUG-038 | Medium | Security | `src/app/api/submissions/route.ts` GET | Teachers could view submissions for any assignment. Now a TEACHER only sees submissions for their own assignments (or a specific own assignment). | Fixed (2026-09-09) |
+| BUG-039 | Medium | Security/Data | `src/app/api/grades/template/route.ts` + `src/app/api/grades/route.ts` POST | Grade template let any teacher export student names for any class/subject. Now templates are restricted to subjects the teacher actually teaches (matching classId). Grade POST also verified teacher's subject assignment but not student's class — added student-in-subject-class validation. Removed dead `ADMIN_ONLY` middleware constant. | Fixed (2026-09-09) |
 
 ## Fix Status Summary (2026-09-09)
 
-**Fixed: 29 of 32**
+**Fixed: 34 of 37**
 - BUG-001 through BUG-009: All Critical security + High security issues
 - BUG-011, BUG-012, BUG-014 through BUG-018: Data integrity issues
 - BUG-010: Dashboard fake stats replaced with real API data
@@ -57,6 +63,11 @@ Maintained bug table from the codebase audit (2026-09-09).
 - BUG-031: Fee POST/PUT validation + PUT field whitelist
 - BUG-032: Approval PATCH status/role validation
 - BUG-033: Students only see own-class + school-wide fees
+- BUG-034: Subject GET role filter + POST/PUT validation + PUT field whitelist
+- BUG-035: Session term edit no longer cascades-deletes grades (non-destructive upsert)
+- BUG-036: Timetable GET role filter + POST day/time/assignment validation
+- BUG-037: Assignment GET/DELETE role filter + POST validation + submission-cascade guard
+- BUG-038: Submission GET scoped to teacher's own assignments
 - BUG-028: `$₦` literal bug on payment-approvals
 
 **Needs verification:**

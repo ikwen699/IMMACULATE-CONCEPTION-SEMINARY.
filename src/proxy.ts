@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 
+const AUTH_SECRET = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
+
 const ROLE_ROUTES: Record<string, string[]> = {
   ADMIN: [
     '/dashboard',
@@ -98,8 +100,6 @@ const ROLE_ROUTES: Record<string, string[]> = {
   ],
 }
 
-const ADMIN_ONLY = ['/dashboard/users', '/dashboard/approvals', '/dashboard/settings', '/dashboard/audit-logs', '/dashboard/teachers']
-
 const ROLE_HOME: Record<string, string> = {
   ADMIN: '/dashboard',
   PRINCIPAL: '/dashboard/overview',
@@ -132,7 +132,7 @@ function rateLimit(ip: string, path: string): boolean {
   return true
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
 
   if (path.startsWith('/api/auth/')) {
@@ -147,7 +147,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (path.startsWith('/dashboard')) {
-    const token = await getToken({ req: request })
+    const token = await getToken({ req: request, secret: AUTH_SECRET })
     if (!token) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
