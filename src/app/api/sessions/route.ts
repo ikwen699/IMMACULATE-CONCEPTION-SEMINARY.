@@ -51,12 +51,22 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { name, startDate, endDate, isCurrent, terms } = body
 
+    if (!name || typeof name !== 'string' || !name.trim() || name.trim().length > 200) {
+      return NextResponse.json({ error: 'Session name is required' }, { status: 400 })
+    }
+    const start = startDate ? new Date(startDate) : null
+    const end = endDate ? new Date(endDate) : null
+    if (!start || isNaN(start.getTime()) || !end || isNaN(end.getTime())) {
+      return NextResponse.json({ error: 'Valid start and end dates are required' }, { status: 400 })
+    }
+    if (end <= start) return NextResponse.json({ error: 'End date must be after start date' }, { status: 400 })
+
     // Unset all other sessions' isCurrent flag when creating/updating
     await supabase.from('AcademicSession').update({ isCurrent: false }).eq('isCurrent', true)
 
     const { data: academicSession, error: sessionErr } = await supabase
       .from('AcademicSession')
-      .insert({ name, startDate: new Date(startDate).toISOString(), endDate: new Date(endDate).toISOString(), isCurrent: isCurrent || false })
+      .insert({ name: name.trim(), startDate: start.toISOString(), endDate: end.toISOString(), isCurrent: isCurrent || false })
       .select()
       .single()
 
@@ -69,6 +79,15 @@ export async function POST(request: NextRequest) {
         endDate: term.endDate ? new Date(term.endDate).toISOString() : new Date().toISOString(),
         isCurrent: term.isCurrent || false,
       }))
+      for (const t of termInserts) {
+        if (!t.name || typeof t.name !== 'string' || !t.name.trim() || t.name.trim().length > 100) {
+          return NextResponse.json({ error: 'Each term needs a valid name' }, { status: 400 })
+        }
+        if (isNaN(new Date(t.startDate).getTime()) || isNaN(new Date(t.endDate).getTime())) {
+          return NextResponse.json({ error: 'Each term needs valid dates' }, { status: 400 })
+        }
+        t.name = t.name.trim()
+      }
       const { error: termErr } = await supabase.from('Term').insert(termInserts)
       if (termErr) throw termErr
     }
@@ -89,28 +108,77 @@ export async function PUT(request: NextRequest) {
     const { id, terms, ...updateData } = body
     if (!id) return NextResponse.json({ error: 'Session ID required' }, { status: 400 })
 
-    if (updateData.startDate) updateData.startDate = new Date(updateData.startDate).toISOString()
-    if (updateData.endDate) updateData.endDate = new Date(updateData.endDate).toISOString()
+    const ALLOWED_SESSION_FIELDS = ['name', 'startDate', 'endDate', 'isCurrent']
+    const cleanedData: Record<string, unknown> = {}
+    for (const key of Object.keys(updateData)) {
+      if (ALLOWED_SESSION_FIELDS.includes(key)) cleanedData[key] = updateData[key]
+    }
 
-    if (updateData.isCurrent) {
+    if (cleanedData.name !== undefined && (typeof cleanedData.name !== 'string' || !cleanedData.name.trim() || cleanedData.name.trim().length > 200)) {
+      return NextResponse.json({ error: 'Invalid session name' }, { status: 400 })
+    }
+    if (cleanedData.name !== undefined) cleanedData.name = (cleanedData.name as string).trim()
+
+    if (cleanedData.startDate) {
+      const d = new Date(cleanedData.startDate as string)
+      if (isNaN(d.getTime())) return NextResponse.json({ error: 'Invalid start date' }, { status: 400 })
+      cleanedData.startDate = d.toISOString()
+    }
+    if (cleanedData.endDate) {
+      const d = new Date(cleanedData.endDate as string)
+      if (isNaN(d.getTime())) return NextResponse.json({ error: 'Invalid end date' }, { status: 400 })
+      cleanedData.endDate = d.toISOString()
+    }
+    if (cleanedData.startDate && cleanedData.endDate && new Date(cleanedData.endDate as string) <= new Date(cleanedData.startDate as string)) {
+      return NextResponse.json({ error: 'End date must be after start date' }, { status: 400 })
+    }
+
+    if (cleanedData.isCurrent) {
       await supabase.from('AcademicSession').update({ isCurrent: false }).eq('isCurrent', true).neq('id', id)
     }
 
-    const { data: academicSession, error } = await supabase.from('AcademicSession').update(updateData).eq('id', id).select('*').single()
+    const { data: academicSession, error } = await supabase.from('AcademicSession').update(cleanedData).eq('id', id).select('*').single()
     if (error) throw error
 
     if (terms && Array.isArray(terms)) {
-      await supabase.from('Term').delete().eq('sessionId', id)
-      if (terms.length > 0) {
-        const termInserts = terms.map((term: any) => ({
-          sessionId: id,
-          name: term.name,
-          startDate: term.startDate ? new Date(term.startDate).toISOString() : new Date().toISOString(),
-          endDate: term.endDate ? new Date(term.endDate).toISOString() : new Date().toISOString(),
+      const { data: existingTerms } = await supabase.from('Term').select('id').eq('sessionId', id)
+      const existingIds = new Set((existingTerms || []).map((t: any) => t.id))
+      const incomingIds = new Set(terms.map((t: any) => t.id).filter(Boolean))
+
+      const toDelete = [...existingIds].filter(tid => !incomingIds.has(tid))
+      if (toDelete.length > 0) {
+        const { count: gradeCount } = await supabase.from('Grade').select('*', { count: 'exact', head: true }).in('termId', toDelete)
+        if ((gradeCount ?? 0) > 0) {
+          return NextResponse.json({ error: 'Cannot remove terms that already have grades.' }, { status: 400 })
+        }
+        const { error: delErr } = await supabase.from('Term').delete().in('id', toDelete)
+        if (delErr) throw delErr
+      }
+
+      for (const term of terms) {
+        const startDate = term.startDate ? new Date(term.startDate) : new Date()
+        const endDate = term.endDate ? new Date(term.endDate) : new Date()
+        if (!term.name || typeof term.name !== 'string' || !term.name.trim() || term.name.trim().length > 100) {
+          return NextResponse.json({ error: 'Each term needs a valid name' }, { status: 400 })
+        }
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+          return NextResponse.json({ error: 'Each term needs valid dates' }, { status: 400 })
+        }
+
+        const termData = {
+          name: term.name.trim(),
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
           isCurrent: term.isCurrent || false,
-        }))
-        const { error: termErr } = await supabase.from('Term').insert(termInserts)
-        if (termErr) throw termErr
+        }
+
+        if (term.id && existingIds.has(term.id)) {
+          const { error: updErr } = await supabase.from('Term').update(termData).eq('id', term.id)
+          if (updErr) throw updErr
+        } else {
+          const { error: insErr } = await supabase.from('Term').insert({ ...termData, sessionId: id })
+          if (insErr) throw insErr
+        }
       }
     }
 

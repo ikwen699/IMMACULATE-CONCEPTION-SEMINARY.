@@ -22,12 +22,27 @@ export async function GET(request: NextRequest) {
     const role = (session?.user as any)?.role
     if (!session?.user || !['ADMIN', 'TEACHER', 'STUDENT', 'PARENT', 'ACCOUNTANT', 'PRINCIPAL'].includes(role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    const userId = (session.user as any).userId || (session.user as any).id
     const { searchParams } = new URL(request.url)
     const classId = searchParams.get('classId')
     const search = searchParams.get('search')
 
+    let ownClassId: string | null = null
+    if (role === 'STUDENT') {
+      const { data: student } = await supabase.from('Student').select('classId').eq('userId', userId).single()
+      ownClassId = student?.classId || null
+    }
+
+    if (role === 'STUDENT' && classId && classId !== ownClassId) {
+      return NextResponse.json({ error: 'You can only view subjects for your own class' }, { status: 403 })
+    }
+
     let query = supabase.from('Subject').select('*').order('name', { ascending: true })
-    if (classId) query = query.eq('classId', classId)
+    if (classId) {
+      query = query.eq('classId', classId)
+    } else if (role === 'STUDENT') {
+      query = query.eq('classId', ownClassId || '')
+    }
     if (search) query = query.or(`name.ilike.%${search}%,code.ilike.%${search}%`)
     const { data: subjects, error } = await query
     if (error) throw error
@@ -82,10 +97,22 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { name, code, classId, teacherId } = body
 
-    const { data: existingSubject } = await supabase.from('Subject').select('id').eq('code', code).single()
+    if (!name || typeof name !== 'string' || !name.trim() || name.trim().length > 100) {
+      return NextResponse.json({ error: 'Subject name is required' }, { status: 400 })
+    }
+    if (!code || typeof code !== 'string' || !code.trim() || code.trim().length > 20) {
+      return NextResponse.json({ error: 'Subject code is required' }, { status: 400 })
+    }
+
+    const { data: existingSubject } = await supabase.from('Subject').select('id').eq('code', code.trim()).single()
     if (existingSubject) return NextResponse.json({ error: 'Subject code already exists' }, { status: 400 })
 
-    const insertData: any = { name, code, classId }
+    if (teacherId) {
+      const { data: teacherExists } = await supabase.from('Teacher').select('id').eq('id', teacherId).single()
+      if (!teacherExists) return NextResponse.json({ error: 'Invalid teacher' }, { status: 400 })
+    }
+
+    const insertData: any = { name: name.trim(), code: code.trim(), classId }
     if (teacherId) insertData.teacherId = teacherId
 
     const { data: subject, error } = await supabase.from('Subject').insert(insertData).select('id, name, code, classId, teacherId').single()
@@ -106,9 +133,34 @@ export async function PUT(request: NextRequest) {
     const { id, ...updateData } = body
     if (!id) return NextResponse.json({ error: 'Subject ID required' }, { status: 400 })
 
-    if (updateData.teacherId === '') delete updateData.teacherId
+    const ALLOWED_SUBJECT_FIELDS = ['name', 'code', 'classId', 'teacherId']
+    const cleanedData: Record<string, unknown> = {}
+    for (const key of Object.keys(updateData)) {
+      if (ALLOWED_SUBJECT_FIELDS.includes(key)) cleanedData[key] = updateData[key]
+    }
 
-    const { data: subject, error } = await supabase.from('Subject').update(updateData).eq('id', id).select('id, name, code, classId, teacherId').single()
+    if (cleanedData.name !== undefined && (typeof cleanedData.name !== 'string' || !cleanedData.name.trim() || cleanedData.name.trim().length > 100)) {
+      return NextResponse.json({ error: 'Invalid subject name' }, { status: 400 })
+    }
+    if (cleanedData.name !== undefined) cleanedData.name = (cleanedData.name as string).trim()
+
+    if (cleanedData.code !== undefined) {
+      if (typeof cleanedData.code !== 'string' || !cleanedData.code.trim() || (cleanedData.code as string).trim().length > 20) {
+        return NextResponse.json({ error: 'Invalid subject code' }, { status: 400 })
+      }
+      cleanedData.code = (cleanedData.code as string).trim()
+      const { data: existingCode } = await supabase.from('Subject').select('id').eq('code', cleanedData.code).not('id', 'eq', id).single()
+      if (existingCode) return NextResponse.json({ error: 'Subject code already exists' }, { status: 400 })
+    }
+
+    if (cleanedData.teacherId === '') delete cleanedData.teacherId
+
+    if (cleanedData.teacherId) {
+      const { data: teacherExists } = await supabase.from('Teacher').select('id').eq('id', cleanedData.teacherId).single()
+      if (!teacherExists) return NextResponse.json({ error: 'Invalid teacher' }, { status: 400 })
+    }
+
+    const { data: subject, error } = await supabase.from('Subject').update(cleanedData).eq('id', id).select('id, name, code, classId, teacherId').single()
     if (error) throw error
     return NextResponse.json(subject)
   } catch (error) {

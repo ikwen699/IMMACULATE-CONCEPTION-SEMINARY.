@@ -43,6 +43,29 @@ export async function GET(request: NextRequest) {
     }
 
     if (role === 'TEACHER' || role === 'ADMIN') {
+      if (role === 'TEACHER') {
+        const { data: teacher } = await supabase.from('Teacher').select('id').eq('userId', userId).single()
+        if (!teacher) return NextResponse.json({ error: 'Teacher profile not found' }, { status: 400 })
+
+        if (assignmentId) {
+          const { data: assignment } = await supabase.from('Assignment').select('teacherId').eq('id', assignmentId).single()
+          if (!assignment || assignment.teacherId !== teacher.id) {
+            return NextResponse.json({ error: 'You can only view submissions for your own assignments' }, { status: 403 })
+          }
+        } else {
+          const { data: ownAssignments } = await supabase.from('Assignment').select('id').eq('teacherId', teacher.id)
+          const ownIds = (ownAssignments || []).map((a: any) => a.id)
+          if (ownIds.length === 0) return NextResponse.json([])
+          const { data: submissions, error } = await supabase
+            .from('AssignmentSubmission')
+            .select('*')
+            .in('assignmentId', ownIds)
+            .order('submittedAt', { ascending: false })
+          if (error) throw error
+          return NextResponse.json(submissions || [])
+        }
+      }
+
       let query = supabase.from('AssignmentSubmission').select('*').order('submittedAt', { ascending: false })
       if (assignmentId) query = query.eq('assignmentId', assignmentId)
 

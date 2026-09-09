@@ -9,13 +9,48 @@ export async function GET(request: NextRequest) {
     const session = await auth()
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+    const userId = (session.user as any).userId || (session.user as any).id
+    const role = (session.user as any).role
     const { searchParams } = new URL(request.url)
     const classId = searchParams.get('classId')
     const teacherId = searchParams.get('teacherId')
 
+    let effectiveClassId = classId
+    let effectiveTeacherId = teacherId
+
+    if (role === 'STUDENT') {
+      const { data: student } = await supabase.from('Student').select('classId').eq('userId', userId).single()
+      if (classId && classId !== student?.classId) {
+        return NextResponse.json({ error: 'You can only view your own class timetable' }, { status: 403 })
+      }
+      effectiveClassId = student?.classId || null
+    } else if (role === 'TEACHER' && (teacherId || !classId)) {
+      if (teacherId) {
+        const { data: teacher } = await supabase.from('Teacher').select('id').eq('userId', userId).single()
+        if (!teacher || teacher.id !== teacherId) {
+          return NextResponse.json({ error: 'You can only view your own timetable' }, { status: 403 })
+        }
+      }
+      const { data: teacher } = await supabase.from('Teacher').select('id').eq('userId', userId).single()
+      effectiveTeacherId = teacher?.id || null
+    } else if (role === 'PARENT') {
+      const { data: parentChildren } = await supabase
+        .from('Parent')
+        .select('id')
+        .eq('userId', userId)
+        .single()
+      if (parentChildren) {
+        const { data: children } = await supabase.from('Student').select('classId').eq('parentId', parentChildren.id)
+        const childClassIds = [...new Set((children || []).map((c: any) => c.classId).filter(Boolean))]
+        if (classId && !childClassIds.includes(classId)) {
+          return NextResponse.json({ error: 'You can only view your children\u2019s class timetables' }, { status: 403 })
+        }
+      }
+    }
+
     let query = supabase.from('Timetable').select('*').order('startTime', { ascending: true })
-    if (classId) query = query.eq('classId', classId)
-    if (teacherId) query = query.eq('teacherId', teacherId)
+    if (effectiveClassId) query = query.eq('classId', effectiveClassId)
+    if (effectiveTeacherId) query = query.eq('teacherId', effectiveTeacherId)
 
     const { data: timetable, error } = await query
     if (error) throw error
@@ -76,9 +111,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
     }
 
+    const DAYS = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY']
+    const dayValue = typeof day === 'string' ? day.toUpperCase() : ''
+    if (!DAYS.includes(dayValue)) {
+      return NextResponse.json({ error: 'Invalid day' }, { status: 400 })
+    }
+
+    const startMinutes = typeof startTime === 'string' ? new Date(`1970-01-01T${startTime}Z`).getTime() : NaN
+    const endMinutes = typeof endTime === 'string' ? new Date(`1970-01-01T${endTime}Z`).getTime() : NaN
+    if (isNaN(startMinutes) || isNaN(endMinutes) || endMinutes <= startMinutes) {
+      return NextResponse.json({ error: 'End time must be after start time' }, { status: 400 })
+    }
+
+    if (role === 'ADMIN') {
+      const [{ data: cls }, { data: sub }, { data: tch }] = await Promise.all([
+        supabase.from('Class').select('id').eq('id', classId).single(),
+        supabase.from('Subject').select('id').eq('id', subjectId).single(),
+        supabase.from('Teacher').select('id').eq('id', teacherId).single(),
+      ])
+      if (!cls || !sub || !tch) return NextResponse.json({ error: 'Invalid class, subject, or teacher' }, { status: 400 })
+    } else if (role === 'TEACHER') {
+      const { data: sub } = await supabase.from('Subject').select('id').eq('id', subjectId).eq('teacherId', teacherId).single()
+      if (!sub) return NextResponse.json({ error: 'You cannot add a subject you do not teach' }, { status: 400 })
+      const { data: cls } = await supabase.from('Class').select('id').eq('id', classId).single()
+      if (!cls) return NextResponse.json({ error: 'Invalid class' }, { status: 400 })
+    }
+
     const { data: entry, error } = await supabase
       .from('Timetable')
-      .insert({ classId, subjectId, teacherId, day, startTime, endTime })
+      .insert({ classId, subjectId, teacherId, day: dayValue, startTime, endTime })
       .select('*')
       .single()
 

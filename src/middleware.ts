@@ -100,6 +100,15 @@ const ROLE_ROUTES: Record<string, string[]> = {
 
 const ADMIN_ONLY = ['/dashboard/users', '/dashboard/approvals', '/dashboard/settings', '/dashboard/audit-logs', '/dashboard/teachers']
 
+const ROLE_HOME: Record<string, string> = {
+  ADMIN: '/dashboard',
+  PRINCIPAL: '/dashboard/overview',
+  TEACHER: '/dashboard/results',
+  ACCOUNTANT: '/dashboard/payment-reviews',
+  STUDENT: '/dashboard/grades',
+  PARENT: '/dashboard/children',
+}
+
 const RATE_LIMITED_ROUTES = ['/api/auth/register', '/api/auth/login', '/api/auth/forgot-password', '/api/auth/reset-password', '/api/auth/signin']
 const RATE_LIMIT_MAX = 10
 const RATE_LIMIT_WINDOW_MS = 60 * 1000
@@ -153,6 +162,14 @@ export async function middleware(request: NextRequest) {
 
     if (!isAllowed) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+
+    // Route users to their role-specific dashboard when hitting the generic /dashboard
+    if (path === '/dashboard') {
+      const home = ROLE_HOME[role]
+      if (home && home !== '/dashboard') {
+        return NextResponse.redirect(new URL(home, request.url))
+      }
     }
   }
 
