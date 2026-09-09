@@ -69,12 +69,12 @@ export default function ApprovalsPage() {
   const [role, setRole] = useState('')
   const [confirmAction, setConfirmAction] = useState<{ type: 'approve' | 'reject'; user: PendingUser } | null>(null)
 
-  const fetchUsers = useCallback(async (status: string) => {
+  const fetchUsers = useCallback(async (filterStatus: string) => {
     if (status !== 'authenticated') return;
     setLoading(true); setError(false)
     try {
       const params = new URLSearchParams()
-      if (status) params.append('status', status)
+      if (filterStatus) params.append('status', filterStatus)
       const res = await fetch(`/api/users?${params}`, { cache: 'no-store' })
       if (!res.ok) throw new Error()
       setUsers(await res.json())
