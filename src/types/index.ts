@@ -109,9 +109,12 @@ export interface GradeRecord {
   studentId: string
   subjectId: string
   termId: string
-  score: number
+  ca1: number
+  ca2: number
+  ca3: number
+  exam: number
+  total: number
   grade: string
-  type: GradeType
   comments?: string | null
 }
 
