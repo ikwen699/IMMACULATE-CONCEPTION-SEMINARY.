@@ -147,7 +147,11 @@ export async function proxy(request: NextRequest) {
   }
 
   if (path.startsWith('/dashboard')) {
-    const token = await getToken({ req: request, secret: AUTH_SECRET })
+    const token = await getToken({
+      req: request,
+      secret: AUTH_SECRET,
+      secureCookie: request.nextUrl.protocol === 'https:',
+    })
     if (!token) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
