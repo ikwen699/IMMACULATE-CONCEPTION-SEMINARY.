@@ -261,7 +261,7 @@ function DashboardContent() {
           const recentPayments = Array.isArray(paymentRes) ? paymentRes.filter((p: any) => p.status === 'SUBMITTED').slice(0, 2) : []
           setActivities([
             ...recentUsers.map((u: any) => ({ title: `Pending approval: ${u.name} (${u.role})`, time: 'Awaiting review', type: 'warning' })),
-            ...recentPayments.map((p: any) => ({ title: 'Payment submitted for review', time: 'Awaiting review', type: 'info' })),
+            ...recentPayments.map(() => ({ title: 'Payment submitted for review', time: 'Awaiting review', type: 'info' })),
           ])
           if (recentUsers.length === 0 && recentPayments.length === 0) setActivities([])
         }

@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
         name,
         email,
         password: hashedPassword,
-        role: 'ADMIN',
+        role: 'STUDENT',
         status: 'PENDING',
       })
       .select()

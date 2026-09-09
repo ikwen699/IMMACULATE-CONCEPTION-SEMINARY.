@@ -140,12 +140,33 @@ export async function POST(request: NextRequest) {
 
     const { data: existingStudent } = await supabase
       .from('Student')
-      .select('id')
+      .select('id, parentId')
       .eq('id', studentId)
       .single()
 
     if (!existingStudent) {
       return NextResponse.json({ error: 'Invalid student: no student found with the provided ID' }, { status: 400 })
+    }
+
+    if (existingStudent.parentId && existingStudent.parentId !== parent.id) {
+      return NextResponse.json({ error: 'This student is not one of your children' }, { status: 403 })
+    }
+
+    const VALID_PAYMENT_METHODS = ['CASH', 'TRANSFER', 'CARD', 'CHEQUE', 'POS']
+    if (!paymentMethod || !VALID_PAYMENT_METHODS.includes(paymentMethod)) {
+      return NextResponse.json({ error: 'Invalid or missing payment method' }, { status: 400 })
+    }
+
+    const numericAmount = Number(amount)
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+      return NextResponse.json({ error: 'Amount must be a positive number' }, { status: 400 })
+    }
+
+    if (feeId) {
+      const { data: existingFee } = await supabase.from('Fee').select('id').eq('id', feeId).single()
+      if (!existingFee) {
+        return NextResponse.json({ error: 'Invalid fee: no fee found with the provided ID' }, { status: 400 })
+      }
     }
 
     if (feeId) {
@@ -165,7 +186,7 @@ export async function POST(request: NextRequest) {
     const { data: payment, error: payErr } = await supabase
       .from('Payment')
       .insert({
-        studentId, feeId, amount, receiptNo: generateReceiptNo(), paymentMethod, reference, notes, receiptImageUrl,
+        studentId, feeId, amount: numericAmount, receiptNo: generateReceiptNo(), paymentMethod, reference, notes, receiptImageUrl,
         parentId, status: 'SUBMITTED', submittedAt: new Date().toISOString(),
       })
       .select('*')
@@ -181,8 +202,8 @@ export async function POST(request: NextRequest) {
     const { data: sUser } = await supabase.from('Student').select('userId').eq('id', studentId).single()
     const { data: sName } = sUser ? await supabase.from('User').select('name').eq('id', sUser.userId).single() : { data: null }
     const studentName = sName?.name || 'Student'
-    await notifyPaymentSubmitted(payment.id, studentName, amount)
-    await notifyPaymentNeedsReview(payment.id, studentName, amount)
+    await notifyPaymentSubmitted(payment.id, studentName, numericAmount)
+    await notifyPaymentNeedsReview(payment.id, studentName, numericAmount)
 
     return NextResponse.json(payment, { status: 201 })
   } catch (error: any) {

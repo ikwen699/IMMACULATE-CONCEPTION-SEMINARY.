@@ -44,13 +44,31 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const { title, content, targetRoles } = body
+
+    if (!title || !content || typeof title !== 'string' || typeof content !== 'string') {
+      return NextResponse.json({ error: 'Title and content are required' }, { status: 400 })
+    }
+    if (title.length > 200 || content.length > 5000) {
+      return NextResponse.json({ error: 'Title or content too long' }, { status: 400 })
+    }
+
+    const sanitize = (input: string) =>
+      input
+        .replace(/<\s*script[^>]*>[\s\S]*?<\s*\/\s*script\s*>/gi, '')
+        .replace(/<\s*script[^>]*\/\s*>/gi, '')
+        .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+        .replace(/<\/?[^>]+(>|$)/g, '')
+
+    const safeTitle = sanitize(title)
+    const safeContent = sanitize(content)
+
     const targetRole = Array.isArray(targetRoles) && targetRoles.length > 0 ? targetRoles.join(',') : null
 
     const authorId = (session.user as any).userId || (session.user as any).id || (session.user as any).sub
 
     const { data: announcement, error } = await supabase
       .from('Announcement')
-      .insert({ title, content, authorId, targetRole })
+      .insert({ title: safeTitle, content: safeContent, authorId, targetRole })
       .select('*')
       .single()
 

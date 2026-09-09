@@ -132,7 +132,7 @@ export default function Sidebar({ role, mobileOpen, onMobileClose }: SidebarProp
               onClick={onMobileClose}
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 mb-0.5 rounded-lg transition-colors text-sm',
-                pathname === item.href
+                pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'))
                   ? 'bg-white text-blue-700 font-medium'
                   : 'text-blue-100 hover:bg-blue-600 hover:text-white'
               )}

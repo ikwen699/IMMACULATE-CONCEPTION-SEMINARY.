@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Mail,
@@ -44,7 +43,6 @@ function SchoolBadge({ className }: { className?: string }) {
 }
 
 export default function LoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -74,8 +72,7 @@ export default function LoginPage() {
           setError('Invalid email or password. Please check your credentials and try again.')
         }
       } else {
-        router.push('/dashboard')
-        router.refresh()
+        window.location.href = '/dashboard'
       }
     } catch {
       setError('An error occurred. Please try again.')

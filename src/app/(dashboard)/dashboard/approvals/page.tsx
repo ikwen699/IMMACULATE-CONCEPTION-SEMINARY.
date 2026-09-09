@@ -64,6 +64,7 @@ export default function ApprovalsPage() {
   const [error, setError] = useState(false)
   const [filter, setFilter] = useState('PENDING')
   const [selectedUser, setSelectedUser] = useState<PendingUser | null>(null)
+  const [approveRole, setApproveRole] = useState('STUDENT')
   const [actionLoading, setActionLoading] = useState(false)
   const [role, setRole] = useState('')
   const [confirmAction, setConfirmAction] = useState<{ type: 'approve' | 'reject'; user: PendingUser } | null>(null)
@@ -91,7 +92,7 @@ export default function ApprovalsPage() {
     try {
       const res = await fetch('/api/users', {
         method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: userId, status: 'ACTIVE' })
+        body: JSON.stringify({ id: userId, status: 'ACTIVE', role: approveRole })
       })
       if (res.ok) { setSelectedUser(null); setConfirmAction(null); fetchUsers(filter) }
     } catch {} finally { setActionLoading(false) }
@@ -411,6 +412,28 @@ export default function ApprovalsPage() {
                 )}
               </div>
 
+              {/* Role assignment for pending approvals */}
+              {selectedUser.status === 'PENDING' && (
+                <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <span className="mdi mdi-shield-account text-indigo-600 text-sm" />
+                    <span className="text-[11px] font-semibold text-indigo-700 uppercase">Assign Role on Approval</span>
+                  </div>
+                  <select
+                    value={approveRole}
+                    onChange={(e) => setApproveRole(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-indigo-200 text-gray-900 text-sm rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="STUDENT">Student</option>
+                    <option value="PARENT">Parent</option>
+                    <option value="TEACHER">Teacher</option>
+                    <option value="ACCOUNTANT">Accountant</option>
+                    <option value="PRINCIPAL">Principal</option>
+                    <option value="ADMIN">Admin</option>
+                  </select>
+                </div>
+              )}
+
               {/* Actions */}
               <div className="flex gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50 rounded-b-2xl sticky bottom-0">
                 <button onClick={() => setSelectedUser(null)} className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-50 transition-colors">Close</button>
@@ -422,7 +445,7 @@ export default function ApprovalsPage() {
                     </button>
                     <button onClick={() => handleApprove(selectedUser.id)} disabled={actionLoading}
                       className={cn('flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl transition-colors bg-emerald-600 text-white hover:bg-emerald-700', actionLoading && 'opacity-50 cursor-not-allowed')}>
-                      {actionLoading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <span className="mdi mdi-check-circle" />} Approve
+                      {actionLoading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <span className="mdi mdi-check-circle" />} Approve as {approveRole.charAt(0) + approveRole.slice(1).toLowerCase()}
                     </button>
                   </>
                 )}

@@ -50,7 +50,7 @@ export default function RegisterPage() {
         return
       }
 
-      setSuccess(data.message || 'Registration successful! Please wait for admin approval.')
+      setSuccess(data.message || 'Registration successful! An administrator will review your account and assign your role before you can log in.')
       setTimeout(() => router.push('/login'), 3000)
     } catch {
       setError('An error occurred. Please try again.')

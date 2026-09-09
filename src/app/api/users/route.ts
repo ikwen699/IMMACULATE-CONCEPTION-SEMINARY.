@@ -396,15 +396,28 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { id, status } = body
+    const { id, status, role: newRole } = body
 
     if (!id || !status) {
       return NextResponse.json({ error: 'User ID and status required' }, { status: 400 })
     }
 
+    const VALID_ROLES = ['ADMIN', 'PRINCIPAL', 'TEACHER', 'STUDENT', 'PARENT', 'ACCOUNTANT']
+    if (newRole !== undefined && !VALID_ROLES.includes(newRole)) {
+      return NextResponse.json({ error: 'Invalid role' }, { status: 400 })
+    }
+
+    const VALID_STATUSES = ['ACTIVE', 'INACTIVE', 'PENDING']
+    if (!VALID_STATUSES.includes(status)) {
+      return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+    }
+
+    const updateData: Record<string, string> = { status }
+    if (newRole !== undefined) updateData.role = newRole
+
     const { data: user, error } = await supabase
       .from('User')
-      .update({ status })
+      .update(updateData)
       .eq('id', id)
       .select('id, name, email, role, status')
 

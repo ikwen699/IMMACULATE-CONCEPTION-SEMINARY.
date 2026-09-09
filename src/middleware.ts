@@ -100,8 +100,42 @@ const ROLE_ROUTES: Record<string, string[]> = {
 
 const ADMIN_ONLY = ['/dashboard/users', '/dashboard/approvals', '/dashboard/settings', '/dashboard/audit-logs', '/dashboard/teachers']
 
+const RATE_LIMITED_ROUTES = ['/api/auth/register', '/api/auth/login', '/api/auth/forgot-password', '/api/auth/reset-password', '/api/auth/signin']
+const RATE_LIMIT_MAX = 10
+const RATE_LIMIT_WINDOW_MS = 60 * 1000
+
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>()
+
+function rateLimit(ip: string, path: string): boolean {
+  const key = `${ip}:${path}`
+  const now = Date.now()
+  const entry = rateLimitStore.get(key)
+
+  if (!entry || now > entry.resetAt) {
+    rateLimitStore.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
+    return true
+  }
+
+  entry.count += 1
+  if (entry.count > RATE_LIMIT_MAX) {
+    return false
+  }
+  return true
+}
+
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
+
+  if (path.startsWith('/api/auth/')) {
+    const isRateLimited = RATE_LIMITED_ROUTES.some((route) => path.startsWith(route))
+    if (isRateLimited && request.method === 'POST') {
+      const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+      if (!rateLimit(ip, path)) {
+        return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
+      }
+    }
+    return NextResponse.next()
+  }
 
   if (path.startsWith('/dashboard')) {
     const token = await getToken({ req: request })
@@ -126,5 +160,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: ['/dashboard/:path*', '/api/auth/:path*'],
 }

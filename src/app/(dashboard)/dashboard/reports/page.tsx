@@ -346,7 +346,7 @@ export default function ReportsPage() {
                 </div>
                 <div className="space-y-4">
                   {[
-                    { label: 'Total Revenue', value: `$${stats.totalRevenue.toLocaleString()}`, icon: 'mdi-cash-check', color: 'bg-emerald-100 text-emerald-600' },
+                    { label: 'Total Revenue', value: `₦${stats.totalRevenue.toLocaleString()}`, icon: 'mdi-cash-check', color: 'bg-emerald-100 text-emerald-600' },
                     { label: 'Total Transactions', value: stats.totalPayments, icon: 'mdi-receipt-text', color: 'bg-blue-100 text-blue-600' },
                     { label: 'Approved Payments', value: stats.approvedPayments, icon: 'mdi-check-decagram', color: 'bg-indigo-100 text-indigo-600' },
                     { label: 'Pending Payments', value: stats.pendingPayments, icon: 'mdi-clock-outline', color: 'bg-amber-100 text-amber-600' },

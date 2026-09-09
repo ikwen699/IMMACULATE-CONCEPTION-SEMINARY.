@@ -60,10 +60,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 function getGradeLabel(score: number): string {
-  if (score >= 75) return 'A'
-  if (score >= 65) return 'B'
-  if (score >= 55) return 'C'
-  if (score >= 45) return 'D'
+  if (score >= 70) return 'A'
+  if (score >= 60) return 'B'
+  if (score >= 50) return 'C'
+  if (score >= 40) return 'D'
   return 'F'
 }
 
@@ -138,11 +138,11 @@ export default function AcademicsPage() {
   }))
 
   const gradeDist = [
-    { name: 'A (75+)', value: grades.filter(g => g.score >= 75).length },
-    { name: 'B (65-74)', value: grades.filter(g => g.score >= 65 && g.score < 75).length },
-    { name: 'C (55-64)', value: grades.filter(g => g.score >= 55 && g.score < 65).length },
-    { name: 'D (45-54)', value: grades.filter(g => g.score >= 45 && g.score < 55).length },
-    { name: 'F (<45)', value: grades.filter(g => g.score < 45).length },
+    { name: 'A (70+)', value: grades.filter(g => g.score >= 70).length },
+    { name: 'B (60-69)', value: grades.filter(g => g.score >= 60 && g.score < 70).length },
+    { name: 'C (50-59)', value: grades.filter(g => g.score >= 50 && g.score < 60).length },
+    { name: 'D (40-49)', value: grades.filter(g => g.score >= 40 && g.score < 50).length },
+    { name: 'F (<40)', value: grades.filter(g => g.score < 40).length },
   ].filter(d => d.value > 0)
 
   const today = new Date()

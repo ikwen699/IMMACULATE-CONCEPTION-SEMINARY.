@@ -31,26 +31,29 @@ export async function GET(request: NextRequest) {
     let query = supabase.from('Fee').select('*').order('createdAt', { ascending: false })
     if (sessionId) query = query.eq('sessionId', sessionId)
 
-    let allowedFeeIds: string[] | null = null
+    let childClassIds: string[] = []
 
-    if (role === 'PARENT') {
+    if (role === 'STUDENT') {
+      const { data: student } = await supabase.from('Student').select('classId').eq('userId', userId).single()
+      if (student?.classId) childClassIds = [student.classId]
+    } else if (role === 'PARENT') {
       const { data: parent } = await supabase.from('Parent').select('id').eq('userId', userId).single()
       if (parent) {
         const { data: children } = await supabase.from('Student').select('classId').eq('parentId', parent.id)
-        const childClassIds = [...new Set((children || []).map(c => c.classId).filter(Boolean))]
+        childClassIds = [...new Set((children || []).map((c: any) => c.classId).filter(Boolean))]
+      }
+    }
 
-        if (childClassIds.length > 0) {
-          const { data: feeClasses } = await supabase
-            .from('FeeClass')
-            .select('feeId')
-            .in('classId', childClassIds)
+    if (role === 'STUDENT' || role === 'PARENT') {
+      if (childClassIds.length > 0) {
+        const { data: feeClasses } = await supabase
+          .from('FeeClass')
+          .select('feeId')
+          .in('classId', childClassIds)
 
-          const matchingFeeIds = (feeClasses || []).map(fc => fc.feeId)
-          const orFilter = `classId.is.null,classId.in.(${childClassIds.join(',')}),id.in.(${matchingFeeIds.length > 0 ? matchingFeeIds.join(',') : 'no-match'})`
-          query = query.or(orFilter)
-        } else {
-          query = query.is('classId', null)
-        }
+        const matchingFeeIds = (feeClasses || []).map(fc => fc.feeId)
+        const orFilter = `classId.is.null,classId.in.(${childClassIds.join(',')}),id.in.(${matchingFeeIds.length > 0 ? matchingFeeIds.join(',') : 'no-match'})`
+        query = query.or(orFilter)
       } else {
         query = query.is('classId', null)
       }
@@ -141,7 +144,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user || (session.user as SessionUser).role !== 'ACCOUNTANT') {
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+    const role = (session.user as SessionUser).role
+    if (!['ACCOUNTANT', 'PRINCIPAL'].includes(role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
@@ -149,11 +156,27 @@ export async function POST(request: NextRequest) {
     const { name, amount, classIds, sessionId, termId, description, dueDate } = body
 
     if (!sessionId) return NextResponse.json({ error: 'Academic session is required' }, { status: 400 })
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return NextResponse.json({ error: 'Fee name is required' }, { status: 400 })
+    }
+    if (name.trim().length > 100) {
+      return NextResponse.json({ error: 'Fee name too long' }, { status: 400 })
+    }
+
+    const numericAmount = Number(amount)
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+      return NextResponse.json({ error: 'Amount must be a positive number' }, { status: 400 })
+    }
+
+    const { data: sessionExists } = await supabase.from('AcademicSession').select('id').eq('id', sessionId).single()
+    if (!sessionExists) {
+      return NextResponse.json({ error: 'Invalid academic session' }, { status: 400 })
+    }
 
     const { data: fee, error } = await supabase
       .from('Fee')
       .insert({
-        name, amount,
+        name: name.trim(), amount: numericAmount,
         classId: null,
         sessionId,
         termId: termId || null,
@@ -183,20 +206,50 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user || (session.user as SessionUser).role !== 'ACCOUNTANT') {
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+    const role = (session.user as SessionUser).role
+    if (!['ACCOUNTANT', 'PRINCIPAL'].includes(role)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
     const body = await request.json()
     const { id, classIds, ...updateData } = body
     if (!id) return NextResponse.json({ error: 'Fee ID required' }, { status: 400 })
-    if (updateData.dueDate) updateData.dueDate = new Date(updateData.dueDate).toISOString()
-    if (updateData.classId === '') updateData.classId = null
-    if (updateData.termId === '') updateData.termId = null
 
-    updateData.classId = null
+    const ALLOWED_FEE_FIELDS = ['name', 'amount', 'description', 'dueDate', 'sessionId', 'termId']
+    const cleanedData: Record<string, unknown> = {}
+    for (const key of Object.keys(updateData)) {
+      if (ALLOWED_FEE_FIELDS.includes(key)) cleanedData[key] = updateData[key]
+    }
 
-    const { data: fee, error } = await supabase.from('Fee').update(updateData).eq('id', id).select('*').single()
+    if (cleanedData.name !== undefined && (typeof cleanedData.name !== 'string' || !cleanedData.name.trim() || cleanedData.name.trim().length > 100)) {
+      return NextResponse.json({ error: 'Invalid fee name' }, { status: 400 })
+    }
+    if (cleanedData.name !== undefined) cleanedData.name = cleanedData.name.trim()
+
+    if (cleanedData.amount !== undefined) {
+      const numAmount = Number(cleanedData.amount)
+      if (!Number.isFinite(numAmount) || numAmount <= 0) {
+        return NextResponse.json({ error: 'Amount must be a positive number' }, { status: 400 })
+      }
+      cleanedData.amount = numAmount
+    }
+
+    if (cleanedData.sessionId !== undefined) {
+      const { data: sessionExists } = await supabase.from('AcademicSession').select('id').eq('id', cleanedData.sessionId).single()
+      if (!sessionExists) {
+        return NextResponse.json({ error: 'Invalid academic session' }, { status: 400 })
+      }
+    }
+
+    if (cleanedData.dueDate) cleanedData.dueDate = new Date(cleanedData.dueDate as string).toISOString()
+    if (cleanedData.termId === '') cleanedData.termId = null
+
+    cleanedData.classId = null
+
+    const { data: fee, error } = await supabase.from('Fee').update(cleanedData).eq('id', id).select('*').single()
     if (error) throw error
 
     if (classIds && Array.isArray(classIds)) {
@@ -221,7 +274,9 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const session = await auth()
-    if (!session?.user || (session.user as SessionUser).role !== 'ACCOUNTANT') return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    const role = (session.user as SessionUser).role
+    if (!['ACCOUNTANT', 'PRINCIPAL'].includes(role)) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
 
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
