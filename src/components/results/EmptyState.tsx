@@ -27,7 +27,7 @@ export default function EmptyState({
   if (noSelection) {
     return (
       <div className="bg-white rounded-2xl border border-gray-200/70 shadow-sm px-6 py-16 flex flex-col items-center justify-center text-center">
-        <div className="relative">
+        <div className="relative" aria-hidden="true">
           <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center shadow-lg shadow-violet-600/25 animate-scale-in">
             <span className="mdi mdi-clipboard-text-search text-violet-50 text-3xl" />
           </div>
@@ -44,10 +44,10 @@ export default function EmptyState({
             <div key={f.step} className="rounded-xl border bg-gray-50/40 p-3.5 border-gray-200/70">
               <div className="flex items-center justify-between mb-2">
                 <span className="h-6 w-6 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center">{f.step}</span>
-                <span className={`mdi ${f.icon} text-lg text-violet-400`} />
+                <span className={`mdi ${f.icon} text-lg text-violet-400`} aria-hidden="true" />
               </div>
               <p className="text-xs font-semibold text-gray-800 leading-snug">{f.title}</p>
-              <p className="text-[11px] text-gray-400 leading-snug mt-0.5">{f.body}</p>
+              <p className="text-[11px] text-gray-500 leading-snug mt-0.5">{f.body}</p>
             </div>
           ))}
         </div>
@@ -58,7 +58,7 @@ export default function EmptyState({
             className="mt-7 inline-flex items-center gap-2 px-5 py-2.5 bg-violet-600 text-white text-sm font-semibold rounded-xl hover:bg-violet-700 transition-colors shadow-sm shadow-violet-600/25 active:scale-[.98]"
           >
             {actionLabel || 'Start with a class'}
-            <span className="mdi mdi-arrow-right text-base" />
+            <span className="mdi mdi-arrow-right text-base" aria-hidden="true" />
           </button>
         )}
       </div>
@@ -67,7 +67,7 @@ export default function EmptyState({
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200/70 shadow-sm px-6 py-12 flex flex-col items-center justify-center text-center animate-fade-in">
-      <div className={cn('h-14 w-14 rounded-2xl flex items-center justify-center', iconBg)}>
+      <div className={cn('h-14 w-14 rounded-2xl flex items-center justify-center', iconBg)} aria-hidden="true">
         <span className={cn('mdi text-2xl', icon, iconColor)} />
       </div>
       <h2 className="mt-4 text-base font-bold text-gray-900">{title}</h2>
@@ -77,7 +77,7 @@ export default function EmptyState({
           onClick={onAction}
           className="mt-5 inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-violet-700 bg-violet-50 rounded-xl hover:bg-violet-100 transition-colors"
         >
-          <span className="mdi mdi-refresh" />
+          <span className="mdi mdi-refresh" aria-hidden="true" />
           {actionLabel}
         </button>
       )}

@@ -39,10 +39,16 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:px-4 focus:py-2 focus:bg-white focus:text-violet-700 focus:text-sm focus:font-semibold focus:rounded-xl focus:shadow-xl"
+      >
+        Skip to main content
+      </a>
       <Sidebar role={role} mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0">
         <Header onMenuToggle={() => setMobileOpen(true)} />
-        <main className="flex-1 p-4 sm:p-6">{children}</main>
+        <main id="main-content" tabIndex={-1} className="flex-1 p-4 sm:p-6 outline-none">{children}</main>
       </div>
     </div>
   )

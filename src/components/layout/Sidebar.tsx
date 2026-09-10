@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
@@ -71,7 +71,25 @@ export default function Sidebar({ role, mobileOpen, onMobileClose }: SidebarProp
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const [showBadge, setShowBadge] = useState(false)
+  const badgeRef = useRef<HTMLDivElement>(null)
   const items = navigationItems[role] || []
+
+  useEffect(() => {
+    if (!showBadge) return
+    const previouslyFocused = document.activeElement as HTMLElement | null
+    badgeRef.current?.focus()
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowBadge(false)
+        previouslyFocused?.focus?.()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [showBadge])
+
+  const isActive = (href: string) =>
+    pathname === href || (href !== '/dashboard' && pathname.startsWith(href + '/'))
 
   return (
     <>
@@ -79,10 +97,12 @@ export default function Sidebar({ role, mobileOpen, onMobileClose }: SidebarProp
         <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
           onClick={onMobileClose}
+          aria-hidden="true"
         />
       )}
 
       <aside
+        aria-label="Sidebar"
         className={cn(
           'bg-blue-700 text-white min-h-screen transition-all duration-300 flex flex-col overflow-hidden z-50',
           collapsed ? 'w-16' : 'w-64',
@@ -95,8 +115,14 @@ export default function Sidebar({ role, mobileOpen, onMobileClose }: SidebarProp
           <div className="flex items-center justify-between">
             {!collapsed && (
               <div className="flex items-center gap-3">
-                <button onClick={() => setShowBadge(true)} className="shrink-0">
-                  <img src="/school-badge.jpg" alt="ICS Badge" className="w-10 h-10 rounded-full object-cover border border-blue-500 cursor-pointer hover:ring-2 hover:ring-white/50 transition" />
+                <button
+                  onClick={() => setShowBadge(true)}
+                  aria-haspopup="dialog"
+                  aria-expanded={showBadge}
+                  aria-label="View school badge"
+                  className="shrink-0"
+                >
+                  <img src="/school-badge.jpg" alt="" className="w-10 h-10 rounded-full object-cover border border-blue-500 cursor-pointer hover:ring-2 hover:ring-white/50 transition" />
                 </button>
                 <div>
                   <h1 className="font-bold text-lg text-white">ICS Portal</h1>
@@ -105,42 +131,57 @@ export default function Sidebar({ role, mobileOpen, onMobileClose }: SidebarProp
               </div>
             )}
             {collapsed && (
-              <button onClick={() => setShowBadge(true)} className="mx-auto">
-                <img src="/school-badge.jpg" alt="ICS" className="w-8 h-8 rounded-full object-cover border border-blue-500 cursor-pointer hover:ring-2 hover:ring-white/50 transition" />
+              <button
+                onClick={() => setShowBadge(true)}
+                aria-haspopup="dialog"
+                aria-expanded={showBadge}
+                aria-label="View school badge"
+                className="mx-auto"
+              >
+                <img src="/school-badge.jpg" alt="" className="w-8 h-8 rounded-full object-cover border border-blue-500 cursor-pointer hover:ring-2 hover:ring-white/50 transition" />
               </button>
             )}
             <button
               onClick={() => setCollapsed(!collapsed)}
+              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               className="p-1.5 hover:bg-blue-600 rounded-lg text-blue-200 hidden lg:block"
             >
-              <span className={cn('mdi', collapsed ? 'mdi-chevron-right' : 'mdi-chevron-left', 'text-lg')} />
+              <span className={cn('mdi', collapsed ? 'mdi-chevron-right' : 'mdi-chevron-left', 'text-lg')} aria-hidden="true" />
             </button>
             <button
               onClick={onMobileClose}
+              aria-label="Close menu"
               className="p-1.5 hover:bg-blue-600 rounded-lg text-blue-200 lg:hidden"
             >
-              <span className="mdi mdi-close text-lg" />
+              <span className="mdi mdi-close text-lg" aria-hidden="true" />
             </button>
           </div>
         </div>
 
-        <nav className="flex-1 mt-2 px-2 overflow-y-auto">
-          {items.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onMobileClose}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 mb-0.5 rounded-lg transition-colors text-sm',
-                pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'))
-                  ? 'bg-white text-blue-700 font-medium'
-                  : 'text-blue-100 hover:bg-blue-600 hover:text-white'
-              )}
-            >
-              <span className={cn('mdi', item.icon, 'text-xl shrink-0')} />
-              {!collapsed && <span>{item.title}</span>}
-            </Link>
-          ))}
+        <nav aria-label="Main" className="flex-1 mt-2 px-2 overflow-y-auto">
+          {items.map((item) => {
+            const active = isActive(item.href)
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onMobileClose}
+                aria-current={active ? 'page' : undefined}
+                title={collapsed ? item.title : undefined}
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2.5 mb-0.5 rounded-lg transition-colors text-sm',
+                  active
+                    ? 'bg-white text-blue-700 font-medium'
+                    : 'text-blue-100 hover:bg-blue-600 hover:text-white'
+                )}
+              >
+                <span className={cn('mdi', item.icon, 'text-xl shrink-0')} aria-hidden="true" />
+                {collapsed
+                  ? <span className="sr-only">{item.title}</span>
+                  : <span>{item.title}</span>}
+              </Link>
+            )
+          })}
         </nav>
 
         <div className="mt-auto border-t border-blue-600 p-2">
@@ -148,15 +189,21 @@ export default function Sidebar({ role, mobileOpen, onMobileClose }: SidebarProp
             onClick={() => signOut({ callbackUrl: '/login' })}
             className="w-full flex items-center gap-3 px-3 py-2.5 text-red-100 hover:bg-red-700 hover:text-white rounded-lg transition-colors text-sm"
           >
-            <span className="mdi mdi-logout text-xl shrink-0" />
+            <span className="mdi mdi-logout text-xl shrink-0" aria-hidden="true" />
             {!collapsed && <span>Sign Out</span>}
+            {collapsed && <span className="sr-only">Sign Out</span>}
           </button>
         </div>
       </aside>
 
       {showBadge && (
         <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4 cursor-pointer"
+          ref={badgeRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="ICS school badge"
+          tabIndex={-1}
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[60] flex items-center justify-center p-4 cursor-pointer outline-none"
           onClick={() => setShowBadge(false)}
         >
           <img
@@ -164,6 +211,13 @@ export default function Sidebar({ role, mobileOpen, onMobileClose }: SidebarProp
             alt="ICS School Badge"
             className="max-w-full max-h-full rounded-2xl shadow-2xl object-contain"
           />
+          <button
+            onClick={() => setShowBadge(false)}
+            aria-label="Close badge view"
+            className="absolute top-4 right-4 p-2 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors"
+          >
+            <span className="mdi mdi-close text-xl" aria-hidden="true" />
+          </button>
         </div>
       )}
     </>

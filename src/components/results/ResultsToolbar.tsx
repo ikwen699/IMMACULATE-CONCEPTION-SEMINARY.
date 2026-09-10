@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { cn } from '@/lib/utils'
 import type { SortDir, SortKey, ViewMode } from './types'
 
@@ -24,8 +24,8 @@ interface ResultsToolbarProps {
 }
 
 const SHORTCUTS: { keys: string; label: string }[] = [
-  { keys: '↓ / Enter', label: 'Move to next student (same column)' },
-  { keys: '↑', label: 'Move to previous student (same column)' },
+  { keys: 'â†“ / Enter', label: 'Move to next student (same column)' },
+  { keys: 'â†‘', label: 'Move to previous student (same column)' },
   { keys: 'Tab', label: 'Move between score fields' },
   { keys: 'Ctrl+Z', label: 'Undo last change' },
   { keys: 'Ctrl+Y', label: 'Redo last change' },
@@ -41,12 +41,27 @@ export default function ResultsToolbar({
   onSearchInputChange, onClearSearch, onViewModeChange, onSortKeyChange, onSortDirChange, onUndo, onRedo,
 }: ResultsToolbarProps) {
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const toggleRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!showShortcuts) return
+    panelRef.current?.focus()
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowShortcuts(false)
+        toggleRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [showShortcuts])
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col lg:flex-row gap-3">
         <div className="relative flex-1">
-          <span className="mdi mdi-magnify absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
+          <span className="mdi mdi-magnify absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-lg" aria-hidden="true" />
           <input
             type="text"
             value={searchInput}
@@ -58,7 +73,7 @@ export default function ResultsToolbar({
           {searchInput && (
             <button onClick={onClearSearch}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors" aria-label="Clear search">
-              <span className="mdi mdi-close-circle text-xl" />
+              <span className="mdi mdi-close-circle text-xl" aria-hidden="true" />
             </button>
           )}
         </div>
@@ -80,7 +95,7 @@ export default function ResultsToolbar({
             title={sortDir === 'asc' ? 'Ascending' : 'Descending'}
             className={cn(toolBtn, 'hover:text-violet-600 hover:border-violet-300')}
           >
-            <span className={cn('mdi text-lg', sortDir === 'asc' ? 'mdi-sort-ascending' : 'mdi-sort-descending')} />
+            <span className={cn('mdi text-lg', sortDir === 'asc' ? 'mdi-sort-ascending' : 'mdi-sort-descending')} aria-hidden="true" />
           </button>
 
           <div className="h-6 w-px bg-gray-200" />
@@ -92,7 +107,7 @@ export default function ResultsToolbar({
             title="Undo (Ctrl+Z)"
             className={cn(toolBtn, 'hover:text-violet-600 hover:border-violet-300')}
           >
-            <span className="mdi mdi-undo text-lg" />
+            <span className="mdi mdi-undo text-lg" aria-hidden="true" />
           </button>
           <button
             onClick={onRedo}
@@ -101,13 +116,16 @@ export default function ResultsToolbar({
             title="Redo (Ctrl+Y)"
             className={cn(toolBtn, 'hover:text-violet-600 hover:border-violet-300')}
           >
-            <span className="mdi mdi-redo text-lg" />
+            <span className="mdi mdi-redo text-lg" aria-hidden="true" />
           </button>
 
           <div className="relative">
             <button
+              ref={toggleRef}
               onClick={() => setShowShortcuts(s => !s)}
               aria-label="Keyboard shortcuts"
+              aria-haspopup="dialog"
+              aria-expanded={showShortcuts}
               title="Keyboard shortcuts"
               className={cn(toolBtn, 'hover:text-violet-600 hover:border-violet-300')}
             >
@@ -115,17 +133,23 @@ export default function ResultsToolbar({
             </button>
             {showShortcuts && (
               <>
-                <div className="fixed inset-0 z-20" onClick={() => setShowShortcuts(false)} />
-                <div className="absolute right-0 top-full mt-2 z-30 w-72 bg-white rounded-xl border border-gray-200 shadow-xl p-4 animate-scale-in">
+                <div className="fixed inset-0 z-20" onClick={() => { setShowShortcuts(false); toggleRef.current?.focus() }} />
+                <div
+                  ref={panelRef}
+                  role="dialog"
+                  aria-label="Keyboard shortcuts"
+                  tabIndex={-1}
+                  className="absolute right-0 top-full mt-2 z-30 w-72 bg-white rounded-xl border border-gray-200 shadow-xl p-4 outline-none animate-scale-in"
+                >
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="mdi mdi-keyboard text-violet-500 text-base" />
+                    <span className="mdi mdi-keyboard text-violet-500 text-base" aria-hidden="true" />
                     <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Keyboard shortcuts</span>
                   </div>
                   <div className="space-y-2">
                     {SHORTCUTS.map(s => (
                       <div key={s.keys} className="flex items-center justify-between gap-3">
-                        <span className="text-xs text-gray-500">{s.label}</span>
-                        <kbd className="shrink-0 inline-flex px-1.5 py-0.5 rounded-md bg-gray-100 border border-gray-200 text-[10px] font-semibold text-gray-600">{s.keys}</kbd>
+                        <span className="text-xs text-gray-600">{s.label}</span>
+                        <kbd className="shrink-0 inline-flex px-1.5 py-0.5 rounded-md bg-gray-100 border border-gray-200 text-[10px] font-semibold text-gray-700">{s.keys}</kbd>
                       </div>
                     ))}
                   </div>
@@ -141,7 +165,7 @@ export default function ResultsToolbar({
               aria-pressed={viewMode === 'table'}
               className={cn('px-3 h-10 transition-colors', viewMode === 'table' ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50')}
             >
-              <span className="mdi mdi-table text-lg" />
+              <span className="mdi mdi-table text-lg" aria-hidden="true" />
             </button>
             <div className="w-px bg-gray-200" />
             <button
@@ -150,7 +174,7 @@ export default function ResultsToolbar({
               aria-pressed={viewMode === 'card'}
               className={cn('px-3 h-10 transition-colors', viewMode === 'card' ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50')}
             >
-              <span className="mdi mdi-view-grid text-lg" />
+              <span className="mdi mdi-view-grid text-lg" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -158,7 +182,7 @@ export default function ResultsToolbar({
 
       {isDragging && (
         <div className="px-4 py-2.5 bg-violet-50 border border-violet-200 rounded-xl text-xs text-violet-700 flex items-center gap-2 animate-fade-in">
-          <span className="mdi mdi-cursor-move" />
+          <span className="mdi mdi-cursor-move" aria-hidden="true" />
           Drop onto a column header (CA1, CA2, CA3 or Exam) to fill it for all students.
         </div>
       )}
@@ -167,11 +191,11 @@ export default function ResultsToolbar({
         <p className="text-xs text-gray-500">
           <span className="font-semibold text-gray-700 tabular-nums">{resultCount}</span>
           <span className="text-gray-400"> of {totalCount} student{totalCount === 1 ? '' : 's'}</span>
-          {searchInput ? ' — filtered by search' : ''}
+          {searchInput ? ' â€” filtered by search' : ''}
         </p>
         {resultCount > 0 && (
           <span className="inline-flex items-center gap-1.5 text-[10px] text-gray-400">
-            <span className="mdi mdi-information-outline text-sm" />
+            <span className="mdi mdi-information-outline text-sm" aria-hidden="true" />
             Drag a score onto a header to fill the column
           </span>
         )}

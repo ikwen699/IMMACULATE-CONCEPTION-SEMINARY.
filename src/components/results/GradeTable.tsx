@@ -75,6 +75,7 @@ function FieldCell({ domRow, rowCount, row, field, index, isFail, onUpdate, onPa
           data-field={field}
           aria-label={`${field === 'exam' ? 'Exam' : field.toUpperCase()} score for ${row.name} (max ${max})`}
           aria-invalid={isFail && field === 'exam'}
+          aria-describedby={isFail && field === 'exam' ? `fail-${row.studentId}` : undefined}
           title={`Max ${max}`}
           value={value}
           onChange={e => onUpdate(index, field, e.target.value)}
@@ -92,7 +93,7 @@ function FieldCell({ domRow, rowCount, row, field, index, isFail, onUpdate, onPa
           )}
         />
         {hasValue && (
-          <span className="pointer-events-none absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full bg-violet-400" />
+          <span className="pointer-events-none absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full bg-violet-400" aria-hidden="true" />
         )}
       </div>
     </td>
@@ -114,7 +115,7 @@ export default function GradeTable({
           <thead>
             <tr>
               <th scope="col" className="sticky top-0 left-0 z-40 w-14 px-3 py-3.5 bg-white border-b border-gray-200">
-                <span className="flex items-center justify-center text-[11px] font-bold text-gray-400">#</span>
+                <span className="flex items-center justify-center text-[11px] font-bold text-gray-500">#</span>
               </th>
               <th scope="col" className="sticky top-0 left-14 z-30 min-w-[200px] px-3 py-3.5 bg-white border-b border-gray-200">
                 <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-500">
@@ -140,10 +141,10 @@ export default function GradeTable({
                       aria-label={`Fill all ${h.label}`}
                       title={`Fill all ${h.label}`}
                       className={cn(
-                        'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold transition-colors',
+                        'inline-flex items-center gap-1 px-2 py-1 min-h-[24px] rounded-md text-[10px] font-semibold transition-colors',
                         isDragging
                           ? 'bg-violet-600 text-white'
-                          : 'text-violet-500 hover:bg-violet-50 hover:text-violet-700'
+                          : 'text-violet-600 hover:bg-violet-50 hover:text-violet-700'
                       )}
                     >
                       <span className="mdi mdi-format-paint text-xs" />
@@ -169,9 +170,9 @@ export default function GradeTable({
               return (
                 <tr key={row.studentId} className={cn('group transition-colors', domRow % 2 === 1 ? 'bg-slate-50/60' : 'bg-white', 'hover:bg-violet-50/40')}>
                   <td className={cn('sticky left-0 z-10 px-3 py-2 border-l-[3px] border-b border-gray-100', accentFor(state), domRow % 2 === 1 ? 'bg-slate-50/60 group-hover:bg-violet-50/40' : 'bg-white group-hover:bg-violet-50/40')}>
-                    <span className="block text-center text-sm font-medium text-gray-400 tabular-nums">{domRow + 1}</span>
+                    <span className="block text-center text-sm font-medium text-gray-400 tabular-nums" aria-hidden="true">{domRow + 1}</span>
                   </td>
-                  <td className="sticky left-14 z-10 px-3 py-2 border-b border-gray-100">
+                  <th scope="row" className={cn('sticky left-14 z-10 px-3 py-2 border-b border-gray-100 text-left', domRow % 2 === 1 ? 'bg-slate-50/60 group-hover:bg-violet-50/40' : 'bg-white group-hover:bg-violet-50/40')}>
                     <div className="flex items-center gap-2.5">
                       <CommentInput value={row.comments || ''} onChange={v => onCommentChange(index, v)} />
                       <div className="min-w-0">
@@ -181,10 +182,10 @@ export default function GradeTable({
                             <span className="inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-bold text-violet-700 bg-violet-100 uppercase tracking-wide shrink-0">New</span>
                           )}
                         </div>
-                        <p className="text-[11px] text-gray-400 tabular-nums">{row.admissionNo}</p>
+                        <p className="text-[11px] text-gray-500 tabular-nums">{row.admissionNo}</p>
                       </div>
                     </div>
-                  </td>
+                  </th>
                   {headers.map(h => (
                     <FieldCell
                       key={h.field}
@@ -221,6 +222,9 @@ export default function GradeTable({
                         {grade}
                       </span>
                     )}
+                    {state.isFail && (
+                      <span id={`fail-${row.studentId}`} className="sr-only">Below passing mark — total score is less than 50</span>
+                    )}
                   </td>
                 </tr>
               )
@@ -233,20 +237,20 @@ export default function GradeTable({
         <span className="text-xs font-medium text-gray-500 tabular-nums">
           {rows.length} student{rows.length === 1 ? '' : 's'}
           {rows.length !== grades.length && (
-            <span className="text-gray-400"> (filtered from {grades.length})</span>
+            <span className="text-gray-500"> (filtered from {grades.length})</span>
           )}
         </span>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-medium">
           <span className="inline-flex items-center gap-1.5 text-emerald-700">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
             Passing <span className="tabular-nums">{passingTotal}</span>
           </span>
           <span className="inline-flex items-center gap-1.5 text-red-700">
-            <span className="h-2 w-2 rounded-full bg-red-500" />
+            <span className="h-2 w-2 rounded-full bg-red-500" aria-hidden="true" />
             Failed <span className="tabular-nums">{failedTotal}</span>
           </span>
-          <span className="inline-flex items-center gap-1.5 text-gray-400">
-            <span className="h-2 w-2 rounded-full bg-gray-300" />
+          <span className="inline-flex items-center gap-1.5 text-gray-500">
+            <span className="h-2 w-2 rounded-full bg-gray-300" aria-hidden="true" />
             Ungraded <span className="tabular-nums">{ungradedTotal}</span>
           </span>
         </div>

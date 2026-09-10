@@ -23,31 +23,33 @@ export default function ResultsStickyBar({
       <div className="mx-auto max-w-3xl bg-white/90 backdrop-blur-md border border-gray-200/80 rounded-2xl shadow-xl shadow-gray-900/10 px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 animate-slide-in-top">
         <div className="flex items-center gap-3 text-sm flex-wrap">
           <span className="inline-flex items-center gap-2 rounded-full bg-violet-600 text-white px-3 py-1 text-xs font-bold shadow-sm shadow-violet-600/30">
-            <span className="mdi mdi-clipboard-text text-sm" />
-            {count} grade{count === 1 ? '' : 's'} ready
+            <span className="mdi mdi-clipboard-text text-sm" aria-hidden="true" />
+            <span aria-live="polite">{count} grade{count === 1 ? '' : 's'} ready</span>
           </span>
 
-          {hasEdits && (
-            <span className="inline-flex items-center gap-1.5 text-xs text-gray-500">
-              {draftState === 'saving' ? (
-                <>
-                  <span className="h-3 w-3 border-[1.5px] border-amber-300 border-t-amber-500 rounded-full animate-spin" />
-                  Saving draft…
-                </>
-              ) : (
-                <>
-                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
-                  {lastDraftAt ? <>Draft saved <span className="tabular-nums">{format(lastDraftAt, 'h:mm a')}</span></> : 'Draft saved'}
-                </>
-              )}
-            </span>
-          )}
+          <span aria-live="polite" className="inline-flex items-center gap-3 text-xs text-gray-600 flex-wrap">
+            {hasEdits && (
+              <span className="inline-flex items-center gap-1.5">
+                {draftState === 'saving' ? (
+                  <>
+                    <span className="h-3 w-3 border-[1.5px] border-amber-300 border-t-amber-500 rounded-full animate-spin" aria-hidden="true" />
+                    Saving draft…
+                  </>
+                ) : (
+                  <>
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
+                    {lastDraftAt ? <>Draft saved <span className="tabular-nums">{format(lastDraftAt, 'h:mm a')}</span></> : 'Draft saved'}
+                  </>
+                )}
+              </span>
+            )}
 
-          {lastSaved && (
-            <span className="text-xs text-gray-400 tabular-nums">
-              Posted <span className="font-medium text-gray-500">{format(lastSaved, 'h:mm a')}</span>
-            </span>
-          )}
+            {lastSaved && (
+              <span className="tabular-nums">
+                Posted <span className="font-medium">{format(lastSaved, 'h:mm a')}</span>
+              </span>
+            )}
+          </span>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">

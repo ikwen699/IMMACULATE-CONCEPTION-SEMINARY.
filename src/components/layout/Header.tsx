@@ -104,9 +104,10 @@ export default function Header({ onMenuToggle }: HeaderProps) {
         <div className="flex items-center gap-2">
           <button
             onClick={onMenuToggle}
+            aria-label="Open menu"
             className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 lg:hidden"
           >
-            <span className="mdi mdi-menu text-xl" />
+            <span className="mdi mdi-menu text-xl" aria-hidden="true" />
           </button>
           <div>
             <h2 className="text-lg sm:text-xl font-semibold text-blue-800">ICS</h2>
@@ -120,6 +121,9 @@ export default function Header({ onMenuToggle }: HeaderProps) {
             <button
               ref={buttonRef}
               onClick={() => setShowNotifications(!showNotifications)}
+              aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : `Notifications, no unread`}
+              aria-haspopup="dialog"
+              aria-expanded={showNotifications}
               className={cn(
                 'relative p-2 rounded-lg transition-colors',
                 showNotifications
@@ -127,9 +131,9 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                   : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
               )}
             >
-              <span className={cn('mdi text-xl', showNotifications ? 'mdi-bell' : 'mdi-bell-outline')} />
+              <span className={cn('mdi text-xl', showNotifications ? 'mdi-bell' : 'mdi-bell-outline')} aria-hidden="true" />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold ring-2 ring-white">
+                <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-red-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold ring-2 ring-white" aria-hidden="true">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
@@ -138,6 +142,8 @@ export default function Header({ onMenuToggle }: HeaderProps) {
             {showNotifications && (
               <div
                 ref={dropdownRef}
+                role="dialog"
+                aria-label="Notifications"
                 className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden animate-scale-in"
               >
                 {/* Dropdown header */}
@@ -164,22 +170,23 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                 <div className="max-h-80 overflow-y-auto">
                   {notifError ? (
                     <div className="p-6 text-center">
-                      <span className="mdi mdi-alert-circle-outline text-2xl text-red-300 block mb-2" />
+                      <span className="mdi mdi-alert-circle-outline text-2xl text-red-300 block mb-2" aria-hidden="true" />
                       <p className="text-sm text-gray-500">Failed to load notifications</p>
                     </div>
                   ) : notifications.length === 0 ? (
                     <div className="p-6 text-center">
-                      <span className="mdi mdi-bell-off-outline text-2xl text-gray-300 block mb-2" />
+                      <span className="mdi mdi-bell-off-outline text-2xl text-gray-300 block mb-2" aria-hidden="true" />
                       <p className="text-sm text-gray-500">No notifications yet</p>
                     </div>
                   ) : (
                     notifications.slice(0, 8).map((notification) => {
                       const dotColor = TYPE_DOT_COLORS[notification.type] || 'bg-gray-400'
                       return (
-                        <div
+                        <button
                           key={notification.id}
+                          type="button"
                           className={cn(
-                            'px-4 py-3 border-b border-gray-50 transition-colors cursor-pointer',
+                            'w-full text-left px-4 py-3 border-b border-gray-50 transition-colors cursor-pointer',
                             !notification.read ? 'bg-indigo-50/50 hover:bg-indigo-50' : 'hover:bg-gray-50'
                           )}
                           onClick={() => {
@@ -188,25 +195,25 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                             setShowNotifications(false)
                           }}
                         >
-                          <div className="flex items-start gap-2.5">
-                            <div className={cn('w-2 h-2 rounded-full mt-1.5 shrink-0', dotColor)} />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5">
-                                <p className={cn(
+                          <span className="flex items-start gap-2.5">
+                            <span className={cn('w-2 h-2 rounded-full mt-1.5 shrink-0', dotColor)} aria-hidden="true" />
+                            <span className="flex-1 min-w-0">
+                              <span className="flex items-center gap-1.5">
+                                <span className={cn(
                                   'text-sm truncate',
                                   !notification.read ? 'font-semibold text-gray-900' : 'font-medium text-gray-700'
                                 )}>
                                   {notification.title}
-                                </p>
+                                </span>
                                 {!notification.read && (
-                                  <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full shrink-0" />
+                                  <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full shrink-0" aria-hidden="true" />
                                 )}
-                              </div>
-                              <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{notification.message}</p>
-                              <p className="text-[11px] text-gray-400 mt-1">{timeAgo(notification.createdAt)}</p>
-                            </div>
-                          </div>
-                        </div>
+                              </span>
+                              <span className="block text-xs text-gray-500 mt-0.5 truncate">{notification.message}</span>
+                              <span className="block text-[11px] text-gray-500 mt-1">{timeAgo(notification.createdAt)}</span>
+                            </span>
+                          </span>
+                        </button>
                       )
                     })
                   )}
@@ -221,7 +228,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                       onClick={() => setShowNotifications(false)}
                     >
                       View all notifications
-                      <span className="mdi mdi-arrow-right text-sm" />
+                      <span className="mdi mdi-arrow-right text-sm" aria-hidden="true" />
                     </Link>
                   </div>
                 )}
@@ -230,8 +237,8 @@ export default function Header({ onMenuToggle }: HeaderProps) {
           </div>
 
           {/* Profile */}
-          <Link href="/dashboard/profile" className="flex items-center gap-2 hover:bg-gray-100 rounded-lg px-2 py-1 transition">
-            <div className="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+          <Link href="/dashboard/profile" className="flex items-center gap-2 hover:bg-gray-100 rounded-lg px-2 py-1 transition" aria-label={user?.name ? `Profile: ${user.name}` : 'Profile'}>
+            <div className="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm" aria-hidden="true">
               {user?.name ? getInitials(user.name) : '?'}
             </div>
             <div className="hidden sm:block">

@@ -35,9 +35,12 @@ export default function GradeCard({ grades, rows, onUpdate, onPaste }: GradeCard
             row.isNew ? 'border border-violet-300 border-dashed' : 'border border-gray-200/70'
           )}>
             <div className="p-4">
+              {state.isFail && (
+                <span id={`card-fail-${row.studentId}`} className="sr-only">Below passing mark — total score is less than 50</span>
+              )}
               <div className="flex items-start justify-between gap-3 mb-4">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0', breakdown ? `${breakdown.bg} ${breakdown.text}` : 'bg-slate-100 text-slate-400')}>
+                  <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center text-sm font-bold shrink-0', breakdown ? `${breakdown.bg} ${breakdown.text}` : 'bg-slate-100 text-slate-400')} aria-hidden="true">
                     {initialsOf(row.name)}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -47,12 +50,12 @@ export default function GradeCard({ grades, rows, onUpdate, onPaste }: GradeCard
                         <span className="inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-bold text-violet-700 bg-violet-100 uppercase tracking-wide shrink-0">New</span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-400 mt-0.5 tabular-nums">{row.admissionNo}</p>
+                    <p className="text-xs text-gray-500 mt-0.5 tabular-nums">{row.admissionNo}</p>
                   </div>
                 </div>
                 <div className="text-right shrink-0">
                   {state.total > 0 && breakdown ? (
-                    <div className={cn('h-12 w-12 rounded-full p-[3px]', breakdown.dot)}>
+                    <div className={cn('h-12 w-12 rounded-full p-[3px]', breakdown.dot)} aria-hidden="true">
                       <div className="h-full w-full rounded-full bg-white flex items-center justify-center">
                         <span className={cn('text-sm font-bold tabular-nums leading-none', breakdown.text)}>
                           {state.total.toFixed(0)}
@@ -60,7 +63,7 @@ export default function GradeCard({ grades, rows, onUpdate, onPaste }: GradeCard
                       </div>
                     </div>
                   ) : (
-                    <span className="text-lg font-bold text-gray-300">—</span>
+                    <span className="text-lg font-bold text-gray-300" aria-hidden="true">—</span>
                   )}
                 </div>
               </div>
@@ -69,12 +72,14 @@ export default function GradeCard({ grades, rows, onUpdate, onPaste }: GradeCard
                 {FIELDS.map(f => {
                   const max = gradeMax(f)
                   const hasValue = row[f] !== ''
+                  const inputId = `card-${row.studentId}-${f}`
                   return (
                     <div key={f}>
-                      <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1 text-center">
+                      <label htmlFor={inputId} className="block text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1 text-center cursor-pointer">
                         {f === 'exam' ? 'Exam' : f.toUpperCase()}
                       </label>
                       <input
+                        id={inputId}
                         type="number"
                         inputMode="decimal"
                         min="0"
@@ -84,6 +89,7 @@ export default function GradeCard({ grades, rows, onUpdate, onPaste }: GradeCard
                         value={row[f]}
                         onChange={e => onUpdate(index, f, e.target.value)}
                         onPaste={e => onPaste(e, index, f)}
+                        aria-describedby={state.isFail && f === 'exam' ? `card-fail-${row.studentId}` : undefined}
                         className={cn(
                           'w-full px-1 py-2 rounded-lg text-sm text-center tabular-nums border transition-all',
                           'bg-gray-50/80 border-gray-200 focus:outline-none focus:ring-2 focus:ring-violet-500/25 focus:border-violet-500 focus:bg-white',
@@ -99,11 +105,11 @@ export default function GradeCard({ grades, rows, onUpdate, onPaste }: GradeCard
               {breakdown && (
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 text-xs text-gray-500">
                   <span className="inline-flex items-center gap-1.5">
-                    <span className={cn('h-2 w-2 rounded-full', breakdown.dot)} />
-                    <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Total</span>
+                    <span className={cn('h-2 w-2 rounded-full', breakdown.dot)} aria-hidden="true" />
+                    <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Total</span>
                     <span className={cn('font-bold tabular-nums', breakdown.text)}>{state.total.toFixed(1)}/100</span>
                   </span>
-                  <span className="text-gray-300">•</span>
+                  <span className="text-gray-300" aria-hidden="true">•</span>
                   <span className={cn('inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold', getGradeColor(breakdown.grade))}>
                     Grade {breakdown.grade}
                   </span>
@@ -112,15 +118,15 @@ export default function GradeCard({ grades, rows, onUpdate, onPaste }: GradeCard
 
               <div className="mt-3.5 pt-3.5 border-t border-gray-100 flex items-center justify-between gap-2">
                 <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[10px] font-semibold', pill.cls)}>
-                  <span className={cn('h-1.5 w-1.5 rounded-full', pill.dot)} />
+                  <span className={cn('h-1.5 w-1.5 rounded-full', pill.dot)} aria-hidden="true" />
                   {pill.label}
                 </span>
                 {row.comments ? (
                   <span className="inline-flex items-center gap-1 text-[10px] text-violet-600">
-                    <span className="mdi mdi-message-text text-sm" /> Comment added
+                    <span className="mdi mdi-message-text text-sm" aria-hidden="true" /> Comment added
                   </span>
                 ) : (
-                  <span className="text-[10px] text-gray-300">No comment</span>
+                  <span className="text-[10px] text-gray-400">No comment</span>
                 )}
               </div>
             </div>

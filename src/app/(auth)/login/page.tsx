@@ -83,7 +83,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-blue-50 via-white to-blue-100">
-      {/* ── Left brand panel (desktop) ─────────────────────────────── */}
+      {/* â”€â”€ Left brand panel (desktop) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="hidden xl:flex w-[44%] relative flex-col overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800">
         {/* Ambient glow orbs */}
         <div className="absolute -top-32 -left-32 w-[28rem] h-[28rem] bg-blue-500/15 rounded-full blur-[100px]" />
@@ -99,7 +99,7 @@ export default function LoginPage() {
             <SchoolBadge className="w-40 h-40 mb-6" />
             <div>
               <p className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-blue-100 bg-white/10 px-3.5 py-1.5 rounded-full backdrop-blur-md ring-1 ring-white/15 uppercase">
-                <School className="w-3.5 h-3.5" />
+                <School className="w-3.5 h-3.5" aria-hidden="true" />
                 Established &middot; Excellence in Education
               </p>
               <h1 className="text-3xl font-extrabold text-white mt-4 leading-[1.15] tracking-wide">
@@ -119,7 +119,7 @@ export default function LoginPage() {
             </h2>
             <p className="text-blue-100/70 mt-4 text-[15px] leading-relaxed max-w-sm mx-auto">
               Access academic records, attendance, fees and announcements from a single secure
-              sign-in — no matter your role.
+              sign-in â€” no matter your role.
             </p>
 
             <div className="mt-8 space-y-3 mx-auto max-w-sm">
@@ -141,10 +141,10 @@ export default function LoginPage() {
           <div className="flex flex-col gap-3 text-xs text-blue-200/50 text-center pt-6 border-t border-white/[0.08]">
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
               <span className="flex items-center gap-1.5">
-                <MapPin className="w-3.5 h-3.5" /> Main Campus, Nigeria
+                <MapPin className="w-3.5 h-3.5" aria-hidden="true" /> Main Campus, Nigeria
               </span>
               <span className="flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5" /> +234 (0) 000 000 0000
+                <Phone className="w-3.5 h-3.5" aria-hidden="true" /> +234 (0) 000 000 0000
               </span>
             </div>
             <p className="text-blue-200/40">&copy; 2026 Immaculate Conception School. All rights reserved.</p>
@@ -152,7 +152,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* ── Form panel ─────────────────────────────────────────────── */}
+      {/* â”€â”€ Form panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div className="flex-1 flex items-center justify-center py-8 px-4 sm:px-6 xl:py-10">
         <div className="w-full max-w-[400px]">
           {/* Mobile / tablet: compact brand header */}
@@ -184,8 +184,8 @@ export default function LoginPage() {
 
           {/* Error alert */}
           {error && (
-            <div className="mb-5 flex items-start gap-3 p-4 bg-red-50/80 border border-red-200/80 rounded-2xl text-red-700 text-sm animate-slide-in-top shadow-sm" role="alert">
-              <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center shrink-0">
+            <div id="login-error" className="mb-5 flex items-start gap-3 p-4 bg-red-50/80 border border-red-200/80 rounded-2xl text-red-700 text-sm animate-slide-in-top shadow-sm" role="alert">
+              <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center shrink-0" aria-hidden="true">
                 <AlertCircle className="w-4 h-4 text-red-500" />
               </div>
               <span className="flex-1 pt-1">{error}</span>
@@ -195,7 +195,7 @@ export default function LoginPage() {
                 className="shrink-0 text-red-300 hover:text-red-600 transition-colors p-1 -m-1 rounded-lg hover:bg-red-100"
                 aria-label="Dismiss error"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
           )}
@@ -207,7 +207,7 @@ export default function LoginPage() {
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400 pointer-events-none" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400 pointer-events-none" aria-hidden="true" />
                 <input
                   id="email"
                   type="email"
@@ -215,6 +215,8 @@ export default function LoginPage() {
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  aria-invalid={!!error}
+                  aria-describedby={error ? 'login-error' : undefined}
                   className={cn(
                     'w-full pl-11 pr-11 py-3 rounded-2xl border border-gray-200/80 outline-none transition-all duration-200 text-[15px] text-gray-800 placeholder-gray-400',
                     'bg-gray-50/50 focus:bg-white',
@@ -226,7 +228,7 @@ export default function LoginPage() {
                   required
                 />
                 {email && (
-                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-400">
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-400" aria-hidden="true">
                     <ShieldCheck className="w-5 h-5" strokeWidth={2.5} />
                   </span>
                 )}
@@ -246,13 +248,15 @@ export default function LoginPage() {
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400 pointer-events-none" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400 pointer-events-none" aria-hidden="true" />
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  aria-invalid={!!error}
+                  aria-describedby={error ? 'login-error' : undefined}
                   className="w-full pl-11 pr-11 py-3 rounded-2xl border border-gray-200/80 bg-gray-50/50 outline-none transition-all duration-200 text-[15px] text-gray-800 placeholder-gray-400 focus:bg-white focus:border-blue-400 focus:ring-4 focus:ring-blue-100/80 hover:border-gray-300"
                   placeholder="Enter your password"
                   required
@@ -295,7 +299,7 @@ export default function LoginPage() {
               </label>
 
               <span className="text-[13px] text-gray-400 flex items-center gap-1.5 shrink-0">
-                <ShieldCheck className="w-4 h-4 text-emerald-400/80" />
+                <ShieldCheck className="w-4 h-4 text-emerald-400/80" aria-hidden="true" />
                 Secure sign-in
               </span>
             </div>
@@ -318,7 +322,7 @@ export default function LoginPage() {
               ) : (
                 <>
                   Sign In
-                  <ArrowRight className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-0.5" />
+                  <ArrowRight className="w-5 h-5 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
                 </>
               )}
             </button>
@@ -327,7 +331,7 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="flex items-center gap-3 my-7">
             <div className="flex-1 h-px bg-gray-200/80" />
-            <span className="text-[11px] text-gray-400 font-semibold tracking-wide uppercase">New here?</span>
+            <span className="text-[11px] text-gray-500 font-semibold tracking-wide uppercase">New here?</span>
             <div className="flex-1 h-px bg-gray-200/80" />
           </div>
 
@@ -339,7 +343,7 @@ export default function LoginPage() {
                 className="text-blue-600 font-semibold hover:text-blue-800 transition-colors duration-200 inline-flex items-center gap-1 group"
               >
                 Create Account
-                <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+                <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true" />
               </Link>
             </p>
           </div>

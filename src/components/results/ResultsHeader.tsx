@@ -12,7 +12,7 @@ export default function ResultsHeader({ hasStudents, saving, onPost }: ResultsHe
   return (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <div className="flex items-center gap-3.5">
-        <div className="relative shrink-0">
+        <div className="relative shrink-0" aria-hidden="true">
           <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-700 text-white flex items-center justify-center shadow-md shadow-violet-600/25">
             <span className="mdi mdi-file-document-edit text-2xl" />
           </div>
@@ -42,12 +42,12 @@ export default function ResultsHeader({ hasStudents, saving, onPost }: ResultsHe
         >
           {saving ? (
             <>
-              <span className="h-4 w-4 border-2 border-gray-300 border-t-gray-500 rounded-full animate-spin" />
+              <span className="h-4 w-4 border-2 border-gray-300 border-t-gray-500 rounded-full animate-spin" aria-hidden="true" />
               Posting...
             </>
           ) : (
             <>
-              <span className="mdi mdi-send-check text-lg" />
+              <span className="mdi mdi-send-check text-lg" aria-hidden="true" />
               Post Grades
             </>
           )}

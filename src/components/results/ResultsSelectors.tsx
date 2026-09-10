@@ -51,22 +51,22 @@ function StepField({
             value ? 'bg-violet-600 text-white' : 'bg-gray-100 text-gray-400'
           )}
         >
-          {value ? <span className="mdi mdi-check text-sm" /> : step}
+          {value ? <span className="mdi mdi-check text-sm" aria-hidden="true" /> : step}
         </span>
-        <span className="text-xs font-semibold text-gray-700">{label}</span>
-        <span className="ml-auto hidden sm:block text-[10px] text-gray-400">{hint}</span>
+        <label htmlFor={id} className="text-xs font-semibold text-gray-700 cursor-pointer select-none">{label}</label>
+        <span className="ml-auto hidden sm:block text-[10px] text-gray-500">{hint}</span>
       </div>
       <div className="relative">
-        <span className={cn(wrapIcon, value ? 'text-violet-500' : 'text-gray-400')}>
+        <span className={cn(wrapIcon, value ? 'text-violet-500' : 'text-gray-400')} aria-hidden="true">
           <span className={icon} />
         </span>
-        <select id={id} value={value} onChange={e => onChange(e.target.value)} disabled={disabled} className={selectCls}>
+        <select id={id} aria-label={label} value={value} onChange={e => onChange(e.target.value)} disabled={disabled} className={selectCls}>
           <option value="">Select {label}</option>
           {options.map(o => (
             <option key={o.value} value={o.value}>{o.label}</option>
           ))}
         </select>
-        <span className="mdi mdi-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none" />
+        <span className="mdi mdi-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-base pointer-events-none" aria-hidden="true" />
       </div>
     </div>
   )

@@ -23,12 +23,12 @@ function StatCard({ icon, chip, accent, label, value, hint }: Stat) {
     <div className="group p-4 rounded-2xl border border-gray-200/70 bg-white shadow-sm transition-shadow hover:shadow-md">
       <div className="flex items-center gap-2 mb-3">
         <span className={cn('h-8 w-8 rounded-lg flex items-center justify-center', chip)}>
-          <span className={cn('mdi text-lg', icon)} />
+          <span className={cn('mdi text-lg', icon)} aria-hidden="true" />
         </span>
-        <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">{label}</span>
+        <span className="text-[11px] font-semibold text-gray-600 uppercase tracking-wider">{label}</span>
       </div>
       <p className={cn('text-2xl font-bold tracking-tight tabular-nums', accent)}>{value}</p>
-      {hint && <p className="mt-1 text-[11px] text-gray-400">{hint}</p>}
+      {hint && <p className="mt-1 text-[11px] text-gray-500">{hint}</p>}
     </div>
   )
 }
@@ -81,16 +81,23 @@ export default function ResultsStats({ totalStudents, gradedCount, passingCount,
         <div className="flex items-center justify-between mb-2.5">
           <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Grading progress</span>
           <span className="text-xs font-semibold text-gray-700 tabular-nums">
-            {gradedCount} <span className="text-gray-400">of</span> {totalStudents}
+            {gradedCount} <span className="text-gray-500">of</span> {totalStudents}
           </span>
         </div>
-        <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+        <div
+          role="progressbar"
+          aria-label={`${gradedPct}% of students graded`}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={gradedPct}
+          className="h-2.5 bg-gray-100 rounded-full overflow-hidden"
+        >
           <div
             className={cn('h-full rounded-full transition-all duration-500', progressColor)}
             style={{ width: `${gradedPct}%` }}
           />
         </div>
-        <div className="mt-2 flex items-center justify-between text-[11px] text-gray-400">
+        <div className="mt-2 flex items-center justify-between text-[11px] text-gray-500">
           <span className="inline-flex items-center gap-1.5">
             <span className={cn('h-2 w-2 rounded-full', progressColor)} />
             {gradedPct}% of students graded
