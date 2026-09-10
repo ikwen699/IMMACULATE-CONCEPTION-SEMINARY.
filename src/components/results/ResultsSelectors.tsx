@@ -1,6 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
+import { GRADE_SCALE } from './gradeUtils'
 import type { ClassData, Session, Subject } from './types'
 
 interface ResultsSelectorsProps {
@@ -19,14 +20,6 @@ const selectCls =
   'w-full pl-9 pr-8 py-2.5 bg-gray-50/80 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 appearance-none disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer'
 
 const wrapIcon = 'mdi absolute left-2.5 top-1/2 -translate-y-1/2 text-base pointer-events-none'
-
-const GRADE_DOTS: { grade: string; dot: string }[] = [
-  { grade: 'A (70+)', dot: 'bg-emerald-500' },
-  { grade: 'B (60-69)', dot: 'bg-blue-500' },
-  { grade: 'C (50-59)', dot: 'bg-amber-500' },
-  { grade: 'D (40-49)', dot: 'bg-orange-500' },
-  { grade: 'F (<40)', dot: 'bg-red-500' },
-]
 
 function StepField({
   step, icon, label, hint, id, value, options, onChange, disabled, active,
@@ -159,10 +152,10 @@ export default function ResultsSelectors({
         <div className="hidden lg:block w-px h-4 bg-slate-200" />
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mr-1">Scale:</span>
-          {GRADE_DOTS.map(g => (
+          {GRADE_SCALE.map(g => (
             <span key={g.grade} className="inline-flex items-center gap-1 text-[11px] text-slate-500">
               <span className={cn('h-2 w-2 rounded-full', g.dot)} />
-              {g.grade}
+              {g.grade} ({g.sub})
             </span>
           ))}
         </div>

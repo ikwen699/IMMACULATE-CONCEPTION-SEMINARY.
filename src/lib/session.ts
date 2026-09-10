@@ -25,7 +25,7 @@ export async function getCurrentUser() {
 
   if (!user) return null
 
-  let profile: any = {}
+  const profile: any = {}
   if (user.role === 'STUDENT') {
     const { data: s, error: sErr } = await supabase.from('Student').select('*').eq('userId', userId).single()
     if (sErr) {

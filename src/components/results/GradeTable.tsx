@@ -10,6 +10,8 @@ interface GradeTableProps {
   grades: StudentGrade[]
   rows: number[]
   isDragging: boolean
+  sortKey?: string
+  sortDir?: string
   onUpdate: (index: number, field: GradeField, value: string) => void
   onCommentChange: (index: number, value: string) => void
   onPaste: (e: React.ClipboardEvent, index: number, field: GradeField) => void
@@ -101,7 +103,7 @@ function FieldCell({ domRow, rowCount, row, field, index, isFail, onUpdate, onPa
 }
 
 export default function GradeTable({
-  grades, rows, isDragging, onUpdate, onCommentChange, onPaste,
+  grades, rows, isDragging, sortKey, sortDir, onUpdate, onCommentChange, onPaste,
   onColumnDragStart, onColumnDrop, onDragEnd, onFillClick,
 }: GradeTableProps) {
   const passingTotal = grades.filter(r => calcTotal(r.ca1, r.ca2, r.ca3, r.exam) >= 50).length
@@ -153,7 +155,8 @@ export default function GradeTable({
                   </div>
                 </th>
               ))}
-              <th scope="col" className="sticky top-0 z-20 w-24 px-3 py-3.5 bg-white border-b border-gray-200">
+              <th scope="col" className="sticky top-0 z-20 w-24 px-3 py-3.5 bg-white border-b border-gray-200"
+                aria-sort={sortKey === 'total' ? (sortDir === 'asc' ? 'ascending' : 'descending') : 'none'}>
                 <span className="block text-center text-[11px] font-bold uppercase tracking-wider text-gray-500">Total</span>
               </th>
               <th scope="col" className="sticky top-0 z-20 w-20 px-3 py-3.5 bg-white border-b border-gray-200">
@@ -234,7 +237,7 @@ export default function GradeTable({
       </div>
 
       <div className="px-5 py-3 bg-slate-50 border-t border-gray-200 flex flex-wrap items-center justify-between gap-2">
-        <span className="text-xs font-medium text-gray-500 tabular-nums">
+        <span className="text-xs font-medium text-gray-500 tabular-nums" aria-live="polite">
           {rows.length} student{rows.length === 1 ? '' : 's'}
           {rows.length !== grades.length && (
             <span className="text-gray-500"> (filtered from {grades.length})</span>

@@ -88,13 +88,11 @@ export default function FillAllModal({ column, onClose, onApply }: FillAllModalP
               className="w-full px-3.5 py-3 bg-gray-50/80 border border-gray-200 rounded-xl text-lg text-center tabular-nums text-gray-900 focus:outline-none focus:ring-2 focus:ring-violet-500/25 focus:border-violet-400 transition-colors placeholder:text-gray-400"
               placeholder={`0 — ${max}`}
             />
-            {isExam && (
-              <p id="fill-desc" className="mt-2 text-[11px] text-gray-500 flex items-center gap-1">
-                <span className="mdi mdi-information-outline text-sm text-violet-400" aria-hidden="true" />
-                Exam is out of 70. CA components remain out of 10 each.
-              </p>
-            )}
-            {!isExam && <p id="fill-desc" className="mt-2 text-[11px] text-gray-500">Applies the same {column.toUpperCase()} score (max {max}) to every student.</p>}
+            <p id="fill-desc" className="mt-2 text-[11px] text-gray-500">
+            {isExam
+              ? 'Exam is out of 70. CA components remain out of 10 each.'
+              : `Applies the same ${column.toUpperCase()} score (max ${max}) to every student.`}
+          </p>
           </div>
 
           <div>

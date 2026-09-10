@@ -8,28 +8,33 @@ export function calcTotal(ca1: string, ca2: string, ca3: string, exam: string) {
   return (parseFloat(ca1) || 0) + (parseFloat(ca2) || 0) + (parseFloat(ca3) || 0) + (parseFloat(exam) || 0)
 }
 
+/** Single source of truth for the A–F grade scale.
+ *  Each consumer imports only the fields it needs. */
+export const GRADE_SCALE = [
+  { grade: 'A' as const, label: 'A', sub: '70+', range: '70–100', min: 70, dot: 'bg-emerald-500', chip: 'bg-emerald-50', text: 'text-emerald-700', bg: 'bg-emerald-100' },
+  { grade: 'B' as const, label: 'B', sub: '60–69', range: '60–69', min: 60, dot: 'bg-blue-500', chip: 'bg-blue-50', text: 'text-blue-700', bg: 'bg-blue-100' },
+  { grade: 'C' as const, label: 'C', sub: '50–59', range: '50–59', min: 50, dot: 'bg-amber-500', chip: 'bg-amber-50', text: 'text-amber-700', bg: 'bg-amber-100' },
+  { grade: 'D' as const, label: 'D', sub: '40–49', range: '40–49', min: 40, dot: 'bg-orange-500', chip: 'bg-orange-50', text: 'text-orange-700', bg: 'bg-orange-100' },
+  { grade: 'F' as const, label: 'F', sub: '<40', range: '<40', min: 0, dot: 'bg-red-500', chip: 'bg-red-50', text: 'text-red-700', bg: 'bg-red-100' },
+]
+
+const _gradeEntry = (grade: string) => GRADE_SCALE.find(s => s.grade === grade) ?? GRADE_SCALE[4]
+
 export function getGradeColor(grade: string) {
-  if (grade === 'A') return 'bg-green-100 text-green-700'
-  if (grade === 'B') return 'bg-blue-100 text-blue-700'
-  if (grade === 'C') return 'bg-amber-100 text-amber-700'
-  if (grade === 'D') return 'bg-orange-100 text-orange-700'
-  return 'bg-red-100 text-red-700'
+  const e = _gradeEntry(grade)
+  return `${e.bg} ${e.text}`
+}
+
+export function gradeDotColor(grade: string) {
+  return _gradeEntry(grade).dot
 }
 
 export function getScoreColor(total: number) {
-  if (total >= 70) return 'text-green-700'
+  if (total >= 70) return 'text-emerald-700'
   if (total >= 60) return 'text-blue-700'
   if (total >= 50) return 'text-amber-700'
   if (total > 0) return 'text-red-700'
   return 'text-gray-300'
-}
-
-export function gradeDotColor(grade: string) {
-  if (grade === 'A') return 'bg-green-500'
-  if (grade === 'B') return 'bg-blue-500'
-  if (grade === 'C') return 'bg-amber-500'
-  if (grade === 'D') return 'bg-orange-500'
-  return 'bg-red-500'
 }
 
 export function rowState(row: StudentGrade) {
@@ -45,16 +50,11 @@ export function rowState(row: StudentGrade) {
   }
 }
 
-export const GRADE_LEGEND = ['A (70+)', 'B (60-69)', 'C (50-59)', 'D (40-49)', 'F (<40)'] as const
-
 export function getBreakdown(row: StudentGrade) {
   const total = calcTotal(row.ca1, row.ca2, row.ca3, row.exam)
   if (total === 0) return null
-  if (total >= 70) return { grade: 'A', bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500' }
-  if (total >= 60) return { grade: 'B', bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500' }
-  if (total >= 50) return { grade: 'C', bg: 'bg-amber-100', text: 'text-amber-700', dot: 'bg-amber-500' }
-  if (total >= 40) return { grade: 'D', bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500' }
-  return { grade: 'F', bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-500' }
+  const match = GRADE_SCALE.find(s => total >= s.min) ?? GRADE_SCALE[4]
+  return { grade: match.grade, bg: match.bg, text: match.text, dot: match.dot }
 }
 
 export function initialsOf(name: string) {

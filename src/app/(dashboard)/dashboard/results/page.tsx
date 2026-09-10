@@ -52,7 +52,6 @@ export default function ResultsPage() {
   const [sortDir, setSortDir] = useState<SortDir>('asc')
   const [showFillModal, setShowFillModal] = useState(false)
   const [fillColumn, setFillColumn] = useState<GradeField>('ca1')
-  const [fillValue, setFillValue] = useState('')
   const [isDragging, setIsDragging] = useState(false)
   const [draftState, setDraftState] = useState<DraftState>('clean')
   const [lastDraftAt, setLastDraftAt] = useState<Date | null>(null)
@@ -470,6 +469,8 @@ export default function ResultsPage() {
                     grades={studentGrades}
                     rows={rows}
                     isDragging={isDragging}
+                    sortKey={sortKey}
+                    sortDir={sortDir}
                     onUpdate={updateGrade}
                     onCommentChange={handleCommentChange}
                     onPaste={handlePaste}
