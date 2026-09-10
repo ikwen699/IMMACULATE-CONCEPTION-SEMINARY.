@@ -500,11 +500,11 @@ export default function ResultsPage() {
                 )}
 
                 {saveResult && (
-                  <div role="alert" aria-live="polite" className={`rounded-xl border p-4 ${saveResult.success ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
-                    <div className="flex items-center gap-2">
-                      <span className={`mdi text-lg ${saveResult.success ? 'mdi-check-circle text-green-600' : 'mdi-alert-circle text-red-600'}`} />
-                      <p className="text-sm font-medium">{saveResult.message}</p>
-                    </div>
+                  <div role="alert" aria-live="polite" className={`rounded-2xl border px-4 py-3.5 flex items-center gap-3 animate-fade-in ${saveResult.success ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'}`}>
+                    <span className={`shrink-0 h-9 w-9 rounded-xl flex items-center justify-center ${saveResult.success ? 'bg-emerald-500/15 text-emerald-600' : 'bg-red-500/15 text-red-600'}`}>
+                      <span className={`mdi text-lg ${saveResult.success ? 'mdi-check-circle' : 'mdi-alert-circle'}`} />
+                    </span>
+                    <p className={`text-sm font-medium ${saveResult.success ? 'text-emerald-800' : 'text-red-800'}`}>{saveResult.message}</p>
                   </div>
                 )}
               </>
@@ -518,11 +518,14 @@ export default function ResultsPage() {
               />
             ) : (
               <EmptyState
+                noSelection
                 icon="mdi-text-box-check-outline"
                 iconBg="bg-violet-50"
                 iconColor="text-violet-300"
                 title="Get started"
-                description="Select a class, subject, and term to begin entering grades."
+                description="Select a class, subject, and term to load the roaster. Enter scores, then post everyone’s result in one click."
+                actionLabel="Start with a class"
+                onSelectFirst={() => document.getElementById('class-select')?.focus()}
               />
             )}
           </>

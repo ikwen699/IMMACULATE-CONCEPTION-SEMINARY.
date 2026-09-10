@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { cn } from '@/lib/utils'
-import { calcTotal, getGradeColor, getScoreColor, gradeMax, rowState } from './gradeUtils'
+import { accentFor, calcTotal, getGradeColor, getScoreColor, gradeMax, rowState } from './gradeUtils'
 import CommentInput from './CommentInput'
 import type { GradeField, StudentGrade } from './types'
 
@@ -19,8 +19,12 @@ interface GradeTableProps {
   onFillClick: (field: GradeField) => void
 }
 
-const inputCls =
-  'w-16 px-2 py-1.5 border border-gray-200 rounded-lg text-sm text-center bg-gray-50 focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 transition-colors'
+const headers: { field: GradeField; label: string }[] = [
+  { field: 'ca1', label: 'CA1' },
+  { field: 'ca2', label: 'CA2' },
+  { field: 'ca3', label: 'CA3' },
+  { field: 'exam', label: 'Exam' },
+]
 
 function focusCell(domRow: number, field: GradeField) {
   const el = document.querySelector<HTMLInputElement>(`input[data-row="${domRow}"][data-field="${field}"]`)
@@ -59,30 +63,38 @@ function FieldCell({ domRow, rowCount, row, field, index, isFail, onUpdate, onPa
   const value = row[field]
   const hasValue = value !== ''
   return (
-    <td className="px-3 py-2.5 text-center">
-      <input
-        type="number"
-        inputMode="decimal"
-        min="0"
-        max={max}
-        step="0.5"
-        data-row={domRow}
-        data-field={field}
-        aria-label={`${field === 'exam' ? 'Exam' : field.toUpperCase()} score for ${row.name} (max ${max})`}
-        aria-invalid={isFail && field === 'exam'}
-        title={`Max ${max}`}
-        value={value}
-        onChange={e => onUpdate(index, field, e.target.value)}
-        onPaste={e => onPaste(e, index, field)}
-        onKeyDown={e => handleCellKeyDown(e, domRow, field, rowCount)}
-        draggable={hasValue}
-        onDragStart={e => onColumnDragStart(e, value)}
-        onDragEnd={onDragEnd}
-        className={cn(inputCls,
-          hasValue && 'bg-white border-violet-200',
-          isFail && field === 'exam' && 'border-red-300 bg-red-50 text-red-700 font-bold'
+    <td className="px-2 py-2 text-center">
+      <div className="relative inline-block">
+        <input
+          type="number"
+          inputMode="decimal"
+          min="0"
+          max={max}
+          step="0.5"
+          data-row={domRow}
+          data-field={field}
+          aria-label={`${field === 'exam' ? 'Exam' : field.toUpperCase()} score for ${row.name} (max ${max})`}
+          aria-invalid={isFail && field === 'exam'}
+          title={`Max ${max}`}
+          value={value}
+          onChange={e => onUpdate(index, field, e.target.value)}
+          onPaste={e => onPaste(e, index, field)}
+          onKeyDown={e => handleCellKeyDown(e, domRow, field, rowCount)}
+          draggable={hasValue}
+          onDragStart={e => onColumnDragStart(e, value)}
+          onDragEnd={onDragEnd}
+          className={cn(
+            'w-16 px-1.5 py-2 rounded-lg text-sm text-center tabular-nums border transition-all',
+            'bg-gray-50/80 border-gray-200 hover:border-violet-300',
+            'focus:outline-none focus:ring-2 focus:ring-violet-500/25 focus:border-violet-500 focus:bg-white',
+            hasValue && 'bg-white border-violet-200 shadow-[inset_0_0_0_1px_rgba(139,92,246,0.15)]',
+            isFail && field === 'exam' && 'border-red-300 bg-red-50 text-red-700 font-semibold'
+          )}
+        />
+        {hasValue && (
+          <span className="pointer-events-none absolute -top-1 -right-1 h-1.5 w-1.5 rounded-full bg-violet-400" />
         )}
-      />
+      </div>
     </td>
   )
 }
@@ -91,70 +103,85 @@ export default function GradeTable({
   grades, rows, isDragging, onUpdate, onCommentChange, onPaste,
   onColumnDragStart, onColumnDrop, onDragEnd, onFillClick,
 }: GradeTableProps) {
-  const headers: { field: GradeField; label: string }[] = [
-    { field: 'ca1', label: 'CA1' },
-    { field: 'ca2', label: 'CA2' },
-    { field: 'ca3', label: 'CA3' },
-    { field: 'exam', label: 'Exam' },
-  ]
+  const passingTotal = grades.filter(r => calcTotal(r.ca1, r.ca2, r.ca3, r.exam) >= 50).length
+  const failedTotal = grades.filter(r => { const t = calcTotal(r.ca1, r.ca2, r.ca3, r.exam); return t > 0 && t < 50 }).length
+  const ungradedTotal = grades.length - passingTotal - failedTotal
 
   return (
-    <div
-      className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden"
-      onDragOver={e => e.preventDefault()}
-      onDrop={e => e.preventDefault()}
-    >
-      <div className="overflow-x-auto">
-        <table className="w-full">
+    <div className="bg-white rounded-2xl border border-gray-200/70 shadow-sm overflow-hidden">
+      <div className="overflow-x-auto overflow-y-auto max-h-[62vh]">
+        <table className="w-full border-separate border-spacing-0">
           <thead>
-            <tr className="bg-gray-50/50 border-b border-gray-200">
-              <th scope="col" className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase sticky left-0 bg-gray-50/50 z-10">#</th>
-              <th scope="col" className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase sticky left-8 bg-gray-50/50 z-10 min-w-[180px]">Student</th>
+            <tr>
+              <th scope="col" className="sticky top-0 left-0 z-40 w-14 px-3 py-3.5 bg-white border-b border-gray-200">
+                <span className="flex items-center justify-center text-[11px] font-bold text-gray-400">#</span>
+              </th>
+              <th scope="col" className="sticky top-0 left-14 z-30 min-w-[200px] px-3 py-3.5 bg-white border-b border-gray-200">
+                <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                  <span className="mdi mdi-account-details text-sm text-gray-400" />
+                  Student
+                </span>
+              </th>
               {headers.map(h => (
                 <th key={h.field} scope="col"
                   onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy' }}
                   onDrop={e => onColumnDrop(e, h.field)}
-                  className={cn('text-center px-3 py-3 text-xs font-semibold text-gray-500 uppercase w-20 transition-colors', isDragging && 'bg-violet-50 text-violet-700')}>
-                  <div className="flex flex-col items-center gap-1">
-                    <span>{h.label}</span>
+                  className={cn(
+                    'sticky top-0 z-20 w-[92px] px-1 py-3.5 bg-white border-b border-gray-200 transition-colors text-center',
+                    isDragging && 'bg-violet-50'
+                  )}>
+                  <div className={cn('flex flex-col items-center gap-1.5 py-1 rounded-lg transition-colors', isDragging && 'bg-violet-100 ring-1 ring-violet-200')}>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">{h.label}</span>
+                      <span className="text-[10px] text-gray-400 font-medium">/ {gradeMax(h.field)}</span>
+                    </div>
                     <button
                       onClick={() => onFillClick(h.field)}
                       aria-label={`Fill all ${h.label}`}
                       title={`Fill all ${h.label}`}
                       className={cn(
-                        'p-1 rounded-md transition-colors text-violet-400 hover:text-violet-600',
-                        isDragging && 'bg-violet-100 text-violet-700'
+                        'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold transition-colors',
+                        isDragging
+                          ? 'bg-violet-600 text-white'
+                          : 'text-violet-500 hover:bg-violet-50 hover:text-violet-700'
                       )}
                     >
-                      <span className="mdi mdi-format-paint text-sm" />
+                      <span className="mdi mdi-format-paint text-xs" />
+                      Fill all
                     </button>
                   </div>
                 </th>
               ))}
-              <th scope="col" className="text-center px-3 py-3 text-xs font-semibold text-gray-500 uppercase w-20">Total</th>
-              <th scope="col" className="text-center px-3 py-3 text-xs font-semibold text-gray-500 uppercase w-20">Grade</th>
+              <th scope="col" className="sticky top-0 z-20 w-24 px-3 py-3.5 bg-white border-b border-gray-200">
+                <span className="block text-center text-[11px] font-bold uppercase tracking-wider text-gray-500">Total</span>
+              </th>
+              <th scope="col" className="sticky top-0 z-20 w-20 px-3 py-3.5 bg-white border-b border-gray-200">
+                <span className="block text-center text-[11px] font-bold uppercase tracking-wider text-gray-500">Grade</span>
+              </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody>
             {rows.map((index, domRow) => {
               const row = grades[index]
               const state = rowState(row)
               const grade = row.letterGrade
-              const barColor = state.isFail ? 'border-l-red-400' : state.partial ? 'border-l-amber-400' : state.complete ? 'border-l-emerald-400' : 'border-l-transparent'
+              const totalPct = Math.min(100, state.total)
               return (
-                <tr key={row.studentId} className={cn('hover:bg-gray-50/50 transition-colors group', row.isNew && 'bg-violet-50/30')}>
-                  <td className={cn('px-4 py-2.5 text-sm text-gray-400 sticky left-0 bg-white hover:bg-gray-50/50 z-10 border-l-[3px]', barColor)}>{domRow + 1}</td>
-                  <td className="px-4 py-2.5 sticky left-8 bg-white hover:bg-gray-50/50 z-10">
-                    <div className="flex items-center gap-2">
-                      <CommentInput value={row.comments} onChange={v => onCommentChange(index, v)} />
+                <tr key={row.studentId} className={cn('group transition-colors', domRow % 2 === 1 ? 'bg-slate-50/60' : 'bg-white', 'hover:bg-violet-50/40')}>
+                  <td className={cn('sticky left-0 z-10 px-3 py-2 border-l-[3px] border-b border-gray-100', accentFor(state), domRow % 2 === 1 ? 'bg-slate-50/60 group-hover:bg-violet-50/40' : 'bg-white group-hover:bg-violet-50/40')}>
+                    <span className="block text-center text-sm font-medium text-gray-400 tabular-nums">{domRow + 1}</span>
+                  </td>
+                  <td className="sticky left-14 z-10 px-3 py-2 border-b border-gray-100">
+                    <div className="flex items-center gap-2.5">
+                      <CommentInput value={row.comments || ''} onChange={v => onCommentChange(index, v)} />
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-medium text-gray-900 truncate">{row.name}</p>
+                          <p className={cn('text-sm font-medium truncate', row.isNew ? 'text-violet-800' : 'text-gray-900')}>{row.name}</p>
                           {row.isNew && (
-                            <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold bg-violet-100 text-violet-600 uppercase tracking-wide">New</span>
+                            <span className="inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-bold text-violet-700 bg-violet-100 uppercase tracking-wide shrink-0">New</span>
                           )}
                         </div>
-                        <p className="text-[11px] text-gray-400">{row.admissionNo}</p>
+                        <p className="text-[11px] text-gray-400 tabular-nums">{row.admissionNo}</p>
                       </div>
                     </div>
                   </td>
@@ -173,14 +200,24 @@ export default function GradeTable({
                       onDragEnd={onDragEnd}
                     />
                   ))}
-                  <td className="px-3 py-2.5 text-center">
-                    <span className={cn('text-sm font-bold', getScoreColor(state.total))}>
-                      {state.total > 0 ? state.total.toFixed(1) : '—'}
-                    </span>
+                  <td className="px-3 py-2 border-b border-gray-100">
+                    <div className="flex flex-col items-center gap-1">
+                      <span className={cn('text-sm font-bold tabular-nums', getScoreColor(state.total))}>
+                        {state.total > 0 ? state.total.toFixed(1) : '—'}
+                      </span>
+                      {state.total > 0 && (
+                        <div className="h-1 w-12 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className={cn('h-full rounded-full transition-all duration-300', state.isFail ? 'bg-red-400' : state.total >= 70 ? 'bg-emerald-500' : state.total >= 50 ? 'bg-amber-400' : 'bg-orange-400')}
+                            style={{ width: `${totalPct}%` }}
+                          />
+                        </div>
+                      )}
+                    </div>
                   </td>
-                  <td className="px-3 py-2.5 text-center">
+                  <td className="px-3 py-2 border-b border-gray-100 text-center">
                     {state.total > 0 && (
-                      <span aria-label={`Grade: ${grade}`} className={cn('inline-flex px-2 py-0.5 rounded-full text-xs font-bold', getGradeColor(grade))}>
+                      <span aria-label={`Grade: ${grade}`} className={cn('inline-flex min-w-[28px] justify-center px-2 py-1 rounded-full text-xs font-bold ring-1 ring-black/5', getGradeColor(grade))}>
                         {grade}
                       </span>
                     )}
@@ -192,11 +229,26 @@ export default function GradeTable({
         </table>
       </div>
 
-      <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
-        <span>{rows.length} student{rows.length === 1 ? '' : 's'}</span>
-        <div className="flex gap-3">
-          <span>Passing (50+): {grades.filter(r => calcTotal(r.ca1, r.ca2, r.ca3, r.exam) >= 50).length}</span>
-          <span>Failed (&lt;50): {grades.filter(r => { const t = calcTotal(r.ca1, r.ca2, r.ca3, r.exam); return t > 0 && t < 50 }).length}</span>
+      <div className="px-5 py-3 bg-slate-50 border-t border-gray-200 flex flex-wrap items-center justify-between gap-2">
+        <span className="text-xs font-medium text-gray-500 tabular-nums">
+          {rows.length} student{rows.length === 1 ? '' : 's'}
+          {rows.length !== grades.length && (
+            <span className="text-gray-400"> (filtered from {grades.length})</span>
+          )}
+        </span>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] font-medium">
+          <span className="inline-flex items-center gap-1.5 text-emerald-700">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            Passing <span className="tabular-nums">{passingTotal}</span>
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-red-700">
+            <span className="h-2 w-2 rounded-full bg-red-500" />
+            Failed <span className="tabular-nums">{failedTotal}</span>
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-gray-400">
+            <span className="h-2 w-2 rounded-full bg-gray-300" />
+            Ungraded <span className="tabular-nums">{ungradedTotal}</span>
+          </span>
         </div>
       </div>
     </div>

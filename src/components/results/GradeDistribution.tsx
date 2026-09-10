@@ -1,5 +1,6 @@
 'use client'
 
+import { cn } from '@/lib/utils'
 import { getBreakdown } from './gradeUtils'
 import type { StudentGrade } from './types'
 
@@ -8,11 +9,11 @@ interface GradeDistributionProps {
 }
 
 const SLOTS = [
-  { grade: 'A', label: 'A', color: 'bg-green-500', text: 'text-green-700' },
-  { grade: 'B', label: 'B', color: 'bg-blue-500', text: 'text-blue-700' },
-  { grade: 'C', label: 'C', color: 'bg-amber-500', text: 'text-amber-700' },
-  { grade: 'D', label: 'D', color: 'bg-orange-500', text: 'text-orange-700' },
-  { grade: 'F', label: 'F', color: 'bg-red-500', text: 'text-red-700' },
+  { grade: 'A', label: 'A', sub: '70–100', color: 'bg-emerald-500', text: 'text-emerald-700', chip: 'bg-emerald-50' },
+  { grade: 'B', label: 'B', sub: '60–69', color: 'bg-blue-500', text: 'text-blue-700', chip: 'bg-blue-50' },
+  { grade: 'C', label: 'C', sub: '50–59', color: 'bg-amber-500', text: 'text-amber-700', chip: 'bg-amber-50' },
+  { grade: 'D', label: 'D', sub: '40–49', color: 'bg-orange-500', text: 'text-orange-700', chip: 'bg-orange-50' },
+  { grade: 'F', label: 'F', sub: '<40', color: 'bg-red-500', text: 'text-red-700', chip: 'bg-red-50' },
 ] as const
 
 export default function GradeDistribution({ grades }: GradeDistributionProps) {
@@ -25,27 +26,43 @@ export default function GradeDistribution({ grades }: GradeDistributionProps) {
   if (total === 0) return null
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="mdi mdi-chart-bar text-violet-500 text-lg" />
-        <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Grade distribution</span>
+    <div className="bg-white rounded-2xl border border-gray-200/70 shadow-sm p-5">
+      <div className="flex items-center gap-2 mb-4">
+        <span className="h-8 w-8 rounded-lg bg-violet-50 flex items-center justify-center">
+          <span className="mdi mdi-chart-bar text-violet-600 text-lg" />
+        </span>
+        <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Grade distribution</span>
+        <span className="ml-auto text-[11px] text-gray-400 tabular-nums">{total} graded</span>
       </div>
-      <div className="flex h-8 gap-1 overflow-hidden rounded-lg">
+
+      <div className="flex h-9 gap-1.5 overflow-hidden rounded-xl">
         {SLOTS.map(slot => (
           <div
             key={slot.grade}
             title={`${slot.label}: ${counts[slot.grade]} student${counts[slot.grade] === 1 ? '' : 's'}`}
-            className={`${slot.color} transition-all duration-500`}
+            className={cn(slot.color, 'transition-all duration-500 min-w-0 group/dist relative')}
             style={{ width: `${(counts[slot.grade] / total) * 100}%` }}
-          />
+          >
+            {counts[slot.grade] / total >= 0.08 && (
+              <span className="hidden sm:flex items-center justify-center h-full text-[11px] font-bold text-white">
+                {counts[slot.grade]}
+              </span>
+            )}
+          </div>
         ))}
       </div>
-      <div className="flex gap-4 mt-2.5">
+
+      <div className="mt-4 grid grid-cols-2 sm:grid-cols-5 gap-2">
         {SLOTS.map(slot => (
-          <div key={slot.grade} className="flex items-center gap-1.5">
-            <span className={`w-2.5 h-2.5 rounded-full ${slot.color}`} />
-            <span className="text-xs font-medium text-gray-700">{slot.label}</span>
-            <span className={`text-xs font-bold ${slot.text}`}>{counts[slot.grade]}</span>
+          <div key={slot.grade} className={cn('rounded-xl px-3 py-2 flex items-center justify-between gap-2', slot.chip)}>
+            <div className="flex items-center gap-1.5">
+              <span className={cn('h-2.5 w-2.5 rounded-full', slot.color)} />
+              <div className="leading-tight">
+                <p className="text-xs font-bold text-gray-800">{slot.label}</p>
+                <p className="text-[10px] text-gray-400">{slot.sub}</p>
+              </div>
+            </div>
+            <span className={cn('text-sm font-bold tabular-nums', slot.text)}>{counts[slot.grade]}</span>
           </div>
         ))}
       </div>

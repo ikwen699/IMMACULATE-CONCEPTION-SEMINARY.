@@ -50,9 +50,25 @@ export const GRADE_LEGEND = ['A (70+)', 'B (60-69)', 'C (50-59)', 'D (40-49)', '
 export function getBreakdown(row: StudentGrade) {
   const total = calcTotal(row.ca1, row.ca2, row.ca3, row.exam)
   if (total === 0) return null
-  if (total >= 70) return { grade: 'A', bg: 'bg-green-100', text: 'text-green-700' }
-  if (total >= 60) return { grade: 'B', bg: 'bg-blue-100', text: 'text-blue-700' }
-  if (total >= 50) return { grade: 'C', bg: 'bg-amber-100', text: 'text-amber-700' }
-  if (total >= 40) return { grade: 'D', bg: 'bg-orange-100', text: 'text-orange-700' }
-  return { grade: 'F', bg: 'bg-red-100', text: 'text-red-700' }
+  if (total >= 70) return { grade: 'A', bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500' }
+  if (total >= 60) return { grade: 'B', bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500' }
+  if (total >= 50) return { grade: 'C', bg: 'bg-amber-100', text: 'text-amber-700', dot: 'bg-amber-500' }
+  if (total >= 40) return { grade: 'D', bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500' }
+  return { grade: 'F', bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-500' }
+}
+
+export function initialsOf(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0]?.toUpperCase() || '')
+    .join('')
+}
+
+export function accentFor(state: { complete: boolean; partial: boolean; isFail: boolean }) {
+  if (state.isFail) return 'border-l-red-500'
+  if (state.complete) return 'border-l-emerald-500'
+  if (state.partial) return 'border-l-amber-400'
+  return 'border-l-transparent'
 }
