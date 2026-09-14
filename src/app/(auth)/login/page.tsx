@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { getSession, signIn } from 'next-auth/react'
+import { signIn } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { roleHome } from '@/lib/role-home'
 import {
   Mail,
   Lock,
@@ -44,6 +44,7 @@ function SchoolBadge({ className }: { className?: string }) {
 }
 
 export default function LoginPage() {
+  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -73,9 +74,7 @@ export default function LoginPage() {
           setError('Invalid email or password. Please check your credentials and try again.')
         }
       } else {
-        const session = await getSession()
-        const role = (session?.user as { role?: string } | null)?.role
-        window.location.href = roleHome(role)
+        router.push('/dashboard')
       }
     } catch {
       setError('An error occurred. Please try again.')

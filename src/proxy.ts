@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
-import { roleHome } from '@/lib/role-home'
 
 const AUTH_SECRET = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
 
@@ -167,14 +166,6 @@ export async function proxy(request: NextRequest) {
 
     if (!isAllowed) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-
-    // Route users to their role-specific dashboard when hitting the generic /dashboard
-    if (path === '/dashboard') {
-      const home = roleHome(role)
-      if (home && home !== '/dashboard') {
-        return NextResponse.redirect(new URL(home, request.url))
-      }
     }
   }
 
