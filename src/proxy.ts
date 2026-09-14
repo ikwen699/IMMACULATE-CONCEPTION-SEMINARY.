@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
+import { roleHome } from '@/lib/role-home'
 
 const AUTH_SECRET = process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET
 
@@ -100,15 +101,6 @@ const ROLE_ROUTES: Record<string, string[]> = {
   ],
 }
 
-const ROLE_HOME: Record<string, string> = {
-  ADMIN: '/dashboard',
-  PRINCIPAL: '/dashboard/overview',
-  TEACHER: '/dashboard/results',
-  ACCOUNTANT: '/dashboard/payment-reviews',
-  STUDENT: '/dashboard/grades',
-  PARENT: '/dashboard/children',
-}
-
 const RATE_LIMITED_ROUTES = ['/api/auth/register', '/api/auth/login', '/api/auth/forgot-password', '/api/auth/reset-password', '/api/auth/signin']
 const RATE_LIMIT_MAX = 10
 const RATE_LIMIT_WINDOW_MS = 60 * 1000
@@ -162,6 +154,15 @@ export async function proxy(request: NextRequest) {
     }
 
     const allowedRoutes = ROLE_ROUTES[role]
+    if (!allowedRoutes) {
+      // Unknown role: /dashboard is the terminal fallback page.
+      // Allow it to render and funnel other dashboard paths to it
+      // (prevents an infinite redirect loop).
+      if (path === '/dashboard') {
+        return NextResponse.next()
+      }
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
     const isAllowed = allowedRoutes.some((r) => path === r || path.startsWith(r + '/'))
 
     if (!isAllowed) {
@@ -170,7 +171,7 @@ export async function proxy(request: NextRequest) {
 
     // Route users to their role-specific dashboard when hitting the generic /dashboard
     if (path === '/dashboard') {
-      const home = ROLE_HOME[role]
+      const home = roleHome(role)
       if (home && home !== '/dashboard') {
         return NextResponse.redirect(new URL(home, request.url))
       }

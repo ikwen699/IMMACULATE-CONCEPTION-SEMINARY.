@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
+import { getSession, signIn } from 'next-auth/react'
 import Link from 'next/link'
+import { roleHome } from '@/lib/role-home'
 import {
   Mail,
   Lock,
@@ -72,7 +73,9 @@ export default function LoginPage() {
           setError('Invalid email or password. Please check your credentials and try again.')
         }
       } else {
-        window.location.href = '/dashboard'
+        const session = await getSession()
+        const role = (session?.user as { role?: string } | null)?.role
+        window.location.href = roleHome(role)
       }
     } catch {
       setError('An error occurred. Please try again.')
