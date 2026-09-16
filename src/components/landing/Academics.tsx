@@ -10,6 +10,7 @@ const tabs = [
   {
     id: 'jss',
     label: 'Junior Secondary',
+    short: 'Junior',
     sublabel: 'JSS 1 – 3',
     icon: <BookMarked className="w-4 h-4" />,
     color: 'bg-blue-600',
@@ -34,6 +35,7 @@ const tabs = [
   {
     id: 'science',
     label: 'SS Science',
+    short: 'Science',
     sublabel: 'SS 1 – 3',
     icon: <FlaskConical className="w-4 h-4" />,
     color: 'bg-emerald-600',
@@ -55,6 +57,7 @@ const tabs = [
   {
     id: 'arts',
     label: 'SS Arts',
+    short: 'Arts',
     sublabel: 'SS 1 – 3',
     icon: <Globe2 className="w-4 h-4" />,
     color: 'bg-amber-600',
@@ -91,7 +94,7 @@ export default function Academics() {
   const tab = tabs[active]
 
   return (
-    <section id="academics" className="py-24 md:py-28 bg-gray-50">
+    <section id="academics" className="py-20 sm:py-24 md:py-28 bg-gray-50">
       <div className="max-w-7xl mx-auto px-5 sm:px-8">
         <Reveal>
           <SectionHeading
@@ -108,7 +111,7 @@ export default function Academics() {
               role="tablist"
               aria-label="Academic programmes"
               onKeyDown={handleKeyDown}
-              className="flex bg-white rounded-2xl p-1.5 ring-1 ring-gray-200 shadow-sm mb-8"
+              className="flex flex-wrap justify-center bg-white rounded-2xl p-1.5 ring-1 ring-gray-200 shadow-sm mb-8"
             >
               {tabs.map((t, i) => (
                 <button
@@ -127,7 +130,7 @@ export default function Academics() {
                 >
                   {t.icon}
                   <span className="hidden sm:inline">{t.label}</span>
-                  <span className="sm:hidden">{t.sublabel}</span>
+                  <span className="sm:hidden">{t.short}</span>
                 </button>
               ))}
             </div>

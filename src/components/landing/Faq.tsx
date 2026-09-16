@@ -37,7 +37,7 @@ export default function Faq() {
   const [open, setOpen] = useState(0)
 
   return (
-    <section id="faq" className="py-24 md:py-28 bg-white">
+    <section id="faq" className="py-20 sm:py-24 md:py-28 bg-white">
       <div className="max-w-3xl mx-auto px-5 sm:px-8">
         <Reveal>
           <SectionHeading

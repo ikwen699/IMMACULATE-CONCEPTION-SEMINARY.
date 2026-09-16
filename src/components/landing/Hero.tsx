@@ -44,7 +44,7 @@ export default function Hero({ isAuthenticated }: { isAuthenticated: boolean }) 
               </span>
             </div>
 
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl xl:text-[3.5rem] font-semibold text-white leading-[1.08] tracking-tight mb-4">
+            <h1 className="font-display text-[2.5rem] sm:text-5xl lg:text-6xl xl:text-[3.5rem] font-semibold text-white leading-[1.1] tracking-tight mb-4">
               Immaculate
               <br />
               Conception
@@ -67,19 +67,19 @@ export default function Hero({ isAuthenticated }: { isAuthenticated: boolean }) 
               in the heart of Cross River State.
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 mb-12">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3 mb-12">
               {isAuthenticated ? (
-                <Button href="/dashboard" variant="primary" size="lg">
+                <Button href="/dashboard" variant="primary" size="lg" className="w-full sm:w-auto">
                   Go to Dashboard
                   <ArrowRight className="w-5 h-5" />
                 </Button>
               ) : (
                 <>
-                  <Button href="/login" variant="primary" size="lg" className="bg-white text-blue-950 hover:bg-blue-50 shadow-white/20">
+                  <Button href="/login" variant="primary" size="lg" className="w-full sm:w-auto bg-white text-blue-950 hover:bg-blue-50 shadow-white/20">
                     <LogIn className="w-5 h-5" />
                     Sign In
                   </Button>
-                  <Button href="/register" variant="gold" size="lg">
+                  <Button href="/register" variant="gold" size="lg" className="w-full sm:w-auto">
                     Register
                     <ArrowRight className="w-5 h-5" />
                   </Button>
@@ -87,7 +87,7 @@ export default function Hero({ isAuthenticated }: { isAuthenticated: boolean }) 
               )}
             </div>
 
-            <div className="grid grid-cols-4 gap-4 sm:gap-6 border-t border-white/[0.08] pt-8 max-w-md mx-auto lg:mx-0">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-8 sm:gap-6 border-t border-white/[0.08] pt-8 max-w-md mx-auto lg:mx-0">
               {stats.map((s) => (
                 <StatCounter
                   key={s.label}
@@ -100,18 +100,18 @@ export default function Hero({ isAuthenticated }: { isAuthenticated: boolean }) 
             </div>
           </div>
 
-          <div className="relative mt-8 lg:mt-0 flex justify-center">
+          <div className="relative mt-10 lg:mt-0 flex justify-center">
             <div className="absolute -inset-8 bg-blue-500/20 blur-[80px] rounded-full" />
 
-            <div className="relative w-full max-w-md">
-              <div className="absolute -top-6 -right-3 sm:-right-8 z-10 rotate-2 animate-float-slow">
-                <div className="w-52 sm:w-64 rounded-2xl overflow-hidden ring-1 ring-white/20 shadow-2xl shadow-black/20">
+            <div className="relative w-full max-w-sm sm:max-w-md mx-auto">
+              <div className="absolute -top-4 -right-2 sm:-right-8 z-10 rotate-2 animate-float-slow">
+                <div className="w-40 sm:w-64 rounded-2xl overflow-hidden ring-1 ring-white/20 shadow-2xl shadow-black/20">
                   <Image
                     src={site.images.heroPhoto}
                     alt="Campus view"
                     width={480}
                     height={270}
-                    className="w-full h-32 sm:h-40 object-cover"
+                    className="w-full h-24 sm:h-40 object-cover"
                     priority
                   />
                   <div className="px-3.5 py-2.5 bg-blue-950/90 backdrop-blur-sm border-t border-white/10 flex items-center gap-2">
@@ -138,7 +138,7 @@ export default function Hero({ isAuthenticated }: { isAuthenticated: boolean }) 
                   </div>
                 </div>
 
-                <div className="p-5 sm:p-6 space-y-5">
+                <div className="p-4 sm:p-6 space-y-5">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-blue-700 flex items-center justify-center text-white text-sm font-bold ring-2 ring-blue-500/30">
                       A
@@ -214,7 +214,7 @@ export default function Hero({ isAuthenticated }: { isAuthenticated: boolean }) 
                 </div>
               </div>
 
-              <div className="absolute -bottom-5 -left-3 sm:-left-8 z-10 -rotate-1 animate-float">
+              <div className="absolute -bottom-4 left-1 sm:-left-8 z-10 -rotate-1 animate-float">
                 <div className="flex items-center gap-2.5 bg-white/[0.12] backdrop-blur-xl ring-1 ring-white/20 rounded-2xl px-4 py-2.5 shadow-xl">
                   <div className="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center">
                     <Bell className="w-4 h-4 text-emerald-400" />

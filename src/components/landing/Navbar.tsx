@@ -65,7 +65,7 @@ export default function Navbar({ isAuthenticated }: { isAuthenticated: boolean }
             alt="ICS Badge"
             className="w-9 h-9 rounded-full object-cover ring-2 ring-white/30 shadow-sm"
           />
-          <div className="flex flex-col leading-none">
+          <div className="hidden min-[400px]:flex flex-col leading-none">
             <span
               className={cn(
                 'font-bold text-[13px] tracking-wide transition-colors',

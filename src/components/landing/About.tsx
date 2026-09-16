@@ -34,7 +34,7 @@ const benefits = [
 
 export default function About() {
   return (
-    <section id="about" className="relative py-24 md:py-28 bg-white overflow-hidden">
+    <section id="about" className="relative py-20 sm:py-24 md:py-28 bg-white overflow-hidden">
       <div className="absolute -top-40 right-0 w-96 h-96 bg-gold-50 rounded-full blur-[100px]" />
 
       <div className="max-w-7xl mx-auto px-5 sm:px-8 relative">

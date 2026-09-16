@@ -48,9 +48,17 @@ export default function Testimonials() {
 
   const updateActive = useCallback(() => {
     const el = trackRef.current
-    if (!el) return
-    const idx = Math.round(el.scrollLeft / 430)
-    setActive(Math.min(idx, testimonials.length - 1))
+    if (!el || !el.children.length) return
+    let closest = 0
+    let min = Infinity
+    Array.from(el.children).forEach((child, i) => {
+      const dist = Math.abs((child as HTMLElement).offsetLeft - el.scrollLeft)
+      if (dist < min) {
+        min = dist
+        closest = i
+      }
+    })
+    setActive(closest)
   }, [])
 
   useEffect(() => {
@@ -62,13 +70,19 @@ export default function Testimonials() {
 
   const scrollTo = (index: number) => {
     const el = trackRef.current
-    if (!el) return
+    if (!el || !el.children.length) return
     const clamped = Math.max(0, Math.min(index, testimonials.length - 1))
-    el.scrollTo({ left: clamped * 430, behavior: 'smooth' })
+    const trackRect = el.getBoundingClientRect()
+    const card = el.children[clamped] as HTMLElement
+    const cardRect = card.getBoundingClientRect()
+    el.scrollTo({
+      left: el.scrollLeft + (cardRect.left - trackRect.left),
+      behavior: 'smooth',
+    })
   }
 
   return (
-    <section id="testimonials" className="py-24 md:py-28 bg-gray-50 overflow-hidden">
+    <section id="testimonials" className="py-20 sm:py-24 md:py-28 bg-gray-50 overflow-hidden">
       <div className="max-w-7xl mx-auto px-5 sm:px-8">
         <Reveal>
           <SectionHeading

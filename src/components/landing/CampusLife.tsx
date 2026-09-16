@@ -37,7 +37,7 @@ const activities = [
 
 export default function CampusLife() {
   return (
-    <section id="campus-life" className="py-24 md:py-28 bg-white">
+    <section id="campus-life" className="py-20 sm:py-24 md:py-28 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-5 sm:px-8">
         <Reveal>
           <SectionHeading

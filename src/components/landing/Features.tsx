@@ -14,7 +14,7 @@ const barData = [65, 45, 80, 55, 90]
 
 export default function Features() {
   return (
-    <section id="features" className="py-24 md:py-28 bg-white">
+    <section id="features" className="py-20 sm:py-24 md:py-28 bg-white">
       <div className="max-w-7xl mx-auto px-5 sm:px-8">
         <Reveal>
           <SectionHeading

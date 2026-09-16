@@ -30,7 +30,7 @@ export default function CtaBand() {
       <div className="absolute -bottom-32 -right-16 w-80 h-80 bg-blue-950/20 rounded-full blur-[100px]" />
       <div className="absolute inset-0 opacity-[0.04] bg-[linear-gradient(to_right,#1e1b0e_1px,transparent_1px),linear-gradient(to_bottom,#1e1b0e_1px,transparent_1px)] bg-[size:44px_44px]" />
 
-      <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-20 md:py-24 text-center">
+      <div className="relative max-w-7xl mx-auto px-5 sm:px-8 py-16 sm:py-20 md:py-24 text-center">
         <Reveal>
           <span className="inline-block text-[11px] font-bold tracking-widest text-blue-950 bg-blue-950/10 px-4 py-1.5 rounded-full uppercase mb-5">
             Admissions Open
@@ -62,12 +62,12 @@ export default function CtaBand() {
         </Reveal>
 
         <Reveal delay={200}>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
             <Button
               href="/register"
               variant="primary"
               size="lg"
-              className="bg-blue-950 text-white hover:bg-blue-900 shadow-xl shadow-blue-950/30"
+              className="w-full sm:w-auto bg-blue-950 text-white hover:bg-blue-900 shadow-xl shadow-blue-950/30"
             >
               Start Your Application
               <ArrowRight className="w-5 h-5" />
@@ -76,7 +76,7 @@ export default function CtaBand() {
               href="#contact"
               variant="outline"
               size="lg"
-              className="ring-blue-950/20 text-blue-950 bg-white/60 hover:bg-white"
+              className="w-full sm:w-auto ring-blue-950/20 text-blue-950 bg-white/60 hover:bg-white"
             >
               Contact Us
             </Button>
