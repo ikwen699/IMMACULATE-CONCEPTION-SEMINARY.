@@ -10,6 +10,18 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
+
+  --color-gold-50: #faf6ea;
+  --color-gold-100: #f4ebcf;
+  --color-gold-200: #e9d7a0;
+  --color-gold-300: #dcbf6d;
+  --color-gold-400: #d0ab4a;
+  --color-gold-500: #c19a36;
+  --color-gold-600: #a67f2d;
+  --color-gold-700: #856326;
+  --color-gold-800: #6c5023;
+  --color-gold-900: #5c4420;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -19,9 +31,19 @@
   }
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+html {
+  scroll-padding-top: 80px;
+}
+
 @layer base {
   :focus-visible {
-    outline: 2px solid #6d28d9;
+    outline: 2px solid #c19a36;
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -46,6 +68,42 @@ body {
   padding: 0;
 }
 
+::selection {
+  background: #d0ab4a;
+  color: #1e1b0e;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d4d4d8;
+  border-radius: 99px;
+}
+
+.js .reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.js .reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -61,6 +119,21 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes slideInFromRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-6px) rotate(1deg); }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.2s ease-out;
 }
@@ -73,11 +146,14 @@ body {
   animation: slideInFromTop 0.3s ease-out;
 }
 
-@keyframes slideInFromRight {
-  from { opacity: 0; transform: translateX(24px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
 .animate-slide-in-right {
   animation: slideInFromRight 0.25s ease-out;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: floatSlow 8s ease-in-out infinite;
 }

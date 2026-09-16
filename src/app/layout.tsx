@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import { auth } from "@/lib/auth";
@@ -14,6 +15,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const playfair = Playfair_Display({
+  variable: "--font-display",
+  subsets: ["latin"],
+  display: "swap",
+});
+
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
@@ -21,8 +28,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "ICS - School Portal",
-  description: "Official school portal for ICS",
+  title: "Immaculate Conception Seminary — ICS School Portal",
+  description:
+    "Official portal of Immaculate Conception Seminary, Mafamosing. Access academic records, grades, assignments, fees, and school announcements from one secure sign-in.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -36,6 +44,13 @@ export const metadata: Metadata = {
     icon: "/favicon.ico",
     apple: "/icons/icon-192x192.png",
   },
+  openGraph: {
+    title: "Immaculate Conception Seminary — ICS School Portal",
+    description:
+      "Academic excellence and moral formation in Cross River State since 1972.",
+    siteName: "Immaculate Conception Seminary",
+    type: "website",
+  },
 };
 
 export default async function RootLayout({
@@ -47,7 +62,7 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} js h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <Providers session={session}>{children}</Providers>

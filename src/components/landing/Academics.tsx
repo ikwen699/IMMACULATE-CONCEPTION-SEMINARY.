@@ -1,142 +1,168 @@
+'use client'
+
+import { useState, useCallback, useRef } from 'react'
 import { BookMarked, FlaskConical, Globe2 } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import SectionHeading from './ui/SectionHeading'
+import Reveal from './ui/Reveal'
 
-const jssSubjects = [
-  'Mathematics',
-  'English Language',
-  'Basic Science & Technology',
-  'Christian Religious Studies',
-  'Social Studies',
-  'Civic Education',
-  'French Language',
-  'Agricultural Science',
-  'Home Economics',
-  'Physical & Health Education',
-  'Fine Arts',
-  'Music',
-]
-
-const ssScienceSubjects = [
-  'Mathematics',
-  'English Language',
-  'Physics',
-  'Chemistry',
-  'Biology',
-  'Further Mathematics',
-  'Agricultural Science',
-  'Computer Studies',
-  'Christian Religious Studies',
-]
-
-const ssArtsSubjects = [
-  'Literature in English',
-  'Government',
-  'Christian Religious Studies',
-  'History',
-  'French Language',
-  'Fine Arts',
-  'Economics',
-  'Civic Education',
+const tabs = [
+  {
+    id: 'jss',
+    label: 'Junior Secondary',
+    sublabel: 'JSS 1 – 3',
+    icon: <BookMarked className="w-4 h-4" />,
+    color: 'bg-blue-600',
+    badgeColor: 'bg-blue-100 text-blue-700',
+    dotColor: 'bg-blue-400',
+    description: 'A broad foundation programme preparing students for senior-level academics through a balanced mix of sciences, humanities, and creative arts.',
+    subjects: [
+      'Mathematics',
+      'English Language',
+      'Basic Science & Technology',
+      'Christian Religious Studies',
+      'Social Studies',
+      'Civic Education',
+      'French Language',
+      'Agricultural Science',
+      'Home Economics',
+      'Physical & Health Education',
+      'Fine Arts',
+      'Music',
+    ],
+  },
+  {
+    id: 'science',
+    label: 'SS Science',
+    sublabel: 'SS 1 – 3',
+    icon: <FlaskConical className="w-4 h-4" />,
+    color: 'bg-emerald-600',
+    badgeColor: 'bg-emerald-100 text-emerald-700',
+    dotColor: 'bg-emerald-400',
+    description: 'A rigorous science-track programme equipping students with deep knowledge in STEM disciplines for university placement and future careers.',
+    subjects: [
+      'Mathematics',
+      'English Language',
+      'Physics',
+      'Chemistry',
+      'Biology',
+      'Further Mathematics',
+      'Agricultural Science',
+      'Computer Studies',
+      'Christian Religious Studies',
+    ],
+  },
+  {
+    id: 'arts',
+    label: 'SS Arts',
+    sublabel: 'SS 1 – 3',
+    icon: <Globe2 className="w-4 h-4" />,
+    color: 'bg-amber-600',
+    badgeColor: 'bg-amber-100 text-amber-700',
+    dotColor: 'bg-amber-400',
+    description: 'An enriching arts-track programme fostering critical thinking through literature, social sciences, and creative disciplines.',
+    subjects: [
+      'Literature in English',
+      'Government',
+      'Christian Religious Studies',
+      'History',
+      'French Language',
+      'Fine Arts',
+      'Economics',
+      'Civic Education',
+    ],
+  },
 ]
 
 export default function Academics() {
+  const [active, setActive] = useState(0)
+  const tabListRef = useRef<HTMLDivElement>(null)
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      setActive((prev) => (prev + 1) % tabs.length)
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      setActive((prev) => (prev - 1 + tabs.length) % tabs.length)
+    }
+  }, [])
+
+  const tab = tabs[active]
+
   return (
-    <section id="academics" className="py-20 md:py-28 bg-gray-50">
+    <section id="academics" className="py-24 md:py-28 bg-gray-50">
       <div className="max-w-7xl mx-auto px-5 sm:px-8">
-        <div className="text-center mb-14">
-          <span className="inline-block text-[11px] font-semibold tracking-wide text-blue-600 bg-blue-50 px-4 py-1.5 rounded-full uppercase mb-4">
-            Academic Programmes
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 leading-tight">
-            Building a Strong Academic Foundation
-          </h2>
-          <p className="text-gray-500 mt-3 max-w-2xl mx-auto leading-relaxed">
-            Our curriculum covers Junior Secondary (JSS 1–3) and Senior Secondary (SS 1–3),
-            offering Science and Arts tracks to suit every student&apos;s strength.
-          </p>
-        </div>
+        <Reveal>
+          <SectionHeading
+            eyebrow="Academic Programmes"
+            title="Building a Strong Academic Foundation"
+            sub="Our curriculum covers Junior Secondary and Senior Secondary, offering Science and Arts tracks to suit every student's strengths and ambitions."
+          />
+        </Reveal>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1 bg-white rounded-2xl border border-gray-100 p-7 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center">
-                <BookMarked className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900">Junior Secondary</h3>
-                <p className="text-xs text-gray-400 font-medium">JSS 1 – JSS 3</p>
-              </div>
-            </div>
-            <p className="text-sm text-gray-500 leading-relaxed mb-5">
-              A broad foundation programme preparing students for senior-level academics
-              through a balanced mix of sciences, humanities, and creative arts.
-            </p>
-            <ul className="space-y-2">
-              {jssSubjects.map((s) => (
-                <li
-                  key={s}
-                  className="flex items-center gap-2 text-sm text-gray-600"
+        <Reveal delay={100}>
+          <div className="flex flex-col items-center">
+            <div
+              ref={tabListRef}
+              role="tablist"
+              aria-label="Academic programmes"
+              onKeyDown={handleKeyDown}
+              className="flex bg-white rounded-2xl p-1.5 ring-1 ring-gray-200 shadow-sm mb-8"
+            >
+              {tabs.map((t, i) => (
+                <button
+                  key={t.id}
+                  role="tab"
+                  aria-selected={active === i}
+                  aria-controls={`panel-${t.id}`}
+                  id={`tab-${t.id}`}
+                  onClick={() => setActive(i)}
+                  className={cn(
+                    'relative flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200',
+                    active === i
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
+                  )}
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
-                  {s}
-                </li>
+                  {t.icon}
+                  <span className="hidden sm:inline">{t.label}</span>
+                  <span className="sm:hidden">{t.sublabel}</span>
+                </button>
               ))}
-            </ul>
-          </div>
+            </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 p-7 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
-                <FlaskConical className="w-5 h-5" />
+            <div
+              role="tabpanel"
+              id={`panel-${tab.id}`}
+              aria-labelledby={`tab-${tab.id}`}
+              className="w-full animate-fade-in"
+            >
+              <div className="max-w-2xl mx-auto text-center mb-8">
+                <span className={cn('inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full mb-3', tab.badgeColor)}>
+                  {tab.sublabel}
+                </span>
+                <p className="text-gray-500 text-[15px] leading-relaxed">{tab.description}</p>
               </div>
-              <div>
-                <h3 className="font-bold text-gray-900">Senior Secondary — Science</h3>
-                <p className="text-xs text-gray-400 font-medium">SS 1 – SS 3</p>
-              </div>
-            </div>
-            <p className="text-sm text-gray-500 leading-relaxed mb-5">
-              A rigorous science-track programme equipping students with deep knowledge in
-              STEM disciplines for university placement and future careers.
-            </p>
-            <ul className="space-y-2">
-              {ssScienceSubjects.map((s) => (
-                <li
-                  key={s}
-                  className="flex items-center gap-2 text-sm text-gray-600"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
-                  {s}
-                </li>
-              ))}
-            </ul>
-          </div>
 
-          <div className="bg-white rounded-2xl border border-gray-100 p-7 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-11 h-11 rounded-xl bg-amber-600 text-white flex items-center justify-center">
-                <Globe2 className="w-5 h-5" />
+              <div className="grid sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
+                {tab.subjects.map((s) => (
+                  <div
+                    key={s}
+                    className="flex items-center gap-3 bg-white rounded-xl px-4 py-3 ring-1 ring-gray-100 hover:ring-gray-200 hover:shadow-sm transition-all duration-200"
+                  >
+                    <span className={cn('w-2 h-2 rounded-full shrink-0', tab.dotColor)} />
+                    <span className="text-sm font-medium text-gray-700">{s}</span>
+                  </div>
+                ))}
               </div>
-              <div>
-                <h3 className="font-bold text-gray-900">Senior Secondary — Arts</h3>
-                <p className="text-xs text-gray-400 font-medium">SS 1 – SS 3</p>
-              </div>
+
+              <p className="text-center text-xs text-gray-400 mt-6 font-medium">
+                {tab.subjects.length} subjects offered
+              </p>
             </div>
-            <p className="text-sm text-gray-500 leading-relaxed mb-5">
-              An enriching arts-track programme fostering critical thinking through
-              literature, social sciences, and creative disciplines.
-            </p>
-            <ul className="space-y-2">
-              {ssArtsSubjects.map((s) => (
-                <li
-                  key={s}
-                  className="flex items-center gap-2 text-sm text-gray-600"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
-                  {s}
-                </li>
-              ))}
-            </ul>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   )
