@@ -104,21 +104,23 @@ export default function Hero({ isAuthenticated }: { isAuthenticated: boolean }) 
             <div className="absolute -inset-8 bg-blue-500/20 blur-[80px] rounded-full" />
 
             <div className="relative w-full max-w-sm sm:max-w-md mx-auto">
-              <div className="absolute -top-4 -right-2 sm:-right-8 z-10 rotate-2 animate-float-slow">
-                <div className="w-40 sm:w-64 rounded-2xl overflow-hidden ring-1 ring-white/20 shadow-2xl shadow-black/20">
-                  <Image
-                    src={site.images.heroPhoto}
-                    alt="Campus view"
-                    width={480}
-                    height={270}
-                    className="w-full h-24 sm:h-40 object-cover"
-                    priority
-                  />
-                  <div className="px-3.5 py-2.5 bg-blue-950/90 backdrop-blur-sm border-t border-white/10 flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-blue-800 ring-1 ring-white/20" />
-                    <div>
-                      <p className="text-[10px] font-bold text-white/90 leading-tight">Our Campus</p>
-                      <p className="text-[9px] text-blue-300/60">Mafamosing, Cross River</p>
+              <div className="flex justify-end pr-3 sm:pr-6 pb-3 sm:pb-5 z-10">
+                <div className="w-40 sm:w-64 rotate-2 animate-float-slow">
+                  <div className="rounded-2xl overflow-hidden ring-1 ring-white/20 shadow-2xl shadow-black/20">
+                    <Image
+                      src={site.images.heroPhoto}
+                      alt="Campus view"
+                      width={480}
+                      height={270}
+                      className="w-full h-24 sm:h-40 object-cover"
+                      priority
+                    />
+                    <div className="px-3.5 py-2.5 bg-blue-950/90 backdrop-blur-sm border-t border-white/10 flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-blue-800 ring-1 ring-white/20" />
+                      <div>
+                        <p className="text-[10px] font-bold text-white/90 leading-tight">Our Campus</p>
+                        <p className="text-[9px] text-blue-300/60">Mafamosing, Cross River</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -214,7 +216,7 @@ export default function Hero({ isAuthenticated }: { isAuthenticated: boolean }) 
                 </div>
               </div>
 
-              <div className="absolute -bottom-4 left-1 sm:-left-8 z-10 -rotate-1 animate-float">
+              <div className="hidden sm:flex absolute -bottom-4 left-1 sm:-left-8 z-10 -rotate-1 animate-float">
                 <div className="flex items-center gap-2.5 bg-white/[0.12] backdrop-blur-xl ring-1 ring-white/20 rounded-2xl px-4 py-2.5 shadow-xl">
                   <div className="w-9 h-9 rounded-xl bg-emerald-500/20 flex items-center justify-center">
                     <Bell className="w-4 h-4 text-emerald-400" />
