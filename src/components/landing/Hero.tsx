@@ -79,8 +79,8 @@ export default function Hero({ isAuthenticated }: { isAuthenticated: boolean }) 
                     <LogIn className="w-5 h-5" />
                     Sign In
                   </Button>
-                  <Button href="/register" variant="gold" size="lg" className="w-full sm:w-auto">
-                    Register
+                  <Button href="/apply" variant="gold" size="lg" className="w-full sm:w-auto">
+                    Apply for Admission
                     <ArrowRight className="w-5 h-5" />
                   </Button>
                 </>

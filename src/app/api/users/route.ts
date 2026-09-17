@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
     const userIds = users.map(u => u.id)
 
     const { data: teachers } = await supabase.from('Teacher').select('userId, employeeId, department, qualification').in('userId', userIds)
-    const { data: students } = await supabase.from('Student').select('id, userId, admissionNo, classId, parentId').in('userId', userIds)
+    const { data: students } = await supabase.from('Student').select('id, userId, admissionNo, classId, parentId, classAppliedFor').in('userId', userIds)
     const { data: parents } = await supabase.from('Parent').select('id, userId, occupation').in('userId', userIds)
 
     const classIds = [...new Set((students || []).map(s => s.classId).filter(Boolean))]
@@ -427,6 +427,25 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
+    // When a user is approved as a student, ensure they have a Student record and
+    // an admission number (covers landing-page applications and old /register accounts).
+    if (status === 'ACTIVE' && user[0]?.role === 'STUDENT') {
+      const { data: existingStudent } = await supabase
+        .from('Student')
+        .select('id, admissionNo')
+        .eq('userId', id)
+        .single()
+
+      if (existingStudent && !existingStudent.admissionNo) {
+        await supabase
+          .from('Student')
+          .update({ admissionNo: generateAdmissionNo() })
+          .eq('id', existingStudent.id)
+      } else if (!existingStudent) {
+        await supabase.from('Student').insert({ userId: id, admissionNo: generateAdmissionNo() })
+      }
+    }
 
     return NextResponse.json(user)
   } catch (error) {

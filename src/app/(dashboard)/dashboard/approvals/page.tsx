@@ -14,7 +14,7 @@ interface PendingUser {
   status: string
   phone?: string
   createdAt: string
-  student?: { admissionNo: string; dateOfBirth?: string; gender?: string; class?: { name: string; section: string } }
+  student?: { admissionNo: string; dateOfBirth?: string; gender?: string; class?: { name: string; section: string }; classAppliedFor?: string }
   teacher?: { employeeId: string; department?: string; qualification?: string }
   parent?: { occupation?: string }
 }
@@ -383,9 +383,10 @@ export default function ApprovalsPage() {
                   <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
                     <div className="flex items-center gap-1.5 mb-2"><span className="mdi mdi-school text-emerald-600 text-sm" /><span className="text-[11px] font-semibold text-emerald-700 uppercase">Student Info</span></div>
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div><span className="text-emerald-600">Admission:</span> <span className="font-medium text-gray-900">{selectedUser.student.admissionNo}</span></div>
+                      <div><span className="text-emerald-600">Admission:</span> <span className="font-medium text-gray-900">{selectedUser.student.admissionNo || 'Not assigned yet'}</span></div>
                       {selectedUser.student.gender && <div><span className="text-emerald-600">Gender:</span> <span className="font-medium text-gray-900">{selectedUser.student.gender}</span></div>}
                       {selectedUser.student.dateOfBirth && <div><span className="text-emerald-600">DOB:</span> <span className="font-medium text-gray-900">{new Date(selectedUser.student.dateOfBirth).toLocaleDateString()}</span></div>}
+                      {selectedUser.student.classAppliedFor && <div><span className="text-emerald-600">Applied for:</span> <span className="font-medium text-gray-900">{selectedUser.student.classAppliedFor}</span></div>}
                       {selectedUser.student.class && <div><span className="text-emerald-600">Class:</span> <span className="font-medium text-gray-900">{selectedUser.student.class.name} {selectedUser.student.class.section}</span></div>}
                     </div>
                   </div>

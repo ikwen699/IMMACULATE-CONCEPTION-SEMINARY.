@@ -140,10 +140,10 @@ export default function Navbar({ isAuthenticated }: { isAuthenticated: boolean }
                 Sign In
               </Link>
               <Link
-                href="/register"
+                href="/apply"
                 className="hidden sm:inline-flex items-center px-4 py-2.5 rounded-xl bg-gold-500 text-blue-950 text-sm font-semibold hover:bg-gold-400 transition-colors shadow-lg shadow-gold-500/25"
               >
-                Register
+                Apply for Admission
               </Link>
             </>
           )}
@@ -203,11 +203,11 @@ export default function Navbar({ isAuthenticated }: { isAuthenticated: boolean }
                     Sign In
                   </Link>
                   <Link
-                    href="/register"
+                    href="/apply"
                     onClick={() => setOpen(false)}
                     className="flex items-center justify-center px-4 py-2.5 rounded-xl bg-gold-500 text-blue-950 text-sm font-semibold"
                   >
-                    Create Account
+                    Apply for Admission
                   </Link>
                 </>
               )}

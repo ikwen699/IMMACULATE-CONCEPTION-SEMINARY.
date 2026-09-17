@@ -64,7 +64,7 @@ export default function CtaBand() {
         <Reveal delay={200}>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
             <Button
-              href="/register"
+              href="/apply"
               variant="primary"
               size="lg"
               className="w-full sm:w-auto bg-blue-950 text-white hover:bg-blue-900 shadow-xl shadow-blue-950/30"
