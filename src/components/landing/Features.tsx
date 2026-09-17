@@ -25,8 +25,8 @@ export default function Features() {
         </Reveal>
 
         <div className="grid md:grid-cols-3 gap-5">
-          <Reveal delay={50}>
-            <div className="md:col-span-2 relative bg-gradient-to-br from-blue-900 to-blue-800 rounded-3xl p-8 sm:p-10 text-white overflow-hidden group hover:shadow-xl hover:shadow-blue-600/10 transition-all duration-300">
+          <Reveal delay={50} className="md:col-span-2">
+            <div className="relative bg-gradient-to-br from-blue-900 to-blue-800 rounded-3xl p-8 sm:p-10 text-white overflow-hidden group hover:shadow-xl hover:shadow-blue-600/10 transition-all duration-300 h-full flex flex-col">
               <div className="absolute -top-16 -right-16 w-48 h-48 bg-gold-400/10 rounded-full blur-3xl" />
               <div className="absolute bottom-0 left-0 w-40 h-40 bg-blue-400/10 rounded-full blur-3xl" />
               <div className="relative z-10 h-full flex flex-col justify-between">
@@ -75,43 +75,43 @@ export default function Features() {
           </Reveal>
 
           <Reveal delay={50}>
-            <div className="bg-gradient-to-br from-emerald-50 to-white rounded-3xl p-7 border border-emerald-100/60 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300">
+            <div className="bg-gradient-to-br from-emerald-50 to-white rounded-3xl p-7 border border-emerald-100/60 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300 h-full flex flex-col">
               <div className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center mb-5">
                 <CalendarCheck className="w-6 h-6" />
               </div>
               <h3 className="font-display text-lg font-semibold text-gray-900 mb-2">Attendance Tracking</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">
+              <p className="text-gray-500 text-sm leading-relaxed flex-1">
                 Monitor daily attendance records and track presence across every term and session.
               </p>
             </div>
           </Reveal>
 
           <Reveal delay={100}>
-            <div className="bg-gradient-to-br from-amber-50 to-white rounded-3xl p-7 border border-amber-100/60 hover:shadow-lg hover:shadow-amber-500/5 transition-all duration-300">
+            <div className="bg-gradient-to-br from-amber-50 to-white rounded-3xl p-7 border border-amber-100/60 hover:shadow-lg hover:shadow-amber-500/5 transition-all duration-300 h-full flex flex-col">
               <div className="w-12 h-12 rounded-2xl bg-amber-600 text-white flex items-center justify-center mb-5">
                 <Wallet className="w-6 h-6" />
               </div>
               <h3 className="font-display text-lg font-semibold text-gray-900 mb-2">Fee Management</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">
+              <p className="text-gray-500 text-sm leading-relaxed flex-1">
                 View fee breakdowns, track payment status, and download receipts — all from one place.
               </p>
             </div>
           </Reveal>
 
           <Reveal delay={150}>
-            <div className="bg-gradient-to-br from-rose-50 to-white rounded-3xl p-7 border border-rose-100/60 hover:shadow-lg hover:shadow-rose-500/5 transition-all duration-300">
+            <div className="bg-gradient-to-br from-rose-50 to-white rounded-3xl p-7 border border-rose-100/60 hover:shadow-lg hover:shadow-rose-500/5 transition-all duration-300 h-full flex flex-col">
               <div className="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center mb-5">
                 <Megaphone className="w-6 h-6" />
               </div>
               <h3 className="font-display text-lg font-semibold text-gray-900 mb-2">Announcements</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">
+              <p className="text-gray-500 text-sm leading-relaxed flex-1">
                 Stay informed with school-wide announcements, circulars, and important updates.
               </p>
             </div>
           </Reveal>
 
-          <Reveal delay={200}>
-            <div className="md:col-span-3 bg-gradient-to-r from-gray-50 to-blue-50/50 rounded-3xl p-7 border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+          <Reveal delay={200} className="md:col-span-3">
+            <div className="bg-gradient-to-r from-gray-50 to-blue-50/50 rounded-3xl p-7 border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center gap-5">
               <div className="w-12 h-12 rounded-2xl bg-sky-600 text-white flex items-center justify-center shrink-0">
                 <Bell className="w-6 h-6" />
               </div>

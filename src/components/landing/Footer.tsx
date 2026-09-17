@@ -163,7 +163,7 @@ export default function Footer() {
                 <li key={l.label}>
                   <a
                     href={l.href}
-                    className="text-sm text-blue-200/60 hover:text-white transition-colors inline-flex items-center gap-1.5"
+                    className="text-sm text-blue-200/60 hover:text-white transition-colors inline-flex items-center gap-1.5 py-1.5"
                   >
                     <ExternalLink className="w-3 h-3" />
                     {l.label}
@@ -180,7 +180,7 @@ export default function Footer() {
                 <li key={p.label}>
                   <a
                     href={p.href}
-                    className="text-sm text-blue-200/60 hover:text-white transition-colors inline-flex items-center gap-1.5"
+                    className="text-sm text-blue-200/60 hover:text-white transition-colors inline-flex items-center gap-1.5 py-1.5"
                   >
                     <ExternalLink className="w-3 h-3" />
                     {p.label}
@@ -203,13 +203,13 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-4 h-4 text-gold-300 shrink-0" />
-                <a href={site.phoneHref} className="text-sm text-blue-200/60 hover:text-white transition-colors">
+                <a href={site.phoneHref} className="text-sm text-blue-200/60 hover:text-white transition-colors py-1.5 inline-flex items-center">
                   {site.phone}
                 </a>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-gold-300 shrink-0" />
-                <a href={site.emailHref} className="text-sm text-blue-200/60 hover:text-white transition-colors break-all">
+                <a href={site.emailHref} className="text-sm text-blue-200/60 hover:text-white transition-colors break-all py-1.5 inline-flex items-start">
                   {site.email}
                 </a>
               </li>
@@ -223,7 +223,7 @@ export default function Footer() {
           </p>
           <a
             href="#"
-            className="inline-flex items-center gap-2 text-xs font-medium text-blue-200/50 hover:text-gold-300 transition-colors"
+            className="inline-flex items-center gap-2 text-xs font-medium text-blue-200/50 hover:text-gold-300 transition-colors py-1.5"
           >
             <ArrowUp className="w-3.5 h-3.5" />
             Back to top
