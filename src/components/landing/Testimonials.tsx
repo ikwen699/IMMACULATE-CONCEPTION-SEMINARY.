@@ -1,7 +1,6 @@
 'use client'
 
-import { useRef, useState, useEffect, useCallback } from 'react'
-import { Quote, Star, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Quote, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import SectionHeading from './ui/SectionHeading'
 import Reveal from './ui/Reveal'
@@ -43,46 +42,8 @@ const avatarGradients = [
 ]
 
 export default function Testimonials() {
-  const trackRef = useRef<HTMLDivElement>(null)
-  const [active, setActive] = useState(0)
-
-  const updateActive = useCallback(() => {
-    const el = trackRef.current
-    if (!el || !el.children.length) return
-    let closest = 0
-    let min = Infinity
-    Array.from(el.children).forEach((child, i) => {
-      const dist = Math.abs((child as HTMLElement).offsetLeft - el.scrollLeft)
-      if (dist < min) {
-        min = dist
-        closest = i
-      }
-    })
-    setActive(closest)
-  }, [])
-
-  useEffect(() => {
-    const el = trackRef.current
-    if (!el) return
-    el.addEventListener('scroll', updateActive, { passive: true })
-    return () => el.removeEventListener('scroll', updateActive)
-  }, [updateActive])
-
-  const scrollTo = (index: number) => {
-    const el = trackRef.current
-    if (!el || !el.children.length) return
-    const clamped = Math.max(0, Math.min(index, testimonials.length - 1))
-    const trackRect = el.getBoundingClientRect()
-    const card = el.children[clamped] as HTMLElement
-    const cardRect = card.getBoundingClientRect()
-    el.scrollTo({
-      left: el.scrollLeft + (cardRect.left - trackRect.left),
-      behavior: 'smooth',
-    })
-  }
-
   return (
-    <section id="testimonials" className="py-20 sm:py-24 md:py-28 bg-gray-50 overflow-hidden">
+    <section id="testimonials" className="py-20 sm:py-24 md:py-28 bg-gray-50">
       <div className="max-w-7xl mx-auto px-5 sm:px-8">
         <Reveal>
           <SectionHeading
@@ -92,74 +53,38 @@ export default function Testimonials() {
           />
         </Reveal>
 
-        <Reveal delay={100}>
-          <div className="relative">
-            <div
-              ref={trackRef}
-              className="no-scrollbar snap-x snap-mandatory overflow-x-auto flex gap-6 pb-4"
+        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {testimonials.map((t, i) => (
+            <Reveal
+              key={i}
+              delay={i * 75}
+              className={cn(i === testimonials.length - 1 && 'md:col-span-2 lg:col-span-1')}
             >
-              {testimonials.map((t, i) => (
-                <div
-                  key={i}
-                  className="snap-center shrink-0 w-[85vw] sm:w-[420px] bg-white rounded-2xl border border-gray-100 p-7 shadow-sm hover:shadow-lg hover:border-blue-100 transition-all duration-300 flex flex-col"
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <Quote className="w-7 h-7 text-gold-300" />
-                    <div className="flex gap-0.5">
-                      {Array.from({ length: 5 }).map((_, s) => (
-                        <Star key={s} className="w-3.5 h-3.5 text-gold-400 fill-gold-400" />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-gray-600 text-[15px] leading-relaxed italic flex-1">
-                    &ldquo;{t.text}&rdquo;
-                  </p>
-                  <div className="flex items-center gap-3 pt-5 mt-5 border-t border-gray-100">
-                    <div className={cn('w-10 h-10 rounded-full bg-gradient-to-br text-white flex items-center justify-center font-bold text-sm shrink-0', avatarGradients[i % avatarGradients.length])}>
-                      {t.name === 'Student' ? 'S' : 'P'}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{t.name}</p>
-                      <p className="text-xs text-gray-400">{t.role}</p>
-                    </div>
+              <div className="bg-white rounded-2xl border border-gray-100 p-7 shadow-sm hover:shadow-lg hover:border-blue-100 transition-all duration-300 flex flex-col h-full">
+                <div className="flex items-center justify-between mb-4">
+                  <Quote className="w-7 h-7 text-gold-300" />
+                  <div className="flex gap-0.5">
+                    {Array.from({ length: 5 }).map((_, s) => (
+                      <Star key={s} className="w-3.5 h-3.5 text-gold-400 fill-gold-400" />
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between mt-6">
-              <div className="flex gap-2">
-                {testimonials.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => scrollTo(i)}
-                    aria-label={`Go to testimonial ${i + 1}`}
-                    className={cn(
-                      'h-2 rounded-full transition-all duration-300',
-                      active === i ? 'w-6 bg-gold-500' : 'w-2 bg-gray-300 hover:bg-gray-400'
-                    )}
-                  />
-                ))}
+                <p className="text-gray-600 text-[15px] leading-relaxed italic flex-1">
+                  &ldquo;{t.text}&rdquo;
+                </p>
+                <div className="flex items-center gap-3 pt-5 mt-5 border-t border-gray-100">
+                  <div className={cn('w-10 h-10 rounded-full bg-gradient-to-br text-white flex items-center justify-center font-bold text-sm shrink-0', avatarGradients[i % avatarGradients.length])}>
+                    {t.name === 'Student' ? 'S' : 'P'}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{t.name}</p>
+                    <p className="text-xs text-gray-400">{t.role}</p>
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-2.5">
-                <button
-                  onClick={() => scrollTo(active - 1)}
-                  aria-label="Previous testimonial"
-                  className="w-10 h-10 rounded-xl bg-white ring-1 ring-gray-200 flex items-center justify-center text-gray-500 hover:bg-blue-50 hover:text-blue-700 hover:ring-blue-200 transition-all duration-200"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => scrollTo(active + 1)}
-                  aria-label="Next testimonial"
-                  className="w-10 h-10 rounded-xl bg-white ring-1 ring-gray-200 flex items-center justify-center text-gray-500 hover:bg-blue-50 hover:text-blue-700 hover:ring-blue-200 transition-all duration-200"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </Reveal>
+            </Reveal>
+          ))}
+        </div>
       </div>
     </section>
   )
