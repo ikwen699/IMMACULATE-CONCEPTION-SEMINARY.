@@ -69,9 +69,9 @@ export default function Hero({ isAuthenticated }: { isAuthenticated: boolean }) 
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3 mb-12">
               {isAuthenticated ? (
-                <Button href="/dashboard" variant="primary" size="lg" className="w-full sm:w-auto">
-                  Go to Dashboard
-                  <ArrowRight className="w-5 h-5" />
+                <Button href="/login" variant="primary" size="lg" className="w-full sm:w-auto">
+                  <LogIn className="w-5 h-5" />
+                  Sign In to the Portal
                 </Button>
               ) : (
                 <>

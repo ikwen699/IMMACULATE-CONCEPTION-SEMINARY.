@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Menu, X, LayoutDashboard, LogIn } from 'lucide-react'
+import { Menu, X, LogIn } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { site } from '@/lib/site'
 
@@ -119,11 +119,11 @@ export default function Navbar({ isAuthenticated }: { isAuthenticated: boolean }
         <div className="flex items-center gap-3">
           {isAuthenticated ? (
             <Link
-              href="/dashboard"
+              href="/login"
               className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/25"
             >
-              <LayoutDashboard className="w-4 h-4" />
-              Dashboard
+              <LogIn className="w-4 h-4" />
+              Sign In to the Portal
             </Link>
           ) : (
             <>
@@ -185,12 +185,12 @@ export default function Navbar({ isAuthenticated }: { isAuthenticated: boolean }
             <div className="pt-4 mt-4 border-t border-gray-100 flex flex-col gap-2">
               {isAuthenticated ? (
                 <Link
-                  href="/dashboard"
+                  href="/login"
                   onClick={() => setOpen(false)}
                   className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold"
                 >
-                  <LayoutDashboard className="w-4 h-4" />
-                  Go to Dashboard
+                  <LogIn className="w-4 h-4" />
+                  Sign In to the Portal
                 </Link>
               ) : (
                 <>
