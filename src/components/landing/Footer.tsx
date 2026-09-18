@@ -42,6 +42,8 @@ const quickLinks = [
   { label: 'Portal Features', href: '#features' },
   { label: 'Campus Life', href: '#campus-life' },
   { label: 'FAQ', href: '#faq' },
+  { label: 'Sign In to Portal', href: '/login' },
+  { label: 'Apply for Admission', href: '/apply' },
 ]
 
 const programmes = [

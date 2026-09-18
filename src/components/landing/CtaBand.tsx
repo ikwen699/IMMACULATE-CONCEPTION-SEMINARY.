@@ -1,4 +1,4 @@
-import { ArrowRight, GraduationCap, ClipboardList, BadgeCheck } from 'lucide-react'
+import { ArrowRight, LogIn, GraduationCap, ClipboardList, BadgeCheck } from 'lucide-react'
 import Button from './ui/Button'
 import Reveal from './ui/Reveal'
 
@@ -62,6 +62,11 @@ export default function CtaBand() {
         </Reveal>
 
         <Reveal delay={200}>
+          <div className="flex items-center justify-center gap-3 mb-6 text-blue-950/60">
+            <span className="h-px w-10 sm:w-16 bg-blue-950/15" />
+            <p className="text-sm font-medium">Already have an account? Access the portal.</p>
+            <span className="h-px w-10 sm:w-16 bg-blue-950/15" />
+          </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
             <Button
               href="/apply"
@@ -71,6 +76,15 @@ export default function CtaBand() {
             >
               Start Your Application
               <ArrowRight className="w-5 h-5" />
+            </Button>
+            <Button
+              href="/login"
+              variant="outline"
+              size="lg"
+              className="w-full sm:w-auto ring-blue-950/20 text-blue-950 bg-white/60 hover:bg-white"
+            >
+              <LogIn className="w-5 h-5" />
+              Sign In to the Portal
             </Button>
             <Button
               href="#contact"
