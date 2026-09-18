@@ -7,29 +7,34 @@ import Reveal from './ui/Reveal'
 
 const testimonials = [
   {
-    text: 'My experience at this school has been amazing. The teachers are supportive, patient, and always willing to help us understand our lessons. I have grown not only academically but also personally.',
-    name: 'Student',
-    role: 'Current Student',
-  },
-  {
-    text: 'I am grateful to be part of this school. The learning environment is friendly and encouraging, and the teachers motivate us to always do our best.',
-    name: 'Student',
-    role: 'Current Student',
-  },
-  {
-    text: 'This school has helped me discover my strengths and build confidence. I have made wonderful friends and learned valuable lessons that I will carry with me into the future.',
-    name: 'Student',
-    role: 'Current Student',
-  },
-  {
-    text: 'The teachers genuinely care about their students. They encourage us to ask questions, work hard, and believe in ourselves.',
-    name: 'Student',
-    role: 'Current Student',
-  },
-  {
-    text: 'Choosing this school was one of the best decisions for my education. The combination of good teaching, discipline, and extracurricular activities has made my school experience enjoyable.',
-    name: 'Parent',
+    title: 'My Child Found More Than a School — They Found a Place to Belong.',
+    text: "As a parent, I wanted more than good grades for my child. I wanted a school that would build character, confidence, discipline, and a genuine love for learning. This school has exceeded our expectations. I have watched my child grow from being uncertain and reserved into someone who believes in their abilities and dreams boldly. That transformation means everything to us.",
+    name: 'Mrs. Grace',
     role: 'Parent',
+  },
+  {
+    title: 'This School Made Me Believe I Could Become More.',
+    text: "I used to think school was just about passing exams. Here, I learned that education is about discovering your strengths, challenging yourself, and preparing for the future. My teachers believed in me even when I doubted myself. I've gained knowledge, confidence, friendships, and memories that I will carry with me for the rest of my life.",
+    name: 'Prosper',
+    role: 'Current Student',
+  },
+  {
+    title: 'Teaching Here Feels Like Making a Difference Every Day.',
+    text: "What makes this school special is its commitment to every student. We are not simply teaching subjects; we are helping young people discover who they are and what they can become. The support, creativity, and collaboration among staff create an environment where both teachers and students can thrive. It is incredibly rewarding to watch a student overcome a challenge and realize, 'I can do this.'",
+    name: 'Mr. Basil',
+    role: 'Teacher',
+  },
+  {
+    title: 'I Left With More Than a Certificate — I Left With Confidence.',
+    text: "Years after graduating, I still find myself using the lessons this school taught me. The discipline, leadership, resilience, and confidence I developed here have shaped the person I am today. My time at this school prepared me not only for university and a career, but for life. I will always be proud to call myself a graduate.",
+    name: 'Hon. Dr. Goodluck Ikwen',
+    role: 'Alumni',
+  },
+  {
+    title: "We Don't Just Educate Students. We Prepare Them for Life.",
+    text: "Every child who walks through our doors carries a unique potential. Our responsibility is to recognize it, nurture it, challenge it, and give it room to grow. We measure our success not only by academic results, but by the confident, compassionate, capable young people our students become. That is the legacy we are committed to building.",
+    name: 'Rev. Fr. Peter',
+    role: 'School Administrator',
   },
 ]
 
@@ -40,6 +45,16 @@ const avatarGradients = [
   'from-rose-500 to-rose-700',
   'from-gold-400 to-gold-600',
 ]
+
+const AVATAR_INITIAL_SKIP = new Set(['mr', 'mrs', 'ms', 'miss', 'rev', 'fr', 'hon', 'dr', 'sir', 'madam'])
+
+function getAvatarInitial(name: string): string {
+  if (!name) return '?'
+  const word = name
+    .split(' ')
+    .find((w) => !AVATAR_INITIAL_SKIP.has(w.replace(/[^a-z]/gi, '').toLowerCase()))
+  return (word || name).charAt(0).toUpperCase()
+}
 
 export default function Testimonials() {
   return (
@@ -69,12 +84,15 @@ export default function Testimonials() {
                     ))}
                   </div>
                 </div>
+                <h3 className="font-display text-lg font-semibold text-gray-900 leading-snug mb-3">
+                  &ldquo;{t.title}&rdquo;
+                </h3>
                 <p className="text-gray-600 text-[15px] leading-relaxed italic flex-1">
                   &ldquo;{t.text}&rdquo;
                 </p>
                 <div className="flex items-center gap-3 pt-5 mt-5 border-t border-gray-100">
                   <div className={cn('w-10 h-10 rounded-full bg-gradient-to-br text-white flex items-center justify-center font-bold text-sm shrink-0', avatarGradients[i % avatarGradients.length])}>
-                    {t.name === 'Student' ? 'S' : 'P'}
+                    {getAvatarInitial(t.name)}
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-gray-900">{t.name}</p>
