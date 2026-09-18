@@ -126,27 +126,25 @@ export default function Navbar({ isAuthenticated }: { isAuthenticated: boolean }
               Sign In to the Portal
             </Link>
           ) : (
-            <>
-              <Link
-                href="/login"
-                className={cn(
-                  'hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors',
-                  scrolled
-                    ? 'text-gold-700 hover:bg-gold-50'
-                    : 'text-white/80 hover:text-white hover:bg-white/10'
-                )}
-              >
-                <LogIn className="w-4 h-4" />
-                Sign In
-              </Link>
-              <Link
-                href="/apply"
-                className="hidden sm:inline-flex items-center px-4 py-2.5 rounded-xl bg-gold-500 text-blue-950 text-sm font-semibold hover:bg-gold-400 transition-colors shadow-lg shadow-gold-500/25"
-              >
-                Apply for Admission
-              </Link>
-            </>
+            <Link
+              href="/login"
+              className={cn(
+                'hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors',
+                scrolled
+                  ? 'text-gold-700 hover:bg-gold-50'
+                  : 'text-white/80 hover:text-white hover:bg-white/10'
+              )}
+            >
+              <LogIn className="w-4 h-4" />
+              Sign In
+            </Link>
           )}
+          <Link
+            href="/apply"
+            className="hidden sm:inline-flex items-center px-4 py-2.5 rounded-xl bg-gold-500 text-blue-950 text-sm font-semibold hover:bg-gold-400 transition-colors shadow-lg shadow-gold-500/25"
+          >
+            Apply for Admission
+          </Link>
 
           <button
             type="button"
@@ -183,34 +181,26 @@ export default function Navbar({ isAuthenticated }: { isAuthenticated: boolean }
               </a>
             ))}
             <div className="pt-4 mt-4 border-t border-gray-100 flex flex-col gap-2">
-              {isAuthenticated ? (
-                <Link
-                  href="/login"
-                  onClick={() => setOpen(false)}
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold"
-                >
-                  <LogIn className="w-4 h-4" />
-                  Sign In to the Portal
-                </Link>
-              ) : (
-                <>
-                  <Link
-                    href="/login"
-                    onClick={() => setOpen(false)}
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-colors"
-                  >
-                    <LogIn className="w-4 h-4" />
-                    Sign In
-                  </Link>
-                  <Link
-                    href="/apply"
-                    onClick={() => setOpen(false)}
-                    className="flex items-center justify-center px-4 py-2.5 rounded-xl bg-gold-500 text-blue-950 text-sm font-semibold"
-                  >
-                    Apply for Admission
-                  </Link>
-                </>
-              )}
+              <Link
+                href="/login"
+                onClick={() => setOpen(false)}
+                className={cn(
+                  'flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold',
+                  isAuthenticated
+                    ? 'bg-blue-600 text-white'
+                    : 'border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors'
+                )}
+              >
+                <LogIn className="w-4 h-4" />
+                {isAuthenticated ? 'Sign In to the Portal' : 'Sign In'}
+              </Link>
+              <Link
+                href="/apply"
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-center px-4 py-2.5 rounded-xl bg-gold-500 text-blue-950 text-sm font-semibold"
+              >
+                Apply for Admission
+              </Link>
             </div>
           </div>
         </div>
