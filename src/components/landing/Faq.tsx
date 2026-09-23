@@ -56,7 +56,7 @@ export default function Faq() {
                   className={cn(
                     'rounded-2xl border transition-all duration-300',
                     isOpen
-                      ? 'border-gold-300 bg-gold-50/50 shadow-sm'
+                      ? 'border-blue-200 bg-blue-50/60 shadow-sm'
                       : 'border-gray-100 bg-gray-50/50 hover:border-gray-200'
                   )}
                 >
@@ -70,7 +70,7 @@ export default function Faq() {
                     <span
                       className={cn(
                         'shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300',
-                        isOpen ? 'bg-gold-500 text-blue-950 rotate-180' : 'bg-white text-gray-400 ring-1 ring-gray-200'
+                        isOpen ? 'bg-blue-800 text-white rotate-180' : 'bg-white text-gray-400 ring-1 ring-gray-200'
                       )}
                     >
                       <ChevronDown className="w-4 h-4" />

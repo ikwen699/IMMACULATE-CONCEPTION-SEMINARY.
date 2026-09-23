@@ -40,10 +40,10 @@ const testimonials = [
 
 const avatarGradients = [
   'from-blue-500 to-blue-700',
-  'from-emerald-500 to-emerald-700',
-  'from-violet-500 to-violet-700',
-  'from-rose-500 to-rose-700',
-  'from-gold-400 to-gold-600',
+  'from-blue-600 to-blue-800',
+  'from-blue-500 to-blue-800',
+  'from-blue-600 to-blue-700',
+  'from-blue-700 to-blue-900',
 ]
 
 const AVATAR_INITIAL_SKIP = new Set(['mr', 'mrs', 'ms', 'miss', 'rev', 'fr', 'hon', 'dr', 'sir', 'madam'])
@@ -77,10 +77,10 @@ export default function Testimonials() {
             >
               <div className="bg-white rounded-2xl border border-gray-100 p-7 shadow-sm hover:shadow-lg hover:border-blue-100 transition-all duration-300 flex flex-col h-full">
                 <div className="flex items-center justify-between mb-4">
-                  <Quote className="w-7 h-7 text-gold-300" />
+                  <Quote className="w-7 h-7 text-blue-200" />
                   <div className="flex gap-0.5">
                     {Array.from({ length: 5 }).map((_, s) => (
-                      <Star key={s} className="w-3.5 h-3.5 text-gold-400 fill-gold-400" />
+                      <Star key={s} className="w-3.5 h-3.5 text-blue-400 fill-blue-400" />
                     ))}
                   </div>
                 </div>

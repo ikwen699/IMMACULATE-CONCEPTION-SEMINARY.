@@ -3,8 +3,8 @@ import { cn } from '@/lib/utils'
 
 const variants = {
   primary:
-    'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-600/25 hover:shadow-xl hover:shadow-blue-600/30',
-  gold: 'bg-gold-500 text-blue-950 hover:bg-gold-400 shadow-lg shadow-gold-500/30',
+    'bg-blue-800 text-white hover:bg-blue-900 shadow-lg shadow-blue-800/25 hover:shadow-xl hover:shadow-blue-900/30',
+  gold: 'bg-gold-cta text-white hover:bg-gold-cta-hover shadow-lg shadow-gold-800/30',
   outline:
     'ring-1 ring-white/25 text-white bg-white/10 hover:bg-white/15 backdrop-blur-md',
   ghost: 'text-white/80 hover:text-white hover:bg-white/10',

@@ -72,7 +72,7 @@ export default function Footer() {
 
   return (
     <footer id="contact" className="bg-blue-950 text-white">
-      <div className="border-t-4 border-gold-500/80" />
+      <div className="border-t-4 border-blue-700" />
 
       <div className="max-w-7xl mx-auto px-5 sm:px-8 py-16 md:py-20">
         <div className="grid lg:grid-cols-[1.2fr_1fr] gap-10 items-center mb-14 rounded-2xl bg-white/[0.04] ring-1 ring-white/[0.07] p-8 sm:p-10">
@@ -100,12 +100,12 @@ export default function Footer() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
-                className="w-full px-4 py-3 rounded-xl bg-white/[0.06] ring-1 ring-white/15 text-white placeholder-blue-200/40 outline-none transition-all focus:bg-white/[0.09] focus:ring-gold-400/60"
+                className="w-full px-4 py-3 rounded-xl bg-white/[0.06] ring-1 ring-white/15 text-white placeholder-blue-200/40 outline-none transition-all focus:bg-white/[0.09] focus:ring-blue-400/60"
               />
             </div>
             <button
               type="submit"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gold-500 text-blue-950 text-sm font-semibold hover:bg-gold-400 transition-colors shadow-lg shadow-gold-500/20"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gold-cta text-white text-sm font-semibold hover:bg-gold-cta-hover transition-colors shadow-lg shadow-gold-800/20"
             >
               {subscribed ? (
                 <>
@@ -134,7 +134,7 @@ export default function Footer() {
                 <p className="font-display font-semibold text-white text-sm tracking-wide">
                   Immaculate Conception
                 </p>
-                <p className="text-[10px] font-bold text-gold-300 tracking-[0.2em] uppercase">
+                <p className="text-[10px] font-bold text-blue-300 tracking-[0.2em] uppercase">
                   Seminary
                 </p>
               </div>
@@ -150,7 +150,7 @@ export default function Footer() {
                   key={s.name}
                   href={s.url}
                   aria-label={s.name}
-                  className="w-9 h-9 rounded-xl bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center text-blue-200/70 hover:text-gold-300 hover:ring-gold-400/40 hover:bg-white/[0.1] transition-all duration-200"
+                  className="w-9 h-9 rounded-xl bg-white/[0.06] ring-1 ring-white/10 flex items-center justify-center text-blue-200/70 hover:text-blue-300 hover:ring-blue-400/40 hover:bg-white/[0.1] transition-all duration-200"
                 >
                   {s.icon}
                 </a>
@@ -196,7 +196,7 @@ export default function Footer() {
             <h4 className="font-bold text-white mb-5 text-sm uppercase tracking-wider">Contact Us</h4>
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
-                <MapPin className="w-4 h-4 text-gold-300 mt-0.5 shrink-0" />
+                <MapPin className="w-4 h-4 text-blue-300 mt-0.5 shrink-0" />
                 <span className="text-sm text-blue-200/60 leading-relaxed">
                   Mafamosing, Akampka Local Government Area,
                   <br />
@@ -204,13 +204,13 @@ export default function Footer() {
                 </span>
               </li>
               <li className="flex items-center gap-3">
-                <Phone className="w-4 h-4 text-gold-300 shrink-0" />
+                <Phone className="w-4 h-4 text-blue-300 shrink-0" />
                 <a href={site.phoneHref} className="text-sm text-blue-200/60 hover:text-white transition-colors py-1.5 inline-flex items-center">
                   {site.phone}
                 </a>
               </li>
               <li className="flex items-center gap-3">
-                <Mail className="w-4 h-4 text-gold-300 shrink-0" />
+                <Mail className="w-4 h-4 text-blue-300 shrink-0" />
                 <a href={site.emailHref} className="text-sm text-blue-200/60 hover:text-white transition-colors break-all py-1.5 inline-flex items-start">
                   {site.email}
                 </a>
@@ -225,7 +225,7 @@ export default function Footer() {
           </p>
           <a
             href="#"
-            className="inline-flex items-center gap-2 text-xs font-medium text-blue-200/50 hover:text-gold-300 transition-colors py-1.5"
+            className="inline-flex items-center gap-2 text-xs font-medium text-blue-200/50 hover:text-blue-300 transition-colors py-1.5"
           >
             <ArrowUp className="w-3.5 h-3.5" />
             Back to top

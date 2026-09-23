@@ -38,9 +38,9 @@ const tabs = [
     short: 'Science',
     sublabel: 'SS 1 – 3',
     icon: <FlaskConical className="w-4 h-4" />,
-    color: 'bg-emerald-600',
-    badgeColor: 'bg-emerald-100 text-emerald-700',
-    dotColor: 'bg-emerald-400',
+    color: 'bg-blue-800',
+    badgeColor: 'bg-blue-50 text-blue-700',
+    dotColor: 'bg-blue-500',
     description: 'A rigorous science-track programme equipping students with deep knowledge in STEM disciplines for university placement and future careers.',
     subjects: [
       'Mathematics',
@@ -60,9 +60,9 @@ const tabs = [
     short: 'Arts',
     sublabel: 'SS 1 – 3',
     icon: <Globe2 className="w-4 h-4" />,
-    color: 'bg-amber-600',
-    badgeColor: 'bg-amber-100 text-amber-700',
-    dotColor: 'bg-amber-400',
+    color: 'bg-blue-700',
+    badgeColor: 'bg-blue-100 text-blue-800',
+    dotColor: 'bg-blue-600',
     description: 'An enriching arts-track programme fostering critical thinking through literature, social sciences, and creative disciplines.',
     subjects: [
       'Literature in English',
@@ -124,7 +124,7 @@ export default function Academics() {
                   className={cn(
                     'relative flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200',
                     active === i
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/25'
+                      ? 'bg-blue-800 text-white shadow-md shadow-blue-800/25'
                       : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'
                   )}
                 >

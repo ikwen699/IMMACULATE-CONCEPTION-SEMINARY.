@@ -10,28 +10,28 @@ const activities = [
     title: 'Spiritual Life',
     description: 'Daily prayers, mass, and retreats that deepen faith and character in every student.',
     color: 'bg-blue-100 text-blue-700',
-    bg: 'bg-gradient-to-br from-blue-900 to-blue-800',
+    bg: 'bg-gradient-to-br from-blue-950 to-blue-900',
   },
   {
     icon: <Trophy className="w-5 h-5" />,
     title: 'Sports & Athletics',
     description: 'Football, athletics, and inter-house competitions that build teamwork and resilience.',
-    color: 'bg-emerald-100 text-emerald-700',
-    bg: 'bg-gradient-to-br from-emerald-900 to-emerald-800',
+    color: 'bg-blue-100 text-blue-700',
+    bg: 'bg-gradient-to-br from-blue-900 to-blue-800',
   },
   {
     icon: <Users className="w-5 h-5" />,
     title: 'Clubs & Societies',
     description: 'Debate, science, literary, and cultural clubs that spark curiosity and leadership.',
-    color: 'bg-violet-100 text-violet-700',
-    bg: 'bg-gradient-to-br from-violet-900 to-violet-800',
+    color: 'bg-blue-100 text-blue-800',
+    bg: 'bg-gradient-to-br from-blue-800 to-blue-700',
   },
   {
     icon: <Home className="w-5 h-5" />,
     title: 'Boarding Life',
     description: 'A structured Catholic boarding experience that fosters independence and strong bonds.',
-    color: 'bg-amber-100 text-amber-700',
-    bg: 'bg-gradient-to-br from-amber-900 to-amber-800',
+    color: 'bg-blue-100 text-blue-700',
+    bg: 'bg-gradient-to-br from-blue-950 to-blue-900',
   },
 ]
 
@@ -64,7 +64,7 @@ export default function CampusLife() {
 
         <Reveal>
           <div className="flex items-center gap-3 mb-8">
-            <span className="inline-flex items-center gap-2 text-[11px] font-bold text-gold-700 bg-gold-50 px-4 py-1.5 rounded-full ring-1 ring-gold-200 uppercase">
+            <span className="inline-flex items-center gap-2 text-[11px] font-bold text-blue-700 bg-blue-50 px-4 py-1.5 rounded-full ring-1 ring-blue-200 uppercase">
               <Images className="w-3.5 h-3.5" />
               A Glimpse of Our Seminary
             </span>
@@ -84,7 +84,7 @@ export default function CampusLife() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-blue-950/70 via-transparent to-transparent" />
               <div className="absolute bottom-0 p-6">
-                <span className="text-[10px] font-bold text-gold-300 uppercase tracking-widest">Est. 1972</span>
+                <span className="text-[10px] font-bold text-blue-100 uppercase tracking-widest">Est. 1972</span>
                 <p className="text-white font-semibold mt-1">The seminary grounds</p>
               </div>
             </div>
@@ -107,7 +107,7 @@ export default function CampusLife() {
           </Reveal>
 
           <Reveal delay={200}>
-            <div className="relative h-full min-h-[200px] rounded-3xl overflow-hidden bg-gradient-to-br from-blue-50 to-gold-50 border border-dashed border-gray-200 flex items-center justify-center group">
+            <div className="relative h-full min-h-[200px] rounded-3xl overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100/50 border border-dashed border-gray-200 flex items-center justify-center group">
               <div className="text-center px-6">
                 <div className="w-12 h-12 rounded-2xl bg-white ring-1 ring-gray-200 flex items-center justify-center mx-auto mb-4 shadow-sm">
                   <Plus className="w-5 h-5 text-gray-400" />

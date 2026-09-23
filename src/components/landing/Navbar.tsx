@@ -56,7 +56,7 @@ export default function Navbar({ isAuthenticated }: { isAuthenticated: boolean }
           : 'bg-transparent'
       )}
     >
-      <div className="absolute top-0 left-0 h-[2px] bg-gold-400 transition-all duration-150" style={{ width: `${progress}%` }} />
+      <div className="absolute top-0 left-0 h-[2px] bg-blue-400 transition-all duration-150" style={{ width: `${progress}%` }} />
 
       <nav className="max-w-7xl mx-auto flex items-center justify-between px-5 sm:px-8 h-16 md:h-[72px]">
         <Link href="/" className="flex items-center gap-2.5 shrink-0">
@@ -77,7 +77,7 @@ export default function Navbar({ isAuthenticated }: { isAuthenticated: boolean }
             <span
               className={cn(
                 'text-[9px] font-bold tracking-[0.2em] uppercase transition-colors',
-                scrolled ? 'text-gold-600' : 'text-gold-300'
+                scrolled ? 'text-blue-600' : 'text-blue-300'
               )}
             >
               Seminary
@@ -96,17 +96,17 @@ export default function Navbar({ isAuthenticated }: { isAuthenticated: boolean }
                     'relative px-3 py-2 text-sm font-medium transition-colors',
                     scrolled
                       ? isActive
-                        ? 'text-gold-700'
+                        ? 'text-blue-700'
                         : 'text-gray-500 hover:text-gray-900'
                       : isActive
-                        ? 'text-gold-300'
+                        ? 'text-blue-300'
                         : 'text-white/70 hover:text-white'
                   )}
                 >
                   {l.label}
                   <span
                     className={cn(
-                      'absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-0.5 rounded-full bg-gold-400 transition-all duration-300',
+                      'absolute -bottom-0.5 left-1/2 -translate-x-1/2 h-0.5 rounded-full bg-blue-500 transition-all duration-300',
                       isActive ? 'w-full opacity-100' : 'w-0 opacity-0'
                     )}
                   />
@@ -120,7 +120,7 @@ export default function Navbar({ isAuthenticated }: { isAuthenticated: boolean }
           {isAuthenticated ? (
             <Link
               href="/login"
-              className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/25"
+              className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-800 text-white text-sm font-semibold hover:bg-blue-900 transition-colors shadow-lg shadow-blue-800/25"
             >
               <LogIn className="w-4 h-4" />
               Sign In to the Portal
@@ -131,7 +131,7 @@ export default function Navbar({ isAuthenticated }: { isAuthenticated: boolean }
               className={cn(
                 'hidden sm:inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors',
                 scrolled
-                  ? 'text-gold-700 hover:bg-gold-50'
+                  ? 'text-blue-700 hover:bg-blue-50'
                   : 'text-white/80 hover:text-white hover:bg-white/10'
               )}
             >
@@ -141,7 +141,7 @@ export default function Navbar({ isAuthenticated }: { isAuthenticated: boolean }
           )}
           <Link
             href="/apply"
-            className="hidden sm:inline-flex items-center px-4 py-2.5 rounded-xl bg-gold-500 text-blue-950 text-sm font-semibold hover:bg-gold-400 transition-colors shadow-lg shadow-gold-500/25"
+            className="hidden sm:inline-flex items-center px-4 py-2.5 rounded-xl bg-gold-cta text-white text-sm font-semibold hover:bg-gold-cta-hover transition-colors shadow-lg shadow-gold-800/25"
           >
             Apply for Admission
           </Link>
@@ -173,7 +173,7 @@ export default function Navbar({ isAuthenticated }: { isAuthenticated: boolean }
                 className={cn(
                   'block px-4 py-2.5 rounded-xl text-sm font-medium transition-colors',
                   active === l.id
-                    ? 'text-gold-700 bg-gold-50'
+                    ? 'text-blue-700 bg-blue-50'
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 )}
               >
@@ -187,7 +187,7 @@ export default function Navbar({ isAuthenticated }: { isAuthenticated: boolean }
                 className={cn(
                   'flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold',
                   isAuthenticated
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-blue-800 text-white'
                     : 'border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors'
                 )}
               >
@@ -197,7 +197,7 @@ export default function Navbar({ isAuthenticated }: { isAuthenticated: boolean }
               <Link
                 href="/apply"
                 onClick={() => setOpen(false)}
-                className="flex items-center justify-center px-4 py-2.5 rounded-xl bg-gold-500 text-blue-950 text-sm font-semibold"
+                className="flex items-center justify-center px-4 py-2.5 rounded-xl bg-gold-cta text-white text-sm font-semibold"
               >
                 Apply for Admission
               </Link>

@@ -22,6 +22,9 @@
   --color-gold-700: #856326;
   --color-gold-800: #6c5023;
   --color-gold-900: #5c4420;
+
+  --color-gold-cta: #8a6520;
+  --color-gold-cta-hover: #9c7330;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -43,7 +46,7 @@ html {
 
 @layer base {
   :focus-visible {
-    outline: 2px solid #c19a36;
+    outline: 2px solid #1e40af;
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -69,8 +72,8 @@ body {
 }
 
 ::selection {
-  background: #d0ab4a;
-  color: #1e1b0e;
+  background: #1e40af;
+  color: #ffffff;
 }
 
 ::-webkit-scrollbar {
@@ -80,7 +83,7 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #d4d4d8;
+  background: #cbd5e1;
   border-radius: 99px;
 }
 

@@ -21,8 +21,8 @@ export default function SectionHeading({
         className={cn(
           'inline-block text-[11px] font-bold tracking-widest uppercase px-4 py-1.5 rounded-full mb-5',
           dark
-            ? 'text-gold-300 bg-gold-400/10 ring-1 ring-gold-400/20'
-            : 'text-gold-700 bg-gold-50 ring-1 ring-gold-200'
+            ? 'text-blue-300 bg-blue-400/10 ring-1 ring-blue-400/20'
+            : 'text-blue-700 bg-blue-50 ring-1 ring-blue-200'
         )}
       >
         {eyebrow}

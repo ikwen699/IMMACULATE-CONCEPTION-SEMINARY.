@@ -28,7 +28,7 @@ export default function Hero({ isAuthenticated }: { isAuthenticated: boolean }) 
     <section className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-blue-950 via-blue-900 to-blue-800">
       <div className="absolute -top-32 -left-32 w-[28rem] h-[28rem] bg-blue-500/15 rounded-full blur-[100px]" />
       <div className="absolute bottom-0 right-0 w-[24rem] h-[24rem] bg-sky-400/15 rounded-full blur-[100px]" />
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] bg-gold-400/8 rounded-full blur-[120px]" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[32rem] h-[32rem] bg-blue-400/10 rounded-full blur-[120px]" />
       <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-[size:48px_48px]" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(0,0,0,0.3)_100%)]" />
 
@@ -36,7 +36,7 @@ export default function Hero({ isAuthenticated }: { isAuthenticated: boolean }) 
         <div className="grid lg:grid-cols-[1.05fr_0.95fr] gap-14 lg:gap-10 items-center">
           <div className="text-center lg:text-left">
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 mb-6">
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-gold-300 bg-gold-400/10 px-3.5 py-1.5 rounded-full ring-1 ring-gold-400/20 uppercase">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-blue-300 bg-blue-500/10 px-3.5 py-1.5 rounded-full ring-1 ring-blue-400/20 uppercase">
                 Est. {site.established}
               </span>
               <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-blue-100 bg-white/10 px-3.5 py-1.5 rounded-full ring-1 ring-white/15 uppercase">
@@ -48,12 +48,12 @@ export default function Hero({ isAuthenticated }: { isAuthenticated: boolean }) 
               Immaculate
               <br />
               Conception
-              <span className="block text-sm sm:text-base font-bold text-gold-300 tracking-[0.3em] mt-3 uppercase">
+              <span className="block text-sm sm:text-base font-bold text-blue-300 tracking-[0.3em] mt-3 uppercase">
                 Seminary
               </span>
             </h1>
 
-            <div className="w-16 h-px bg-gold-400 mx-auto lg:mx-0 mb-5" />
+            <div className="w-16 h-px bg-blue-400 mx-auto lg:mx-0 mb-5" />
 
             <p className="font-display italic text-blue-100/80 text-lg mb-1">
               {site.motto}
@@ -154,8 +154,8 @@ export default function Hero({ isAuthenticated }: { isAuthenticated: boolean }) 
                   <div className="flex gap-3">
                     <div className="flex-1 bg-white/[0.05] rounded-xl px-3.5 py-2.5 ring-1 ring-white/[0.08]">
                       <div className="flex items-center gap-1.5 mb-1">
-                        <TrendingUp className="w-3 h-3 text-gold-400" />
-                        <span className="text-[10px] font-bold text-gold-300 uppercase tracking-wide">GPA</span>
+                        <TrendingUp className="w-3 h-3 text-blue-300" />
+                        <span className="text-[10px] font-bold text-blue-200 uppercase tracking-wide">GPA</span>
                       </div>
                       <p className="text-xl font-bold text-white">4.2</p>
                     </div>
@@ -180,7 +180,7 @@ export default function Hero({ isAuthenticated }: { isAuthenticated: boolean }) 
                             className="w-full rounded-t-sm transition-all"
                             style={{
                               height: `${h}%`,
-                              background: i === 4 ? 'linear-gradient(to top, #d0ab4a, #c19a36)' : 'linear-gradient(to top, rgba(255,255,255,0.15), rgba(255,255,255,0.05))',
+                              background: i === 4 ? 'linear-gradient(to top, #1e40af, #3b82f6)' : 'linear-gradient(to top, rgba(255,255,255,0.15), rgba(255,255,255,0.05))',
                             }}
                           />
                           <span className="text-[8px] text-white/30 font-medium">
@@ -195,7 +195,7 @@ export default function Hero({ isAuthenticated }: { isAuthenticated: boolean }) 
                     {[
                       { subject: 'English Language', score: 92, color: 'bg-emerald-400' },
                       { subject: 'Mathematics', score: 78, color: 'bg-blue-400' },
-                      { subject: 'Physics', score: 85, color: 'bg-gold-400' },
+                      { subject: 'Physics', score: 85, color: 'bg-blue-500' },
                     ].map((g) => (
                       <div key={g.subject} className="flex items-center gap-3">
                         <div className="w-6 h-6 rounded-lg bg-white/[0.06] flex items-center justify-center shrink-0">

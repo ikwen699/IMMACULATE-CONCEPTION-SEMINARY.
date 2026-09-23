@@ -53,7 +53,7 @@ export default function StatCounter({
   return (
     <div ref={ref} className={cn('text-center', className)}>
       {icon && (
-        <div className="flex items-center justify-center w-10 h-10 mx-auto mb-2 rounded-xl bg-white/10 ring-1 ring-white/20 text-gold-300">
+        <div className="flex items-center justify-center w-10 h-10 mx-auto mb-2 rounded-xl bg-white/10 ring-1 ring-white/20 text-blue-300">
           {icon}
         </div>
       )}
