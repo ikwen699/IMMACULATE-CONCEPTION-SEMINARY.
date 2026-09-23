@@ -141,7 +141,7 @@ export default function Navbar({ isAuthenticated }: { isAuthenticated: boolean }
           )}
           <Link
             href="/apply"
-            className="hidden sm:inline-flex items-center px-4 py-2.5 rounded-xl bg-gold-cta text-white text-sm font-semibold hover:bg-gold-cta-hover transition-colors shadow-lg shadow-gold-800/25"
+            className="hidden sm:inline-flex items-center px-4 py-2.5 rounded-xl bg-gold-cta text-black text-sm font-semibold hover:bg-gold-cta-hover transition-colors shadow-lg shadow-black/30"
           >
             Apply for Admission
           </Link>
@@ -197,7 +197,7 @@ export default function Navbar({ isAuthenticated }: { isAuthenticated: boolean }
               <Link
                 href="/apply"
                 onClick={() => setOpen(false)}
-                className="flex items-center justify-center px-4 py-2.5 rounded-xl bg-gold-cta text-white text-sm font-semibold"
+                className="flex items-center justify-center px-4 py-2.5 rounded-xl bg-gold-cta text-black text-sm font-semibold"
               >
                 Apply for Admission
               </Link>

@@ -72,7 +72,7 @@ export default function CtaBand() {
               href="/apply"
               variant="gold"
               size="lg"
-              className="w-full sm:w-auto shadow-xl shadow-gold-800/30"
+              className="w-full sm:w-auto shadow-xl shadow-black/40"
             >
               Start Your Application
               <ArrowRight className="w-5 h-5" />

@@ -105,7 +105,7 @@ export default function Footer() {
             </div>
             <button
               type="submit"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gold-cta text-white text-sm font-semibold hover:bg-gold-cta-hover transition-colors shadow-lg shadow-gold-800/20"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gold-cta text-black text-sm font-semibold hover:bg-gold-cta-hover transition-colors shadow-lg shadow-black/30"
             >
               {subscribed ? (
                 <>
