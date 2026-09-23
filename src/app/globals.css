@@ -23,8 +23,8 @@
   --color-gold-800: #6c5023;
   --color-gold-900: #5c4420;
 
-  --color-gold-cta: #f8f118;
-  --color-gold-cta-hover: #fdf73d;
+  --color-gold-cta: #fdf2a9;
+  --color-gold-cta-hover: #fff7c6;
 }
 
 @media (prefers-color-scheme: dark) {
